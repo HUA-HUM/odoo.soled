@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_publisher_job_tree" model="ir.ui.view">
+        <field name="name">publisher.job.tree</field>
+        <field name="model">publisher.job</field>
+        <field name="arch" type="xml">
+            <tree string="Procesos de publicacion" create="false" decoration-success="status == 'done'" decoration-danger="status == 'error'" decoration-info="status == 'processing'">
+                <field name="name"/>
+                <field name="status" widget="badge"/>
+                <field name="retailer_targets"/>
+                <field name="progress" widget="progressbar"/>
+                <field name="total_items"/>
+                <field name="done_items"/>
+                <field name="error_items"/>
+                <field name="backend_job_id"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_publisher_job_form" model="ir.ui.view">
+        <field name="name">publisher.job.form</field>
+        <field name="model">publisher.job</field>
+        <field name="arch" type="xml">
+            <form string="Proceso de publicacion" create="false">
+                <header>
+                    <button name="action_refresh_progress" string="Actualizar progreso" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="status" readonly="1"/>
+                            <field name="retailer_targets" readonly="1"/>
+                            <field name="progress" readonly="1" widget="progressbar"/>
+                            <field name="backend_job_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_items" readonly="1"/>
+                            <field name="done_items" readonly="1"/>
+                            <field name="error_items" readonly="1"/>
+                            <field name="message" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lineas">
+                            <field name="line_ids" readonly="1">
+                                <tree decoration-success="status == 'published'" decoration-danger="status == 'error'" decoration-info="status == 'processing'">
+                                    <field name="sku"/>
+                                    <field name="retailer"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="backend_reference"/>
+                                    <field name="message"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_publisher_job" model="ir.actions.act_window">
+        <field name="name">Procesos</field>
+        <field name="res_model">publisher.job</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

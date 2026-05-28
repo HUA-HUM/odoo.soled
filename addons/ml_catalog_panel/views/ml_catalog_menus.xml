@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_ml_catalog_root" name="MercadoLibre" sequence="40"/>
+    <menuitem id="menu_ml_catalog_operation" name="Operacion" parent="menu_ml_catalog_root" sequence="10"/>
+    <menuitem id="menu_ml_catalog_products" name="Catalogo" parent="menu_ml_catalog_operation" action="action_ml_product" sequence="10"/>
+    <menuitem id="menu_ml_catalog_sales" name="Ventas" parent="menu_ml_catalog_operation" action="action_ml_product" sequence="20"/>
+    <menuitem id="menu_ml_catalog_messages" name="Conversaciones" parent="menu_ml_catalog_operation" action="action_ml_product" sequence="30"/>
+    <menuitem id="menu_ml_catalog_billing" name="Facturacion" parent="menu_ml_catalog_operation" action="action_ml_product" sequence="40"/>
+    <menuitem id="menu_ml_catalog_settings" name="Configuracion" parent="menu_ml_catalog_root" sequence="90"/>
+    <menuitem id="menu_ml_catalog_account" name="Cuenta" parent="menu_ml_catalog_settings" action="action_ml_account" sequence="10"/>
+</odoo>

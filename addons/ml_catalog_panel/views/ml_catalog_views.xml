@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_ml_product_tree" model="ir.ui.view">
+        <field name="name">ml.product.tree</field>
+        <field name="model">ml.product</field>
+        <field name="arch" type="xml">
+            <tree string="Catalogo MercadoLibre" create="false" decoration-danger="available_quantity == 0" decoration-warning="available_quantity &lt;= 2 and available_quantity &gt; 0" decoration-muted="status != 'active'">
+                <field name="permalink" invisible="1"/>
+                <button name="action_open_permalink" string="Abrir" type="object" icon="fa-external-link" attrs="{'invisible': [('permalink', '=', False)]}"/>
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="status" widget="badge"/>
+                <field name="price"/>
+                <field name="available_quantity"/>
+                <field name="sold_quantity"/>
+                <field name="brand"/>
+                <field name="category_name"/>
+                <field name="logistic_type" widget="badge"/>
+                <field name="free_shipping"/>
+                <field name="meli_item_id" optional="hide"/>
+                <field name="seller_id" optional="hide"/>
+                <field name="condition_type" optional="hide"/>
+                <field name="model" optional="hide"/>
+                <field name="thumbnail" widget="url" optional="hide"/>
+                <field name="last_seen_at" optional="hide"/>
+                <field name="updated_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ml_product_form" model="ir.ui.view">
+        <field name="name">ml.product.form</field>
+        <field name="model">ml.product</field>
+        <field name="arch" type="xml">
+            <form string="Producto MercadoLibre" create="false">
+                <header>
+                    <button name="action_open_permalink" string="Abrir publicacion" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="title"/>
+                        <h1>
+                            <field name="title" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identificacion">
+                            <field name="ml_internal_id" readonly="1"/>
+                            <field name="meli_item_id" readonly="1"/>
+                            <field name="seller_id" readonly="1"/>
+                            <field name="sku" readonly="1"/>
+                            <field name="permalink" readonly="1"/>
+                        </group>
+                        <group string="Estado">
+                            <field name="status" readonly="1"/>
+                            <field name="condition_type" readonly="1"/>
+                            <field name="listing_type_id" readonly="1"/>
+                            <field name="buying_mode" readonly="1"/>
+                            <field name="catalog_listing" readonly="1"/>
+                            <field name="has_variations" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Precios y stock">
+                            <field name="price" readonly="1"/>
+                            <field name="base_price" readonly="1"/>
+                            <field name="original_price" readonly="1"/>
+                            <field name="available_quantity" readonly="1"/>
+                            <field name="sold_quantity" readonly="1"/>
+                        </group>
+                        <group string="Catalogo">
+                            <field name="category_id" readonly="1"/>
+                            <field name="category_name" readonly="1"/>
+                            <field name="category_path" readonly="1"/>
+                            <field name="domain_id" readonly="1"/>
+                            <field name="brand" readonly="1"/>
+                            <field name="model" readonly="1"/>
+                            <field name="gtin" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Envio">
+                            <field name="logistic_type" readonly="1"/>
+                            <field name="shipping_mode" readonly="1"/>
+                            <field name="free_shipping" readonly="1"/>
+                            <field name="local_pick_up" readonly="1"/>
+                        </group>
+                        <group string="Fechas">
+                            <field name="last_webhook_at" readonly="1"/>
+                            <field name="last_seen_at" readonly="1"/>
+                            <field name="created_at" readonly="1"/>
+                            <field name="updated_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Descripcion">
+                            <field name="description" readonly="1"/>
+                        </page>
+                        <page string="Imagen">
+                            <group>
+                                <field name="thumbnail" readonly="1" widget="url"/>
+                            </group>
+                        </page>
+                        <page string="Atributos JSON">
+                            <field name="attributes_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Imagenes JSON">
+                            <field name="pictures_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload JSON">
+                            <field name="payload_json" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_ml_product_search" model="ir.ui.view">
+        <field name="name">ml.product.search</field>
+        <field name="model">ml.product</field>
+        <field name="arch" type="xml">
+            <search string="Buscar productos MercadoLibre">
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="meli_item_id"/>
+                <field name="brand"/>
+                <field name="category_name"/>
+                <field name="status"/>
+                <filter name="active" string="Activos" domain="[('status', '=', 'active')]"/>
+                <filter name="paused" string="Pausados" domain="[('status', '=', 'paused')]"/>
+                <filter name="with_stock" string="Con stock" domain="[('available_quantity', '&gt;', 0)]"/>
+                <filter name="low_stock" string="Stock bajo" domain="[('available_quantity', '&gt;', 0), ('available_quantity', '&lt;=', 2)]"/>
+                <filter name="without_stock" string="Sin stock" domain="[('available_quantity', '=', 0)]"/>
+                <filter name="free_shipping" string="Envio gratis" domain="[('free_shipping', '=', True)]"/>
+                <filter name="fulfillment" string="Fulfillment" domain="[('logistic_type', '=', 'fulfillment')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
+                    <filter name="group_brand" string="Marca" context="{'group_by': 'brand'}"/>
+                    <filter name="group_category" string="Categoria" context="{'group_by': 'category_name'}"/>
+                    <filter name="group_logistic" string="Logistica" context="{'group_by': 'logistic_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_ml_product" model="ir.actions.act_window">
+        <field name="name">Catalogo</field>
+        <field name="res_model">ml.product</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ml_product_search"/>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="action_sync_ml_products" model="ir.actions.server">
+        <field name="name">Sincronizar productos ML</field>
+        <field name="model_id" ref="model_ml_product"/>
+        <field name="binding_model_id" ref="model_ml_product"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_products()</field>
+    </record>
+</odoo>

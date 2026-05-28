@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Retailers">
+  <rect width="120" height="120" rx="24" fill="#17303f"/>
+  <circle cx="45" cy="60" r="26" fill="#ffad72"/>
+  <circle cx="64" cy="60" r="26" fill="#f65359"/>
+  <path fill="#ffffff" d="M32 82h56v8H32zM35 33h50l7 20H28l7-20zm1 24h12v18H36V57zm18 0h12v18H54V57zm18 0h12v18H72V57z"/>
+</svg>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_publisher_sku_tree" model="ir.ui.view">
+        <field name="name">publisher.sku.tree</field>
+        <field name="model">publisher.sku</field>
+        <field name="arch" type="xml">
+            <tree string="SKUs para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
+                <field name="ready_to_publish" invisible="1"/>
+                <button name="action_open_ml_product" string="ML" type="object" icon="fa-external-link"/>
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="ml_status" widget="badge"/>
+                <field name="ml_price"/>
+                <field name="ml_stock"/>
+                <field name="brand"/>
+                <field name="category_name"/>
+                <field name="published_oncity"/>
+                <field name="published_fravega"/>
+                <field name="publish_status" widget="badge"/>
+                <field name="meli_item_id" optional="hide"/>
+                <field name="last_checked_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_publisher_sku_form" model="ir.ui.view">
+        <field name="name">publisher.sku.form</field>
+        <field name="model">publisher.sku</field>
+        <field name="arch" type="xml">
+            <form string="SKU publicador" create="false">
+                <header>
+                    <button name="action_publish_oncity" string="Publicar OnCity" type="object" class="btn-primary" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
+                    <button name="action_publish_fravega" string="Publicar Fravega" type="object" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
+                    <button name="action_publish_both" string="Publicar ambos" type="object" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
+                    <button name="action_open_ml_product" string="Ver producto ML" type="object"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="sku"/>
+                        <h1>
+                            <field name="sku" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="MercadoLibre">
+                            <field name="title" readonly="1"/>
+                            <field name="meli_item_id" readonly="1"/>
+                            <field name="ml_status" readonly="1"/>
+                            <field name="ml_price" readonly="1"/>
+                            <field name="ml_stock" readonly="1"/>
+                            <field name="brand" readonly="1"/>
+                            <field name="category_name" readonly="1"/>
+                            <field name="ml_permalink" readonly="1" widget="url"/>
+                        </group>
+                        <group string="Retailers">
+                            <field name="published_oncity" readonly="1"/>
+                            <field name="oncity_product_id" readonly="1"/>
+                            <field name="published_fravega" readonly="1"/>
+                            <field name="ready_to_publish" readonly="1"/>
+                            <field name="publish_status" readonly="1"/>
+                            <field name="last_checked_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Imagen">
+                            <field name="thumbnail" readonly="1" widget="url"/>
+                        </page>
+                        <page string="Payload MercadoLibre">
+                            <field name="payload_json" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_publisher_sku_search" model="ir.ui.view">
+        <field name="name">publisher.sku.search</field>
+        <field name="model">publisher.sku</field>
+        <field name="arch" type="xml">
+            <search string="Buscar SKUs">
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="brand"/>
+                <field name="category_name"/>
+                <field name="meli_item_id"/>
+                <filter name="ready" string="Listos" domain="[('ready_to_publish', '=', True)]"/>
+                <filter name="pending_oncity" string="No publicado OnCity" domain="[('published_oncity', '=', False)]"/>
+                <filter name="pending_fravega" string="No publicado Fravega" domain="[('published_fravega', '=', False)]"/>
+                <filter name="pending_any" string="No publicado en algun retailer" domain="['|', ('published_oncity', '=', False), ('published_fravega', '=', False)]"/>
+                <filter name="with_stock" string="Con stock ML" domain="[('ml_stock', '&gt;', 0)]"/>
+                <filter name="no_stock" string="Sin stock" domain="[('publish_status', '=', 'no_stock')]"/>
+                <filter name="active_ml" string="Activos ML" domain="[('ml_status', '=', 'active')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_status" string="Estado publicador" context="{'group_by': 'publish_status'}"/>
+                    <filter name="group_brand" string="Marca" context="{'group_by': 'brand'}"/>
+                    <filter name="group_category" string="Categoria" context="{'group_by': 'category_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_publisher_sku" model="ir.actions.act_window">
+        <field name="name">SKUs</field>
+        <field name="res_model">publisher.sku</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_publisher_sku_search"/>
+        <field name="context">{'search_default_ready': 1}</field>
+    </record>
+
+    <record id="action_refresh_publisher_skus" model="ir.actions.server">
+        <field name="name">Actualizar candidatos</field>
+        <field name="model_id" ref="model_publisher_sku"/>
+        <field name="binding_model_id" ref="model_publisher_sku"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_refresh_candidates()</field>
+    </record>
+
+    <record id="action_publish_oncity" model="ir.actions.server">
+        <field name="name">Publicar en OnCity</field>
+        <field name="model_id" ref="model_publisher_sku"/>
+        <field name="binding_model_id" ref="model_publisher_sku"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_publish_oncity()</field>
+    </record>
+
+    <record id="action_publish_fravega" model="ir.actions.server">
+        <field name="name">Publicar en Fravega</field>
+        <field name="model_id" ref="model_publisher_sku"/>
+        <field name="binding_model_id" ref="model_publisher_sku"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_publish_fravega()</field>
+    </record>
+
+    <record id="action_publish_both" model="ir.actions.server">
+        <field name="name">Publicar en ambos</field>
+        <field name="model_id" ref="model_publisher_sku"/>
+        <field name="binding_model_id" ref="model_publisher_sku"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_publish_both()</field>
+    </record>
+</odoo>

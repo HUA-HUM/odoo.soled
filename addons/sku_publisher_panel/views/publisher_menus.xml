@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_publisher_root" name="Publicador" action="action_publisher_sku" sequence="50"/>
+    <menuitem id="menu_publisher_dashboard" name="Dashboard" parent="menu_publisher_root" action="action_publisher_dashboard" sequence="10"/>
+    <menuitem id="menu_publisher_work" name="Trabajo" parent="menu_publisher_root" sequence="20"/>
+    <menuitem id="menu_publisher_skus" name="SKUs candidatos" parent="menu_publisher_work" action="action_publisher_sku" sequence="10"/>
+    <menuitem id="menu_publisher_ready" name="Listos para publicar" parent="menu_publisher_work" action="action_publisher_sku" sequence="20"/>
+    <menuitem id="menu_publisher_pending_oncity" name="Pendientes OnCity" parent="menu_publisher_work" action="action_publisher_sku" sequence="30"/>
+    <menuitem id="menu_publisher_tracking" name="Seguimiento" parent="menu_publisher_root" sequence="30"/>
+    <menuitem id="menu_publisher_jobs" name="Procesos" parent="menu_publisher_tracking" action="action_publisher_job" sequence="10"/>
+</odoo>

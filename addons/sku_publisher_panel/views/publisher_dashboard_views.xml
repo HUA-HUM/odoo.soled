@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_publisher_dashboard_form" model="ir.ui.view">
+        <field name="name">publisher.dashboard.form</field>
+        <field name="model">publisher.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Publicador" create="false" edit="false">
+                <sheet class="o_publisher_dashboard_sheet">
+                    <div class="o_publisher_dashboard">
+                        <section class="o_publisher_hero">
+                            <div>
+                                <span class="o_publisher_eyebrow">Publicador SOLED</span>
+                                <h1>SKUs MercadoLibre hacia retailers</h1>
+                                <p>Visualiza productos de MercadoLibre que todavia no estan publicados en OnCity o Fravega y prepara procesos de publicacion.</p>
+                            </div>
+                            <button name="action_refresh_candidates" type="object" class="btn btn-primary o_publisher_refresh_button">
+                                <i class="fa fa-refresh"/>
+                                Actualizar candidatos
+                            </button>
+                        </section>
+                        <section class="o_publisher_kpis">
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi">
+                                <span>Total</span>
+                                <strong><field name="total_candidates"/></strong>
+                            </button>
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi o_publisher_kpi_ready">
+                                <span>Listos</span>
+                                <strong><field name="ready_count"/></strong>
+                            </button>
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi">
+                                <span>Pendientes OnCity</span>
+                                <strong><field name="pending_oncity_count"/></strong>
+                            </button>
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi">
+                                <span>Pendientes Fravega</span>
+                                <strong><field name="pending_fravega_count"/></strong>
+                            </button>
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi">
+                                <span>Sin stock</span>
+                                <strong><field name="no_stock_count"/></strong>
+                            </button>
+                            <button name="action_open_candidates" type="object" class="o_publisher_kpi o_publisher_kpi_error">
+                                <span>Jobs con error</span>
+                                <strong><field name="error_jobs_count"/></strong>
+                            </button>
+                        </section>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_publisher_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">publisher.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

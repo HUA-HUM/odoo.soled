@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sku_publisher_panel.ListView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('o_list_buttons')]" position="inside">
+            <button t-if="props.resModel === 'publisher.sku'" type="button" class="btn o_publisher_list_refresh_button" t-on-click="onPublisherRefreshCandidates">
+                <i class="fa fa-refresh me-1"/>
+                Actualizar candidatos
+            </button>
+        </xpath>
+    </t>
+</templates>

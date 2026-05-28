@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ml_catalog_panel.ListView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('o_list_buttons')]" position="inside">
+            <button t-if="props.resModel === 'ml.product'" type="button" class="btn btn-primary o_ml_catalog_sync_button" t-on-click="onMlCatalogSync">
+                <i class="fa fa-refresh me-1"/>
+                Actualizar catalogo
+            </button>
+        </xpath>
+    </t>
+</templates>
