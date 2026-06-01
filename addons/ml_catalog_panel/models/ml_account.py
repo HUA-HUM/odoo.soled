@@ -25,6 +25,30 @@ class MlAccount(models.Model):
     refresh_token = fields.Char(readonly=True)
     token_expires_at = fields.Datetime(readonly=True)
     last_connection_at = fields.Datetime(readonly=True)
+    product_count = fields.Integer(string="Productos", compute="_compute_dashboard_counts")
+    active_product_count = fields.Integer(string="Productos activos", compute="_compute_dashboard_counts")
+    paused_product_count = fields.Integer(string="Productos pausados", compute="_compute_dashboard_counts")
+    order_count = fields.Integer(string="Ordenes", compute="_compute_dashboard_counts")
+    last_order_at = fields.Datetime(string="Ultima orden", compute="_compute_dashboard_counts")
+
+    @api.depends("seller_id")
+    def _compute_dashboard_counts(self):
+        Product = self.env["ml.product"]
+        Order = self.env["ml.order"]
+        for account in self:
+            product_domain = []
+            if account.seller_id:
+                product_domain = [("seller_id", "=", str(account.seller_id))]
+            order_domain = []
+            if account.seller_id:
+                order_domain = [("seller_id", "=", str(account.seller_id))]
+
+            account.product_count = Product.search_count(product_domain)
+            account.active_product_count = Product.search_count(product_domain + [("status", "=", "active")])
+            account.paused_product_count = Product.search_count(product_domain + [("status", "=", "paused")])
+            account.order_count = Order.search_count(order_domain)
+            last_order = Order.search(order_domain, order="date_created desc", limit=1)
+            account.last_order_at = last_order.date_created if last_order else False
 
     @api.model
     def default_get(self, fields_list):
@@ -39,6 +63,13 @@ class MlAccount(models.Model):
         self.ensure_one()
         if not self.app_id or not self.client_secret or not self.redirect_uri:
             raise UserError(_("Completa App ID, Client Secret y Redirect URI antes de conectar."))
+
+    @api.model
+    def _get_connected_account(self):
+        account = self.search([("connected", "=", True), ("access_token", "!=", False)], limit=1)
+        if not account:
+            raise UserError(_("Primero conecta una cuenta de MercadoLibre desde Configuracion > Cuenta."))
+        return account
 
     def action_connect(self):
         self.ensure_one()
@@ -99,6 +130,47 @@ class MlAccount(models.Model):
         )
         self._apply_token_response(response)
         return self._notification(_("Token actualizado correctamente."), "success")
+
+    def _api_get(self, path, params=None):
+        self.ensure_one()
+        if not self.access_token:
+            raise UserError(_("Todavia no hay access token. Conecta la cuenta primero."))
+        if self.token_expires_at and self.token_expires_at <= fields.Datetime.now() + timedelta(minutes=5):
+            self.action_refresh_token()
+
+        response = requests.get(
+            "https://api.mercadolibre.com%s" % path,
+            headers={
+                "accept": "application/json",
+                "Authorization": "Bearer %s" % self.access_token,
+            },
+            params=params or {},
+            timeout=45,
+        )
+        try:
+            payload = response.json()
+        except ValueError as error:
+            raise UserError(_("MercadoLibre no devolvio JSON valido: %s") % response.text) from error
+
+        if response.status_code >= 400:
+            raise UserError(_("Error consultando MercadoLibre: %s") % payload)
+        return payload
+
+    def action_open_catalog(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Catalogo MercadoLibre"),
+            "res_model": "ml.product",
+            "view_mode": "tree,form",
+        }
+
+    def action_open_orders(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Ordenes MercadoLibre"),
+            "res_model": "ml.order",
+            "view_mode": "tree,form",
+        }
 
     def _apply_token_response(self, response):
         self.ensure_one()

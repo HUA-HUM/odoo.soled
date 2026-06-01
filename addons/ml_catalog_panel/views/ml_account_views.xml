@@ -73,11 +73,98 @@
         </field>
     </record>
 
+    <record id="view_ml_account_dashboard_form" model="ir.ui.view">
+        <field name="name">ml.account.dashboard.form</field>
+        <field name="model">ml.account</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard MercadoLibre" create="false">
+                <header>
+                    <button name="action_test_connection" string="Probar cuenta" type="object" class="btn-primary" attrs="{'invisible': [('access_token', '=', False)]}"/>
+                    <button name="action_refresh_token" string="Actualizar token" type="object" attrs="{'invisible': [('refresh_token', '=', False)]}"/>
+                </header>
+                <sheet>
+                    <field name="access_token" invisible="1"/>
+                    <field name="refresh_token" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_catalog" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="product_count" widget="statinfo" string="Catalogo"/>
+                        </button>
+                        <button name="action_open_catalog" type="object" class="oe_stat_button" icon="fa-check-circle">
+                            <field name="active_product_count" widget="statinfo" string="Activos"/>
+                        </button>
+                        <button name="action_open_catalog" type="object" class="oe_stat_button" icon="fa-pause-circle">
+                            <field name="paused_product_count" widget="statinfo" string="Pausados"/>
+                        </button>
+                        <button name="action_open_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                            <field name="order_count" widget="statinfo" string="Ordenes"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Cuenta conectada">
+                            <field name="connected" readonly="1"/>
+                            <field name="seller_id" readonly="1"/>
+                            <field name="nickname" readonly="1"/>
+                            <field name="last_connection_at" readonly="1"/>
+                            <field name="token_expires_at" readonly="1"/>
+                        </group>
+                        <group string="Actividad">
+                            <field name="last_order_at" readonly="1"/>
+                            <field name="product_count" readonly="1"/>
+                            <field name="order_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <separator string="Secciones operativas"/>
+                    <div class="o_ml_dashboard_grid">
+                        <button type="object" name="action_open_catalog" class="o_ml_dashboard_card">
+                            <strong>Catalogo</strong>
+                            <span>Productos, estados, stock, precios y links.</span>
+                        </button>
+                        <button type="object" name="action_open_orders" class="o_ml_dashboard_card">
+                            <strong>Ordenes</strong>
+                            <span>Ventas sincronizadas desde MercadoLibre.</span>
+                        </button>
+                        <div class="o_ml_dashboard_card o_ml_dashboard_card_disabled">
+                            <strong>Facturacion</strong>
+                            <span>Preparado para comprobantes y datos fiscales.</span>
+                        </div>
+                        <div class="o_ml_dashboard_card o_ml_dashboard_card_disabled">
+                            <strong>Mensajes</strong>
+                            <span>Preparado para preguntas y conversaciones.</span>
+                        </div>
+                        <div class="o_ml_dashboard_card o_ml_dashboard_card_disabled">
+                            <strong>Envios</strong>
+                            <span>Preparado para tracking y estado logistico.</span>
+                        </div>
+                        <div class="o_ml_dashboard_card o_ml_dashboard_card_disabled">
+                            <strong>Cuenta</strong>
+                            <span>Credenciales, tokens y estado de conexion.</span>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="action_ml_account" model="ir.actions.act_window">
         <field name="name">Cuenta MercadoLibre</field>
         <field name="res_model">ml.account</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{}</field>
+    </record>
+
+    <record id="action_ml_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">ml.account</field>
+        <field name="view_mode">form,tree</field>
+        <field name="view_id" ref="view_ml_account_dashboard_form"/>
+        <field name="domain">[('connected', '=', True)]</field>
+        <field name="context">{'create': False}</field>
     </record>
 
     <template id="oauth_result" name="MercadoLibre OAuth Result">

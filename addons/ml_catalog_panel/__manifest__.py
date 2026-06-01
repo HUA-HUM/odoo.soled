@@ -9,6 +9,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/ml_account_views.xml",
+        "views/ml_order_views.xml",
         "views/ml_catalog_views.xml",
         "views/ml_catalog_menus.xml",
     ],
