@@ -1,0 +1,66 @@
+.o_coresa_dashboard_sheet {
+    background: #f6f8f9;
+}
+
+.o_coresa_dashboard {
+    color: #17303f;
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: 18px 0 40px;
+}
+
+.o_coresa_hero {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #d8e0e5;
+    border-radius: 8px;
+    display: flex;
+    gap: 28px;
+    min-height: 170px;
+    padding: 28px;
+}
+
+.o_coresa_hero img {
+    max-height: 78px;
+    max-width: 260px;
+}
+
+.o_coresa_hero h1 {
+    font-size: 30px;
+    font-weight: 850;
+    margin: 0 0 8px;
+}
+
+.o_coresa_hero p {
+    color: #52626d;
+    font-size: 15px;
+    margin: 0;
+}
+
+.o_coresa_sections {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 18px;
+}
+
+.o_coresa_section {
+    background: #ffffff;
+    border: 1px solid #d8e0e5;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 104px;
+    padding: 18px;
+}
+
+.o_coresa_section strong {
+    font-size: 16px;
+    font-weight: 850;
+    margin-bottom: 8px;
+}
+
+.o_coresa_section span {
+    color: #52626d;
+    font-size: 13px;
+}

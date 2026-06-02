@@ -40,7 +40,7 @@ jobs:
 
             docker-compose exec -T odoo odoo \
               -d soled \
-              -u ml_catalog_panel,retailer_marketplace_panel,sku_publisher_panel \
+              -u ml_catalog_panel,retailer_marketplace_panel,sku_publisher_panel,coresa_panel,soled_dashboard_panel \
               --stop-after-init
 
             docker-compose restart odoo

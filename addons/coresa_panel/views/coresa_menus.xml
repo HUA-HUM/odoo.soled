@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_coresa_root" name="Coresa" action="action_coresa_dashboard" sequence="65"/>
+    <menuitem id="menu_coresa_dashboard" name="Dashboard" parent="menu_coresa_root" action="action_coresa_dashboard" sequence="10"/>
+    <menuitem id="menu_coresa_catalog" name="Catalogo" parent="menu_coresa_root" action="action_coresa_dashboard" sequence="20"/>
+    <menuitem id="menu_coresa_orders" name="Ordenes" parent="menu_coresa_root" action="action_coresa_dashboard" sequence="30"/>
+    <menuitem id="menu_coresa_shipments" name="Envios" parent="menu_coresa_root" action="action_coresa_dashboard" sequence="40"/>
+    <menuitem id="menu_coresa_invoices" name="Facturacion" parent="menu_coresa_root" action="action_coresa_dashboard" sequence="50"/>
+</odoo>

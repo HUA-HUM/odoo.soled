@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="soled_dashboard_record" model="soled.dashboard">
+        <field name="name">Panel SOLED</field>
+    </record>
+
+    <record id="view_soled_dashboard_form" model="ir.ui.view">
+        <field name="name">soled.dashboard.form</field>
+        <field name="model">soled.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Panel SOLED" create="false" edit="false">
+                <sheet class="o_soled_dashboard_sheet">
+                    <div class="o_soled_dashboard">
+                        <div class="o_soled_dashboard_header">
+                            <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
+                            <div>
+                                <h1>Panel SOLED</h1>
+                                <p>Selecciona el modulo operativo con el que queres trabajar.</p>
+                            </div>
+                        </div>
+                        <div class="o_soled_module_grid">
+                            <button name="action_open_ml" type="object" class="o_soled_module_card o_soled_module_ml">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
+                                </div>
+                                <div>
+                                    <strong>MercadoLibre</strong>
+                                    <span>Catalogo, ordenes, facturacion, mensajes y cuenta conectada.</span>
+                                </div>
+                            </button>
+                            <button name="action_open_retailers" type="object" class="o_soled_module_card o_soled_module_retailers">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
+                                </div>
+                                <div>
+                                    <strong>Retailers</strong>
+                                    <span>Marketplaces, OnCity, Fravega, catalogos y operaciones.</span>
+                                </div>
+                            </button>
+                            <button name="action_open_publisher" type="object" class="o_soled_module_card o_soled_module_publisher">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
+                                </div>
+                                <div>
+                                    <strong>Publicador</strong>
+                                    <span>SKUs candidatos, publicacion y seguimiento de procesos.</span>
+                                </div>
+                            </button>
+                            <button name="action_open_coresa" type="object" class="o_soled_module_card o_soled_module_coresa">
+                                <div class="o_soled_module_logo">
+                                    <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
+                                </div>
+                                <div>
+                                    <strong>Coresa</strong>
+                                    <span>Nuevo modulo preparado para catalogo, ordenes y operaciones.</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_soled_dashboard" model="ir.actions.act_window">
+        <field name="name">Panel SOLED</field>
+        <field name="res_model">soled.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_soled_dashboard_form"/>
+        <field name="res_id" ref="soled_dashboard_record"/>
+        <field name="target">current</field>
+    </record>
+</odoo>

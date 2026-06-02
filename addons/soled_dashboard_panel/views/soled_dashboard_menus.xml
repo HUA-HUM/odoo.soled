@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_soled_dashboard_root" name="Panel SOLED" action="action_soled_dashboard" sequence="1"/>
+    <menuitem id="menu_soled_dashboard_home" name="Inicio" parent="menu_soled_dashboard_root" action="action_soled_dashboard" sequence="1"/>
+</odoo>

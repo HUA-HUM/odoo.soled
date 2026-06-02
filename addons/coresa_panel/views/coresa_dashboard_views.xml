@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="coresa_dashboard_record" model="coresa.dashboard">
+        <field name="name">Coresa</field>
+    </record>
+
+    <record id="view_coresa_dashboard_form" model="ir.ui.view">
+        <field name="name">coresa.dashboard.form</field>
+        <field name="model">coresa.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Coresa" create="false" edit="false">
+                <sheet class="o_coresa_dashboard_sheet">
+                    <div class="o_coresa_dashboard">
+                        <div class="o_coresa_hero">
+                            <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
+                            <div>
+                                <h1>Coresa</h1>
+                                <p>Modulo preparado para integrar catalogo, ordenes y operaciones de Coresa.</p>
+                            </div>
+                        </div>
+                        <div class="o_coresa_sections">
+                            <div class="o_coresa_section">
+                                <strong>Catalogo</strong>
+                                <span>Productos y publicaciones.</span>
+                            </div>
+                            <div class="o_coresa_section">
+                                <strong>Ordenes</strong>
+                                <span>Ventas y seguimiento operativo.</span>
+                            </div>
+                            <div class="o_coresa_section">
+                                <strong>Envios</strong>
+                                <span>Logistica y estados.</span>
+                            </div>
+                            <div class="o_coresa_section">
+                                <strong>Facturacion</strong>
+                                <span>Comprobantes y conciliacion.</span>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_coresa_dashboard" model="ir.actions.act_window">
+        <field name="name">Coresa</field>
+        <field name="res_model">coresa.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_coresa_dashboard_form"/>
+        <field name="res_id" ref="coresa_dashboard_record"/>
+        <field name="target">current</field>
+    </record>
+</odoo>

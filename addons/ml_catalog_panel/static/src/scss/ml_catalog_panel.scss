@@ -25,18 +25,7 @@
 }
 
 .o_main_navbar .o_menu_brand {
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    display: inline-flex;
-    font-size: 18px;
-    font-weight: 800;
-    gap: 12px;
-    letter-spacing: 0;
-    margin: 7px 22px 7px 4px;
-    min-height: 44px;
-    padding: 6px 18px 6px 11px;
+    display: none !important;
 }
 
 .o_main_navbar .o_menu_brand::before {
@@ -204,10 +193,7 @@
 }
 
 .o_control_panel {
-    background: var(--soled-surface);
-    border-bottom-color: var(--soled-border);
-    padding-bottom: 8px;
-    padding-top: 8px;
+    display: none !important;
 }
 
 .o_control_panel .breadcrumb .breadcrumb-item,
