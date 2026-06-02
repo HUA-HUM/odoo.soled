@@ -20,7 +20,7 @@
 
 .o_retailer_marketplace_kanban .o_kanban_record {
     margin: 0 !important;
-    width: 520px !important;
+    width: 560px !important;
 }
 
 .o_retailer_marketplace_card {
@@ -30,7 +30,7 @@
     box-shadow: 0 8px 20px rgba(23, 48, 63, 0.08);
     display: flex;
     flex-direction: column;
-    min-height: 292px;
+    min-height: 330px;
     overflow: hidden;
     padding: 0;
     width: 100%;
@@ -102,6 +102,35 @@
     gap: 10px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 16px;
+}
+
+.o_retailer_marketplace_actions {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 16px;
+}
+
+.o_retailer_marketplace_action {
+    align-items: center;
+    background: var(--retailer-navy);
+    border: 1px solid var(--retailer-navy);
+    border-radius: 8px;
+    color: #ffffff;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 850;
+    gap: 8px;
+    justify-content: center;
+    min-height: 40px;
+    text-transform: uppercase;
+}
+
+.o_retailer_marketplace_action:hover,
+.o_retailer_marketplace_action:focus {
+    background: var(--retailer-coral);
+    border-color: var(--retailer-coral);
+    color: #ffffff;
 }
 
 .o_retailer_marketplace_metrics div {

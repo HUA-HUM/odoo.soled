@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sku_publisher_panel.CandidatesAction" owl="1">
+        <div class="o_publisher_candidates_page">
+            <div t-if="state.loading || state.publishing" class="o_publisher_loading_overlay">
+                <div class="o_publisher_loading_box">
+                    <span class="o_publisher_spinner"/>
+                    <strong t-if="state.publishing">Enviando publicacion...</strong>
+                    <strong t-else="">Cargando candidatos...</strong>
+                    <small>Estamos consultando las APIs, puede tardar unos segundos.</small>
+                </div>
+            </div>
+            <section class="o_publisher_candidates_toolbar">
+                <form t-on-submit="searchSku" class="o_publisher_candidates_search">
+                    <input type="text" t-model="state.sku" placeholder="Buscar por SKU" t-att-disabled="state.loading || state.publishing"/>
+                    <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.publishing">Buscar</button>
+                    <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.publishing">Limpiar</button>
+                </form>
+                <div class="o_publisher_candidates_bulk">
+                    <button type="button" class="btn btn-secondary" t-on-click="selectPage" t-att-disabled="state.loading || state.publishing">
+                        Seleccionar pagina
+                    </button>
+                    <select t-model="state.marketplace" t-att-disabled="state.loading || state.publishing">
+                        <option value="both">OnCity + Fravega</option>
+                        <option value="oncity">OnCity</option>
+                        <option value="fravega">Fravega</option>
+                    </select>
+                    <button type="button" class="btn btn-primary" t-on-click="publishSelected" t-att-disabled="state.loading || state.publishing">
+                        <t t-if="state.publishing">Publicando...</t>
+                        <t t-else="">Publicar <t t-esc="selectedSkus.length"/></t>
+                    </button>
+                </div>
+            </section>
+
+            <section class="o_publisher_candidates_meta">
+                <span>
+                    Mostrando <t t-esc="state.items.length"/> de <t t-esc="state.total"/> candidatos
+                </span>
+                <span>
+                    Pagina <t t-esc="currentPage"/> / <t t-esc="totalPages"/>
+                </span>
+            </section>
+
+            <section t-if="state.loading &amp;&amp; !state.items.length" class="o_publisher_candidates_loading">
+                <span class="o_publisher_spinner"/>
+                <strong>Cargando candidatos...</strong>
+            </section>
+
+            <section t-else="" class="o_publisher_candidates_grid">
+                <article t-foreach="state.items" t-as="item" t-key="item.sku" t-attf-class="o_publisher_candidate_card #{state.selected[item.sku] ? 'is-selected' : ''}">
+                    <label class="o_publisher_candidate_check">
+                        <input type="checkbox" t-att-checked="state.selected[item.sku]" t-on-change="() => this.toggleSku(item.sku)"/>
+                    </label>
+                    <div class="o_publisher_candidate_media">
+                        <img t-if="item.thumbnail" t-att-src="item.thumbnail" t-att-alt="item.sku"/>
+                        <div t-else="" class="o_publisher_candidate_no_image">Sin imagen</div>
+                    </div>
+                    <div class="o_publisher_candidate_body">
+                        <div class="o_publisher_candidate_top">
+                            <strong t-esc="item.sku"/>
+                            <span t-esc="item.status"/>
+                        </div>
+                        <div class="o_publisher_candidate_title" t-esc="item.title"/>
+                        <div class="o_publisher_candidate_meta">
+                            <span>$ <t t-esc="item.price"/></span>
+                            <span>Stock <t t-esc="item.stock"/></span>
+                        </div>
+                        <div class="o_publisher_candidate_marketplaces">
+                            <span t-attf-class="#{item.oncity ? 'is-published' : 'is-pending'}">OnCity</span>
+                            <span t-attf-class="#{item.fravega ? 'is-published' : 'is-pending'}">Fravega</span>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="o_publisher_candidates_pager">
+                <button type="button" class="btn btn-secondary" t-att-disabled="!hasPrevious" t-on-click="previousPage">
+                    Anterior
+                </button>
+                <span>
+                    <t t-esc="state.offset + 1"/> - <t t-esc="Math.min(state.offset + state.limit, state.total)"/> de <t t-esc="state.total"/>
+                </span>
+                <button type="button" class="btn btn-secondary" t-att-disabled="!hasNext" t-on-click="nextPage">
+                    Siguiente
+                </button>
+            </section>
+        </div>
+    </t>
+</templates>

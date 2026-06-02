@@ -4,10 +4,10 @@
     <menuitem id="menu_retailer_marketplaces" name="Marketplaces" parent="menu_retailer_root" action="action_retailer_marketplace" sequence="10"/>
     <menuitem id="menu_retailer_oncity" name="OnCity" parent="menu_retailer_root" sequence="20"/>
     <menuitem id="menu_retailer_oncity_products" name="Catalogo" parent="menu_retailer_oncity" action="action_oncity_product" sequence="10"/>
-    <menuitem id="menu_retailer_oncity_orders" name="Ordenes" parent="menu_retailer_oncity" action="action_oncity_product" sequence="20"/>
+    <menuitem id="menu_retailer_oncity_orders" name="Ordenes" parent="menu_retailer_oncity" action="action_oncity_order" sequence="20"/>
     <menuitem id="menu_retailer_oncity_shipments" name="Envios" parent="menu_retailer_oncity" action="action_oncity_product" sequence="30"/>
     <menuitem id="menu_retailer_oncity_invoices" name="Facturas" parent="menu_retailer_oncity" action="action_oncity_product" sequence="40"/>
     <menuitem id="menu_retailer_fravega" name="Fravega" parent="menu_retailer_root" sequence="30"/>
-    <menuitem id="menu_retailer_fravega_catalog" name="Catalogo" parent="menu_retailer_fravega" action="action_retailer_marketplace" sequence="10"/>
-    <menuitem id="menu_retailer_fravega_orders" name="Ordenes" parent="menu_retailer_fravega" action="action_retailer_marketplace" sequence="20"/>
+    <menuitem id="menu_retailer_fravega_catalog" name="Catalogo" parent="menu_retailer_fravega" action="action_fravega_product" sequence="10"/>
+    <menuitem id="menu_retailer_fravega_orders" name="Ordenes" parent="menu_retailer_fravega" action="action_fravega_order" sequence="20"/>
 </odoo>

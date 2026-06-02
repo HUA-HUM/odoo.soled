@@ -10,6 +10,8 @@
         "security/ir.model.access.csv",
         "views/retailer_marketplace_views.xml",
         "views/oncity_product_views.xml",
+        "views/fravega_product_views.xml",
+        "views/marketplace_order_views.xml",
         "views/retailer_marketplace_menus.xml",
     ],
     "assets": {

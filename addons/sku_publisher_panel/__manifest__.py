@@ -13,6 +13,7 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "views/publisher_sku_search_wizard_views.xml",
         "views/publisher_sku_views.xml",
         "views/publisher_job_views.xml",
         "views/publisher_dashboard_views.xml",
@@ -22,7 +23,9 @@
         "web.assets_backend": [
             "sku_publisher_panel/static/src/scss/sku_publisher_panel.scss",
             "sku_publisher_panel/static/src/js/publisher_list_controller.js",
+            "sku_publisher_panel/static/src/js/publisher_candidates_action.js",
             "sku_publisher_panel/static/src/xml/publisher_list_buttons.xml",
+            "sku_publisher_panel/static/src/xml/publisher_candidates_action.xml",
         ],
     },
     "application": True,

@@ -5,6 +5,9 @@
         <field name="model">retailer.oncity.product</field>
         <field name="arch" type="xml">
             <tree string="Catalogo OnCity" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="status != 'Activo'">
+                <header>
+                    <button name="action_sync_products" string="Actualizar catalogo" type="object" class="btn-primary"/>
+                </header>
                 <field name="link_publication" invisible="1"/>
                 <button name="action_open_publication" string="Abrir" type="object" icon="fa-external-link" attrs="{'invisible': [('link_publication', '=', False)]}"/>
                 <field name="seller_sku"/>

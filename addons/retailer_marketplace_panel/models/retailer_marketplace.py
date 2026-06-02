@@ -27,12 +27,19 @@ class RetailerMarketplace(models.Model):
 
     def _compute_product_count(self):
         oncity_count = self.env["retailer.oncity.product"].search_count([])
+        fravega_count = self.env["retailer.fravega.product"].search_count([])
         for marketplace in self:
-            marketplace.product_count = oncity_count if marketplace.code == "oncity" else 0
+            if marketplace.code == "oncity":
+                marketplace.product_count = oncity_count
+            elif marketplace.code == "fravega":
+                marketplace.product_count = fravega_count
+            else:
+                marketplace.product_count = 0
 
     def _compute_section_counts(self):
+        order_model = self.env["retailer.marketplace.order"]
         for marketplace in self:
-            marketplace.order_count = 0
+            marketplace.order_count = order_model.search_count([("marketplace", "=", marketplace.code)])
             marketplace.shipment_count = 0
             marketplace.invoice_count = 0
             marketplace.question_count = 0
@@ -44,10 +51,16 @@ class RetailerMarketplace(models.Model):
         self.ensure_one()
         if self.code == "oncity":
             return self.env.ref("retailer_marketplace_panel.action_oncity_product").read()[0]
+        if self.code == "fravega":
+            return self.env.ref("retailer_marketplace_panel.action_fravega_product").read()[0]
         return self._section_pending_notification("Catalogo")
 
     def action_open_orders(self):
         self.ensure_one()
+        if self.code == "oncity":
+            return self.env.ref("retailer_marketplace_panel.action_oncity_order").read()[0]
+        if self.code == "fravega":
+            return self.env.ref("retailer_marketplace_panel.action_fravega_order").read()[0]
         return self._section_pending_notification("Ordenes")
 
     def action_open_shipments(self):

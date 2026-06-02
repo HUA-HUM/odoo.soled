@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_fravega_product_tree" model="ir.ui.view">
+        <field name="name">retailer.fravega.product.tree</field>
+        <field name="model">retailer.fravega.product</field>
+        <field name="arch" type="xml">
+            <tree string="Catalogo Fravega" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="active == False">
+                <header>
+                    <button name="action_sync_products" string="Actualizar catalogo" type="object" class="btn-primary"/>
+                </header>
+                <field name="sku"/>
+                <field name="ref_id"/>
+                <field name="title"/>
+                <field name="active"/>
+                <field name="status_code" widget="badge"/>
+                <field name="item_state"/>
+                <field name="price_sale"/>
+                <field name="stock"/>
+                <field name="ean"/>
+                <field name="synced_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fravega_product_form" model="ir.ui.view">
+        <field name="name">retailer.fravega.product.form</field>
+        <field name="model">retailer.fravega.product</field>
+        <field name="arch" type="xml">
+            <form string="Producto Fravega" create="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="title"/>
+                        <h1><field name="title" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Identificacion">
+                            <field name="sku" readonly="1"/>
+                            <field name="ref_id" readonly="1"/>
+                            <field name="ean" readonly="1"/>
+                            <field name="external_id" readonly="1"/>
+                        </group>
+                        <group string="Estado comercial">
+                            <field name="active" readonly="1"/>
+                            <field name="status_code" readonly="1"/>
+                            <field name="item_state" readonly="1"/>
+                            <field name="stock" readonly="1"/>
+                            <field name="price_sale" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Imagenes">
+                            <field name="images_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Atributos">
+                            <field name="attributes_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Requeridos">
+                            <field name="required_attributes_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload JSON">
+                            <field name="payload_json" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_fravega_product_search" model="ir.ui.view">
+        <field name="name">retailer.fravega.product.search</field>
+        <field name="model">retailer.fravega.product</field>
+        <field name="arch" type="xml">
+            <search string="Buscar productos Fravega">
+                <field name="sku"/>
+                <field name="ref_id"/>
+                <field name="title"/>
+                <field name="ean"/>
+                <field name="status_code"/>
+                <filter name="active" string="Activos" domain="[('active', '=', True)]"/>
+                <filter name="without_stock" string="Sin stock" domain="[('stock', '=', 0)]"/>
+                <filter name="low_stock" string="Stock bajo" domain="[('stock', '&gt;', 0), ('stock', '&lt;=', 2)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_status" string="Estado" context="{'group_by': 'status_code'}"/>
+                    <filter name="group_item_state" string="Item state" context="{'group_by': 'item_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_fravega_product" model="ir.actions.act_window">
+        <field name="name">Catalogo Fravega</field>
+        <field name="res_model">retailer.fravega.product</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_fravega_product_search"/>
+    </record>
+
+    <record id="action_sync_fravega_products" model="ir.actions.server">
+        <field name="name">Actualizar catalogo Fravega</field>
+        <field name="model_id" ref="model_retailer_fravega_product"/>
+        <field name="binding_model_id" ref="model_retailer_fravega_product"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_products()</field>
+    </record>
+</odoo>

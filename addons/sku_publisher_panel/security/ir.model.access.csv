@@ -3,3 +3,4 @@ access_publisher_sku_user,publisher.sku user,model_publisher_sku,base.group_user
 access_publisher_job_user,publisher.job user,model_publisher_job,base.group_user,1,1,1,0
 access_publisher_job_line_user,publisher.job.line user,model_publisher_job_line,base.group_user,1,1,1,0
 access_publisher_dashboard_user,publisher.dashboard user,model_publisher_dashboard,base.group_user,1,1,1,0
+access_publisher_sku_search_wizard_user,publisher.sku.search.wizard user,model_publisher_sku_search_wizard,base.group_user,1,1,1,0

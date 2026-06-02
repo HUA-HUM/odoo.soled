@@ -1,6 +1,9 @@
 import json
 
+import requests
+
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class PublisherSku(models.Model):
@@ -44,31 +47,36 @@ class PublisherSku(models.Model):
 
     @api.model
     def action_refresh_candidates(self):
-        ml_products = self.env["ml.product"].search([])
-        oncity_products = self.env["retailer.oncity.product"].search([])
-        oncity_by_sku = {
-            product.seller_sku.strip(): product
-            for product in oncity_products
-            if product.seller_sku and product.seller_sku.strip()
-        }
+        limit = 100
+        offset = 0
+        total = 1
         seen_skus = set()
         created_count = 0
         updated_count = 0
 
-        for ml_product in ml_products:
-            sku = (ml_product.sku or "").strip()
-            if not sku:
-                continue
-            seen_skus.add(sku)
-            oncity_product = oncity_by_sku.get(sku)
-            values = self._prepare_candidate_values(ml_product, oncity_product)
-            existing = self.search([("sku", "=", sku)], limit=1)
-            if existing:
-                existing.write(values)
-                updated_count += 1
-            else:
-                self.create(values)
-                created_count += 1
+        while offset < total:
+            payload = self._fetch_publication_status(limit=limit, offset=offset)
+            items = payload.get("items") or []
+            pagination = payload.get("pagination") or {}
+            total = int(pagination.get("total") or len(items) or 0)
+
+            for item in items:
+                sku = (item.get("sku") or "").strip()
+                if not sku:
+                    continue
+                seen_skus.add(sku)
+                values = self._prepare_candidate_values_from_api(item)
+                existing = self.search([("sku", "=", sku)], limit=1)
+                if existing:
+                    existing.write(values)
+                    updated_count += 1
+                else:
+                    self.create(values)
+                    created_count += 1
+
+            if not items:
+                break
+            offset += limit
 
         if seen_skus:
             self.search([("sku", "not in", list(seen_skus))]).unlink()
@@ -77,6 +85,173 @@ class PublisherSku(models.Model):
             "Candidatos actualizados. Creados: %(created)s. Actualizados: %(updated)s."
         ) % {"created": created_count, "updated": updated_count}
         return self._notification(message, "success")
+
+    @api.model
+    def _publication_status_base_url(self):
+        return "https://internal.solediluminacion.com/internal/marketplace-publications/status-by-sku"
+
+    @api.model
+    def _fetch_publication_status(self, limit=100, offset=0, sku=None):
+        params = {
+            "marketplaces": "oncity,fravega",
+            "limit": limit,
+            "offset": offset,
+        }
+        if sku:
+            params["sku"] = sku
+        try:
+            response = requests.get(
+                self._publication_status_base_url(),
+                headers={
+                    "accept": "*/*",
+                    "x-internal-api-key": "_internal",
+                },
+                params=params,
+                timeout=60,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as error:
+            raise UserError(_("Error consultando candidatos del publicador: %s") % error) from error
+        except ValueError as error:
+            raise UserError(_("La API de candidatos no devolvio JSON valido.")) from error
+
+    @api.model
+    def _prepare_candidate_values_from_api(self, item):
+        published_oncity = bool(item.get("oncity"))
+        published_fravega = bool(item.get("fravega"))
+        ml_status = item.get("status")
+        ml_stock = self._to_int(item.get("available_quantity"))
+        status = self._compute_publish_status_from_api(
+            item.get("sku"),
+            ml_status,
+            ml_stock,
+            published_oncity,
+            published_fravega,
+        )
+        ml_product = self.env["ml.product"].search([("sku", "=", item.get("sku"))], limit=1)
+        return {
+            "sku": item.get("sku"),
+            "title": item.get("title"),
+            "brand": ml_product.brand if ml_product else False,
+            "category_name": ml_product.category_name if ml_product else False,
+            "ml_product_id": ml_product.id if ml_product else False,
+            "meli_item_id": item.get("meli_item_id"),
+            "ml_status": ml_status,
+            "ml_price": self._to_float(item.get("price")),
+            "ml_stock": ml_stock,
+            "ml_permalink": ml_product.permalink if ml_product else False,
+            "thumbnail": item.get("thumbnail"),
+            "published_oncity": published_oncity,
+            "oncity_product_id": False,
+            "published_fravega": published_fravega,
+            "ready_to_publish": status == "ready",
+            "publish_status": status,
+            "last_checked_at": fields.Datetime.now(),
+            "payload_json": json.dumps(item, ensure_ascii=False, indent=2),
+        }
+
+    @api.model
+    def get_candidates_page(self, limit=24, offset=0, sku=None):
+        payload = self._fetch_publication_status(limit=limit, offset=offset, sku=sku)
+        items = payload.get("items") or []
+        records = []
+        for item in items:
+            values = self._prepare_candidate_values_from_api(item)
+            existing = self.search([("sku", "=", values["sku"])], limit=1)
+            if existing:
+                existing.write(values)
+                record = existing
+            else:
+                record = self.create(values)
+            records.append(
+                {
+                    "id": record.id,
+                    "sku": record.sku,
+                    "meli_item_id": record.meli_item_id,
+                    "title": record.title,
+                    "status": record.ml_status,
+                    "price": record.ml_price,
+                    "stock": record.ml_stock,
+                    "thumbnail": record.thumbnail,
+                    "oncity": record.published_oncity,
+                    "fravega": record.published_fravega,
+                    "ready": record.ready_to_publish,
+                    "publish_status": record.publish_status,
+                }
+            )
+        pagination = payload.get("pagination") or {}
+        return {
+            "items": records,
+            "marketplaces": payload.get("marketplaces") or ["oncity", "fravega"],
+            "pagination": {
+                "limit": int(pagination.get("limit") or limit),
+                "offset": int(pagination.get("offset") or offset),
+                "total": int(pagination.get("total") or len(records)),
+            },
+        }
+
+    @api.model
+    def publish_skus(self, skus, marketplaces):
+        skus = [sku for sku in (skus or []) if sku]
+        marketplaces = [marketplace for marketplace in (marketplaces or []) if marketplace]
+        if not skus:
+            raise UserError(_("Selecciona al menos un SKU."))
+        if not marketplaces:
+            raise UserError(_("Selecciona al menos un marketplace."))
+
+        candidates = self.search([("sku", "in", skus)])
+        missing_skus = sorted(set(skus) - set(candidates.mapped("sku")))
+        for sku in missing_skus:
+            payload = self._fetch_publication_status(limit=50, offset=0, sku=sku)
+            for item in payload.get("items") or []:
+                values = self._prepare_candidate_values_from_api(item)
+                existing = self.search([("sku", "=", values["sku"])], limit=1)
+                if existing:
+                    existing.write(values)
+                else:
+                    self.create(values)
+        candidates = self.search([("sku", "in", skus)])
+        job = self.env["publisher.job"].create_from_candidates(candidates, marketplaces)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Proceso de publicacion"),
+            "res_model": "publisher.job",
+            "res_id": job.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+        }
+
+    @api.model
+    def _to_float(self, value):
+        if value in (None, ""):
+            return 0.0
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    @api.model
+    def _to_int(self, value):
+        if value in (None, ""):
+            return 0
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    @api.model
+    def _compute_publish_status_from_api(self, sku, ml_status, ml_stock, published_oncity, published_fravega):
+        if not sku:
+            return "missing_sku"
+        if ml_status and ml_status != "active":
+            return "inactive"
+        if ml_stock <= 0:
+            return "no_stock"
+        if published_oncity and published_fravega:
+            return "already_published"
+        return "ready"
 
     @api.model
     def _prepare_candidate_values(self, ml_product, oncity_product):
@@ -151,6 +326,7 @@ class PublisherSku(models.Model):
             "res_model": "publisher.job",
             "res_id": job.id,
             "view_mode": "form",
+            "views": [(False, "form")],
             "target": "current",
         }
 

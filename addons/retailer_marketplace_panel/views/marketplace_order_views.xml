@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_marketplace_order_tree" model="ir.ui.view">
+        <field name="name">retailer.marketplace.order.tree</field>
+        <field name="model">retailer.marketplace.order</field>
+        <field name="arch" type="xml">
+            <tree string="Ordenes marketplace" create="false" decoration-success="delivery_status == 'Delivered'" decoration-warning="delivery_status == 'Pending'">
+                <header>
+                    <button name="action_sync_oncity_orders" string="Actualizar OnCity" type="object" class="btn-primary"/>
+                    <button name="action_sync_fravega_orders" string="Actualizar Fravega" type="object" class="btn-secondary"/>
+                </header>
+                <field name="marketplace"/>
+                <field name="order_id"/>
+                <field name="suborder_id"/>
+                <field name="order_date"/>
+                <field name="customer_name"/>
+                <field name="amount"/>
+                <field name="status" widget="badge"/>
+                <field name="delivery_status" widget="badge"/>
+                <field name="delivery_type"/>
+                <field name="items_quantity"/>
+                <field name="synced_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_marketplace_order_form" model="ir.ui.view">
+        <field name="name">retailer.marketplace.order.form</field>
+        <field name="model">retailer.marketplace.order</field>
+        <field name="arch" type="xml">
+            <form string="Orden marketplace" create="false">
+                <header>
+                    <button name="action_fetch_fravega_detail" string="Traer detalle Fravega" type="object" class="btn-primary" attrs="{'invisible': [('marketplace', '!=', 'fravega')]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="order_id"/>
+                        <h1><field name="order_id" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Orden">
+                            <field name="marketplace" readonly="1"/>
+                            <field name="suborder_id" readonly="1"/>
+                            <field name="order_date" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                        <group string="Cliente y estado">
+                            <field name="customer_name" readonly="1"/>
+                            <field name="status" readonly="1"/>
+                            <field name="delivery_status" readonly="1"/>
+                            <field name="delivery_type" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Productos">
+                            <field name="products_summary" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload listado">
+                            <field name="payload_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Detalle">
+                            <field name="detail_json" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_marketplace_order_search" model="ir.ui.view">
+        <field name="name">retailer.marketplace.order.search</field>
+        <field name="model">retailer.marketplace.order</field>
+        <field name="arch" type="xml">
+            <search string="Buscar ordenes">
+                <field name="order_id"/>
+                <field name="suborder_id"/>
+                <field name="customer_name"/>
+                <field name="status"/>
+                <filter name="oncity" string="OnCity" domain="[('marketplace', '=', 'oncity')]"/>
+                <filter name="fravega" string="Fravega" domain="[('marketplace', '=', 'fravega')]"/>
+                <filter name="pending_delivery" string="Envio pendiente" domain="[('delivery_status', '=', 'Pending')]"/>
+                <filter name="delivered" string="Entregadas" domain="[('delivery_status', '=', 'Delivered')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_marketplace" string="Marketplace" context="{'group_by': 'marketplace'}"/>
+                    <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
+                    <filter name="group_delivery" string="Estado envio" context="{'group_by': 'delivery_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_oncity_order" model="ir.actions.act_window">
+        <field name="name">Ordenes OnCity</field>
+        <field name="res_model">retailer.marketplace.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('marketplace', '=', 'oncity')]</field>
+        <field name="search_view_id" ref="view_marketplace_order_search"/>
+    </record>
+
+    <record id="action_fravega_order" model="ir.actions.act_window">
+        <field name="name">Ordenes Fravega</field>
+        <field name="res_model">retailer.marketplace.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('marketplace', '=', 'fravega')]</field>
+        <field name="search_view_id" ref="view_marketplace_order_search"/>
+    </record>
+
+    <record id="action_sync_oncity_orders" model="ir.actions.server">
+        <field name="name">Actualizar ordenes OnCity</field>
+        <field name="model_id" ref="model_retailer_marketplace_order"/>
+        <field name="binding_model_id" ref="model_retailer_marketplace_order"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_oncity_orders()</field>
+    </record>
+
+    <record id="action_sync_fravega_orders" model="ir.actions.server">
+        <field name="name">Actualizar ordenes Fravega</field>
+        <field name="model_id" ref="model_retailer_marketplace_order"/>
+        <field name="binding_model_id" ref="model_retailer_marketplace_order"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_fravega_orders()</field>
+    </record>
+</odoo>

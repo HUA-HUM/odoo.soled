@@ -1,10 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="view_publisher_sku_kanban" model="ir.ui.view">
+        <field name="name">publisher.sku.kanban</field>
+        <field name="model">publisher.sku</field>
+        <field name="arch" type="xml">
+            <kanban string="Candidatos" class="o_publisher_candidate_kanban" create="false" quick_create="false" sample="0">
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="thumbnail"/>
+                <field name="ml_status"/>
+                <field name="ml_price"/>
+                <field name="ml_stock"/>
+                <field name="published_oncity"/>
+                <field name="published_fravega"/>
+                <field name="ready_to_publish"/>
+                <field name="publish_status"/>
+                <field name="meli_item_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="o_publisher_candidate_card oe_kanban_global_click #{record.ready_to_publish.raw_value ? 'is-ready' : ''}">
+                            <div class="o_publisher_candidate_media">
+                                <img t-if="record.thumbnail.raw_value" t-att-src="record.thumbnail.raw_value" t-att-alt="record.sku.value"/>
+                                <div t-else="" class="o_publisher_candidate_no_image">Sin imagen</div>
+                            </div>
+                            <div class="o_publisher_candidate_body">
+                                <div class="o_publisher_candidate_top">
+                                    <strong><field name="sku"/></strong>
+                                    <span><field name="ml_status"/></span>
+                                </div>
+                                <div class="o_publisher_candidate_title">
+                                    <field name="title"/>
+                                </div>
+                                <div class="o_publisher_candidate_meta">
+                                    <span>$ <field name="ml_price"/></span>
+                                    <span>Stock <field name="ml_stock"/></span>
+                                </div>
+                                <div class="o_publisher_candidate_marketplaces">
+                                    <span t-attf-class="#{record.published_oncity.raw_value ? 'is-published' : 'is-pending'}">OnCity</span>
+                                    <span t-attf-class="#{record.published_fravega.raw_value ? 'is-published' : 'is-pending'}">Fravega</span>
+                                </div>
+                                <div class="o_publisher_candidate_actions">
+                                    <button name="action_publish_oncity" type="object" class="btn btn-sm btn-primary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                        OnCity
+                                    </button>
+                                    <button name="action_publish_fravega" type="object" class="btn btn-sm btn-secondary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                        Fravega
+                                    </button>
+                                    <button name="action_publish_both" type="object" class="btn btn-sm btn-secondary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                        Ambos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_publisher_sku_tree" model="ir.ui.view">
         <field name="name">publisher.sku.tree</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <tree string="SKUs para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
+            <tree string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
                 <field name="ready_to_publish" invisible="1"/>
                 <button name="action_open_ml_product" string="ML" type="object" icon="fa-external-link"/>
                 <field name="sku"/>
@@ -14,8 +72,8 @@
                 <field name="ml_stock"/>
                 <field name="brand"/>
                 <field name="category_name"/>
-                <field name="published_oncity"/>
-                <field name="published_fravega"/>
+                <field name="published_oncity" string="OnCity"/>
+                <field name="published_fravega" string="Fravega"/>
                 <field name="publish_status" widget="badge"/>
                 <field name="meli_item_id" optional="hide"/>
                 <field name="last_checked_at"/>
@@ -87,6 +145,7 @@
                 <filter name="ready" string="Listos" domain="[('ready_to_publish', '=', True)]"/>
                 <filter name="pending_oncity" string="No publicado OnCity" domain="[('published_oncity', '=', False)]"/>
                 <filter name="pending_fravega" string="No publicado Fravega" domain="[('published_fravega', '=', False)]"/>
+                <filter name="pending_none" string="No publicado en ninguno" domain="[('published_oncity', '=', False), ('published_fravega', '=', False)]"/>
                 <filter name="pending_any" string="No publicado en algun retailer" domain="['|', ('published_oncity', '=', False), ('published_fravega', '=', False)]"/>
                 <filter name="with_stock" string="Con stock ML" domain="[('ml_stock', '&gt;', 0)]"/>
                 <filter name="no_stock" string="Sin stock" domain="[('publish_status', '=', 'no_stock')]"/>
@@ -101,11 +160,16 @@
     </record>
 
     <record id="action_publisher_sku" model="ir.actions.act_window">
-        <field name="name">SKUs</field>
+        <field name="name">Candidatos</field>
         <field name="res_model">publisher.sku</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="view_publisher_sku_search"/>
         <field name="context">{'search_default_ready': 1}</field>
+    </record>
+
+    <record id="action_publisher_candidates_cards" model="ir.actions.client">
+        <field name="name">Candidatos</field>
+        <field name="tag">sku_publisher_panel.candidates_action</field>
     </record>
 
     <record id="action_refresh_publisher_skus" model="ir.actions.server">

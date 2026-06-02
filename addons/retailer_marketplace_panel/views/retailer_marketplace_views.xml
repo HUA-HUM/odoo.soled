@@ -5,8 +5,8 @@
         <field name="code">fravega</field>
         <field name="sequence">10</field>
         <field name="logo_url">/retailer_marketplace_panel/static/src/img/logofravega.png</field>
-        <field name="status">pending</field>
-        <field name="description">Preparado para integrar catalogo.</field>
+        <field name="status">available</field>
+        <field name="description">Catalogo y ordenes conectados por API.</field>
     </record>
 
     <record id="marketplace_oncity" model="retailer.marketplace">
@@ -15,7 +15,7 @@
         <field name="sequence">20</field>
         <field name="logo_url">/retailer_marketplace_panel/static/src/img/oncity_logo.png</field>
         <field name="status">available</field>
-        <field name="description">Catalogo conectado por API.</field>
+        <field name="description">Catalogo y ordenes conectados por API.</field>
     </record>
 
     <record id="view_retailer_marketplace_kanban" model="ir.ui.view">
@@ -66,11 +66,21 @@
                                         <span>Envios</span>
                                     </div>
                                 </div>
+                                <div class="o_retailer_marketplace_actions">
+                                    <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
+                                        <i class="fa fa-cubes"/>
+                                        Catalogo
+                                    </button>
+                                    <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
+                                        <i class="fa fa-shopping-cart"/>
+                                        Ordenes
+                                    </button>
+                                </div>
                                 <div class="o_retailer_marketplace_sections">
-                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Catalogo</span>
-                                    <span class="o_retailer_marketplace_section">Ordenes</span>
+                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Stock</span>
+                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Precios</span>
+                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Ventas</span>
                                     <span class="o_retailer_marketplace_section">Envios</span>
-                                    <span class="o_retailer_marketplace_section">Facturas</span>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +172,7 @@
                                 <i class="fa fa-shopping-cart"/>
                                 <span class="o_retailer_section_title">Ordenes</span>
                                 <span class="o_retailer_section_text">Ventas, estados de pago y preparacion.</span>
-                                <span class="o_retailer_section_metric">Proxima integracion</span>
+                                <span class="o_retailer_section_metric"><field name="order_count"/> ordenes</span>
                             </button>
                             <button name="action_open_shipments" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-truck"/>

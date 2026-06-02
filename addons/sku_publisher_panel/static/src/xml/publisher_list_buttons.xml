@@ -6,6 +6,19 @@
                 <i class="fa fa-refresh me-1"/>
                 Actualizar candidatos
             </button>
+            <button t-if="props.resModel === 'publisher.sku'" type="button" class="btn o_publisher_list_secondary_button" t-on-click="() => this.onPublisherCreateJob('action_publish_oncity')">
+                Publicar OnCity
+            </button>
+            <button t-if="props.resModel === 'publisher.sku'" type="button" class="btn o_publisher_list_secondary_button" t-on-click="() => this.onPublisherCreateJob('action_publish_fravega')">
+                Publicar Fravega
+            </button>
+            <button t-if="props.resModel === 'publisher.sku'" type="button" class="btn o_publisher_list_secondary_button" t-on-click="() => this.onPublisherCreateJob('action_publish_both')">
+                Publicar ambos
+            </button>
+            <button t-if="props.resModel === 'publisher.job'" type="button" class="btn o_publisher_list_refresh_button" t-on-click="onPublisherSyncJobs">
+                <i class="fa fa-tasks me-1"/>
+                Sincronizar procesos
+            </button>
         </xpath>
     </t>
 </templates>
