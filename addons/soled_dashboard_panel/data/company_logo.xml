@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <record id="base.main_company" model="res.company">
+        <field name="logo" type="base64" file="soled_dashboard_panel/static/src/img/soled_login_logo.png"/>
+    </record>
+</odoo>
