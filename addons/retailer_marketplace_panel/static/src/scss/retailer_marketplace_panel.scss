@@ -8,121 +8,129 @@
 
 .o_retailer_marketplace_kanban {
     background: var(--retailer-surface);
-    padding: 24px;
+    min-height: calc(100vh - 170px);
+    padding: 36px 24px;
 }
 
+.o_retailer_marketplace_kanban.o_kanban_renderer,
 .o_retailer_marketplace_kanban .o_kanban_renderer {
-    align-items: stretch;
-    display: flex;
-    flex-wrap: wrap;
+    align-items: start !important;
+    display: grid !important;
     gap: 18px;
+    grid-template-columns: repeat(auto-fill, 280px);
+    justify-content: center;
+    margin: 0 auto;
+    max-width: 1220px;
+    width: 100%;
+}
+
+.o_retailer_marketplace_kanban.o_kanban_renderer {
+    padding: 32px 24px !important;
 }
 
 .o_retailer_marketplace_kanban .o_kanban_record {
     margin: 0 !important;
-    width: 560px !important;
+    max-width: 280px !important;
+    min-width: 0 !important;
+    width: 280px !important;
 }
 
 .o_retailer_marketplace_card {
+    align-items: center;
     background: #ffffff;
     border: 1px solid var(--retailer-border);
     border-radius: 8px;
-    box-shadow: 0 8px 20px rgba(23, 48, 63, 0.08);
+    box-shadow: 0 10px 26px rgba(23, 48, 63, 0.07);
     display: flex;
     flex-direction: column;
-    min-height: 330px;
+    height: 304px;
+    justify-content: flex-start;
     overflow: hidden;
-    padding: 0;
+    padding: 18px;
+    position: relative;
+    text-align: center;
     width: 100%;
+}
+
+.o_retailer_marketplace_card::before {
+    background: linear-gradient(90deg, var(--retailer-coral), var(--retailer-peach));
+    content: "";
+    height: 4px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 
 .o_retailer_marketplace_card:hover {
     border-color: rgba(246, 83, 89, 0.5);
-    box-shadow: 0 10px 28px rgba(23, 48, 63, 0.14);
-}
-
-.o_retailer_marketplace_top {
-    align-items: center;
-    display: flex;
-    gap: 18px;
-    padding: 18px;
+    box-shadow: 0 14px 32px rgba(23, 48, 63, 0.13);
+    transform: translateY(-1px);
 }
 
 .o_retailer_marketplace_logo_wrap {
     align-items: center;
-    background: #ffffff;
+    background: #f9fbfc;
     border: 1px solid var(--retailer-border);
     border-radius: 8px;
     display: flex;
-    flex: 0 0 176px;
-    height: 126px;
+    flex: 0 0 auto;
+    height: 96px;
     justify-content: center;
-    padding: 14px;
+    margin-bottom: 14px;
+    padding: 12px;
+    width: 150px;
 }
 
 .o_retailer_marketplace_logo {
-    max-height: 104px;
-    max-width: 150px;
+    max-height: 72px;
+    max-width: 128px;
     object-fit: contain;
-}
-
-.o_retailer_marketplace_head {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-}
-
-.o_retailer_marketplace_body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-    padding: 0 18px 18px;
 }
 
 .o_retailer_marketplace_name {
     color: var(--retailer-navy);
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 800;
     line-height: 1.1;
+    margin-bottom: 7px;
     overflow-wrap: anywhere;
 }
 
 .o_retailer_marketplace_description {
     color: #5b6972;
-    font-size: 15px;
-    line-height: 1.35;
-    min-height: 40px;
-}
-
-.o_retailer_marketplace_metrics {
-    display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 16px;
+    display: -webkit-box;
+    font-size: 13px;
+    line-height: 1.3;
+    margin: 2px auto 0;
+    max-width: 218px;
+    min-height: 34px;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .o_retailer_marketplace_actions {
     display: grid;
-    gap: 10px;
+    gap: 7px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 16px;
+    margin-top: auto;
+    width: 100%;
 }
 
 .o_retailer_marketplace_action {
     align-items: center;
     background: var(--retailer-navy);
     border: 1px solid var(--retailer-navy);
-    border-radius: 8px;
+    border-radius: 7px;
     color: #ffffff;
     display: inline-flex;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 850;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
-    min-height: 40px;
+    min-height: 34px;
+    padding: 6px 8px;
     text-transform: uppercase;
 }
 
@@ -133,42 +141,37 @@
     color: #ffffff;
 }
 
-.o_retailer_marketplace_metrics div {
+.o_retailer_marketplace_count {
+    align-items: baseline;
     background: #f6f8f9;
     border: 1px solid var(--retailer-border);
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 999px;
+    color: #5b6972;
+    display: inline-flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 5px 10px;
 }
 
-.o_retailer_marketplace_metrics strong {
+.o_retailer_marketplace_count strong {
     color: var(--retailer-navy);
-    display: block;
-    font-size: 22px;
+    font-size: 15px;
     line-height: 1;
 }
 
-.o_retailer_marketplace_metrics span {
-    color: #5b6972;
-    display: block;
-    font-size: 12px;
+.o_retailer_marketplace_count span {
+    font-size: 11px;
     font-weight: 750;
-    margin-top: 5px;
     text-transform: uppercase;
 }
 
-.o_retailer_marketplace_sections {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
 .o_retailer_marketplace_status {
-    align-self: flex-start;
+    align-self: center;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
-    padding: 6px 11px;
+    padding: 5px 10px;
 }
 
 .o_retailer_marketplace_status_available {
@@ -181,24 +184,19 @@
     color: #a75a1a;
 }
 
-.o_retailer_marketplace_section {
-    background: #eef3f5;
-    border-radius: 999px;
-    color: var(--retailer-navy);
-    display: inline-flex;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 6px 10px;
-}
-
-.o_retailer_marketplace_section_ready {
-    background: rgba(246, 83, 89, 0.12);
-    color: var(--retailer-coral);
-}
-
 @media (max-width: 650px) {
+    .o_retailer_marketplace_kanban {
+        padding: 22px 14px;
+    }
+
+    .o_retailer_marketplace_kanban.o_kanban_renderer,
+    .o_retailer_marketplace_kanban .o_kanban_renderer {
+        grid-template-columns: minmax(0, 280px);
+    }
+
     .o_retailer_marketplace_kanban .o_kanban_record {
-        width: 100% !important;
+        max-width: 280px !important;
+        width: 280px !important;
     }
 
     .o_retailer_marketplace_top {
@@ -208,7 +206,6 @@
 
     .o_retailer_marketplace_logo_wrap {
         flex-basis: auto;
-        width: 100%;
     }
 }
 

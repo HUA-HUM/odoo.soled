@@ -36,52 +36,30 @@
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_global_click o_retailer_marketplace_card o_retailer_marketplace_#{record.code.raw_value}">
-                            <div class="o_retailer_marketplace_top">
-                                <div class="o_retailer_marketplace_logo_wrap">
-                                    <img t-att-src="record.logo_url.raw_value" t-att-alt="record.name.value" class="o_retailer_marketplace_logo"/>
-                                </div>
-                                <div class="o_retailer_marketplace_head">
-                                    <div class="o_retailer_marketplace_name">
-                                        <field name="name"/>
-                                    </div>
-                                    <span t-if="record.status.raw_value == 'available'" class="o_retailer_marketplace_status o_retailer_marketplace_status_available">Disponible</span>
-                                    <span t-if="record.status.raw_value == 'pending'" class="o_retailer_marketplace_status o_retailer_marketplace_status_pending">Pendiente</span>
-                                </div>
+                            <div class="o_retailer_marketplace_logo_wrap">
+                                <img t-att-src="record.logo_url.raw_value" t-att-alt="record.name.value" class="o_retailer_marketplace_logo"/>
                             </div>
-                            <div class="o_retailer_marketplace_body">
-                                <div class="o_retailer_marketplace_description">
-                                    <field name="description"/>
-                                </div>
-                                <div class="o_retailer_marketplace_metrics">
-                                    <div>
-                                        <strong><field name="product_count"/></strong>
-                                        <span>Productos</span>
-                                    </div>
-                                    <div>
-                                        <strong><field name="order_count"/></strong>
-                                        <span>Ordenes</span>
-                                    </div>
-                                    <div>
-                                        <strong><field name="shipment_count"/></strong>
-                                        <span>Envios</span>
-                                    </div>
-                                </div>
-                                <div class="o_retailer_marketplace_actions">
-                                    <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
-                                        <i class="fa fa-cubes"/>
-                                        Catalogo
-                                    </button>
-                                    <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
-                                        <i class="fa fa-shopping-cart"/>
-                                        Ordenes
-                                    </button>
-                                </div>
-                                <div class="o_retailer_marketplace_sections">
-                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Stock</span>
-                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Precios</span>
-                                    <span class="o_retailer_marketplace_section o_retailer_marketplace_section_ready">Ventas</span>
-                                    <span class="o_retailer_marketplace_section">Envios</span>
-                                </div>
+                            <div class="o_retailer_marketplace_name">
+                                <field name="name"/>
+                            </div>
+                            <span t-if="record.status.raw_value == 'available'" class="o_retailer_marketplace_status o_retailer_marketplace_status_available">Disponible</span>
+                            <span t-if="record.status.raw_value == 'pending'" class="o_retailer_marketplace_status o_retailer_marketplace_status_pending">Pendiente</span>
+                            <div class="o_retailer_marketplace_description">
+                                <field name="description"/>
+                            </div>
+                            <div class="o_retailer_marketplace_count">
+                                <strong><field name="product_count"/></strong>
+                                <span>productos</span>
+                            </div>
+                            <div class="o_retailer_marketplace_actions">
+                                <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
+                                    <i class="fa fa-cubes"/>
+                                    Catalogo
+                                </button>
+                                <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
+                                    <i class="fa fa-shopping-cart"/>
+                                    Ordenes
+                                </button>
                             </div>
                         </div>
                     </t>

@@ -15,4 +15,22 @@ patch(ListController.prototype, "retailer_marketplace_panel.ListController", {
         await this.model.root.load();
         this.render();
     },
+
+    async onFravegaSync() {
+        await this.actionService.doAction("retailer_marketplace_panel.action_sync_fravega_products");
+        await this.model.root.load();
+        this.render();
+    },
+
+    async onOncityOrdersSync() {
+        await this.actionService.doAction("retailer_marketplace_panel.action_sync_oncity_orders");
+        await this.model.root.load();
+        this.render();
+    },
+
+    async onFravegaOrdersSync() {
+        await this.actionService.doAction("retailer_marketplace_panel.action_sync_fravega_orders");
+        await this.model.root.load();
+        this.render();
+    },
 });

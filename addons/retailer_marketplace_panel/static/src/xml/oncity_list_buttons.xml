@@ -6,6 +6,18 @@
                 <i class="fa fa-refresh me-1"/>
                 Actualizar catalogo
             </button>
+            <button t-if="props.resModel === 'retailer.fravega.product'" type="button" class="btn o_oncity_sync_button" t-on-click="onFravegaSync">
+                <i class="fa fa-refresh me-1"/>
+                Actualizar catalogo
+            </button>
+            <button t-if="props.resModel === 'retailer.marketplace.order' &amp;&amp; props.context &amp;&amp; props.context.search_default_oncity" type="button" class="btn o_oncity_sync_button" t-on-click="onOncityOrdersSync">
+                <i class="fa fa-refresh me-1"/>
+                Actualizar ordenes
+            </button>
+            <button t-if="props.resModel === 'retailer.marketplace.order' &amp;&amp; props.context &amp;&amp; props.context.search_default_fravega" type="button" class="btn o_oncity_sync_button" t-on-click="onFravegaOrdersSync">
+                <i class="fa fa-refresh me-1"/>
+                Actualizar ordenes
+            </button>
         </xpath>
     </t>
 </templates>

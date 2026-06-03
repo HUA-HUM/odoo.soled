@@ -94,6 +94,7 @@
         <field name="res_model">retailer.marketplace.order</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('marketplace', '=', 'oncity')]</field>
+        <field name="context">{'search_default_oncity': 1}</field>
         <field name="search_view_id" ref="view_marketplace_order_search"/>
     </record>
 
@@ -102,6 +103,7 @@
         <field name="res_model">retailer.marketplace.order</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('marketplace', '=', 'fravega')]</field>
+        <field name="context">{'search_default_fravega': 1}</field>
         <field name="search_view_id" ref="view_marketplace_order_search"/>
     </record>
 
