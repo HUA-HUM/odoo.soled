@@ -4,7 +4,7 @@
         <field name="name">publisher.job.tree</field>
         <field name="model">publisher.job</field>
         <field name="arch" type="xml">
-            <tree string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status == 'processing'">
+            <list string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status == 'processing'">
                 <header>
                     <button name="action_sync_recent_jobs" string="Sincronizar procesos" type="object" class="btn-primary"/>
                 </header>
@@ -17,7 +17,7 @@
                 <field name="error_items"/>
                 <field name="backend_job_id"/>
                 <field name="create_date"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -53,14 +53,14 @@
                     <notebook>
                         <page string="Lineas">
                             <field name="line_ids" readonly="1">
-                                <tree decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
-                                    <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
+                                <list decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
+                                    <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" invisible="status not in ['failed', 'skipped']"/>
                                     <field name="sku"/>
                                     <field name="retailer"/>
                                     <field name="status" widget="badge"/>
                                     <field name="run_id"/>
                                     <field name="message"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Payload API">
@@ -75,18 +75,18 @@
     <record id="action_publisher_job" model="ir.actions.act_window">
         <field name="name">Jobs</field>
         <field name="res_model">publisher.job</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_publisher_run_tree" model="ir.ui.view">
         <field name="name">publisher.job.line.tree</field>
         <field name="model">publisher.job.line</field>
         <field name="arch" type="xml">
-            <tree string="Runs de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
+            <list string="Runs de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
                 <header>
                     <button name="action_sync_runs" string="Sincronizar runs" type="object" class="btn-primary"/>
                 </header>
-                <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
+                <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" invisible="status not in ['failed', 'skipped']"/>
                 <field name="sku"/>
                 <field name="retailer"/>
                 <field name="status" widget="badge"/>
@@ -97,7 +97,7 @@
                 <field name="message"/>
                 <field name="error_message"/>
                 <field name="create_date"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -107,7 +107,7 @@
         <field name="arch" type="xml">
             <form string="Run de publicacion" create="false">
                 <header>
-                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-primary" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
+                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-primary" invisible="status not in ['failed', 'skipped']"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -168,7 +168,7 @@
     <record id="action_publisher_run" model="ir.actions.act_window">
         <field name="name">Runs</field>
         <field name="res_model">publisher.job.line</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_publisher_run_search"/>
     </record>
 

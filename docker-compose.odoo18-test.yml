@@ -6,19 +6,19 @@ services:
       POSTGRES_USER: odoo
       POSTGRES_PASSWORD: odoo
     volumes:
-      - odoo-db-data:/var/lib/postgresql/data
+      - odoo18-db-data:/var/lib/postgresql/data
 
   odoo:
     image: odoo:18
     depends_on:
       - db
     ports:
-      - "8069:8069"
+      - "8070:8069"
     volumes:
       - ./addons:/mnt/extra-addons
       - ./config/odoo.conf:/etc/odoo/odoo.conf
-      - odoo-web-data:/var/lib/odoo
+      - odoo18-web-data:/var/lib/odoo
 
 volumes:
-  odoo-db-data:
-  odoo-web-data:
+  odoo18-db-data:
+  odoo18-web-data:

@@ -29,7 +29,7 @@ class PublisherSkuSearchWizard(models.TransientModel):
             "type": "ir.actions.act_window",
             "name": _("Resultado SKU"),
             "res_model": "publisher.sku",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("sku", "ilike", sku)],
             "target": "current",
         }

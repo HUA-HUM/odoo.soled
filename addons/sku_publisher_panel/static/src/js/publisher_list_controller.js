@@ -4,9 +4,9 @@ import { ListController } from "@web/views/list/list_controller";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
 
-patch(ListController.prototype, "sku_publisher_panel.ListController", {
+patch(ListController.prototype, {
     setup() {
-        this._super(...arguments);
+        super.setup(...arguments);
         this.actionService = useService("action");
         this.orm = useService("orm");
         this.notification = useService("notification");

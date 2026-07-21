@@ -4,12 +4,12 @@
         <field name="name">retailer.oncity.product.tree</field>
         <field name="model">retailer.oncity.product</field>
         <field name="arch" type="xml">
-            <tree string="Catalogo OnCity" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="status != 'Activo'">
+            <list string="Catalogo OnCity" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="status != 'Activo'">
                 <header>
                     <button name="action_sync_products" string="Actualizar catalogo" type="object" class="btn-primary"/>
                 </header>
                 <field name="link_publication" invisible="1"/>
-                <button name="action_open_publication" string="Abrir" type="object" icon="fa-external-link" attrs="{'invisible': [('link_publication', '=', False)]}"/>
+                <button name="action_open_publication" string="Abrir" type="object" icon="fa-external-link" invisible="not link_publication"/>
                 <field name="seller_sku"/>
                 <field name="title"/>
                 <field name="status" widget="badge"/>
@@ -19,7 +19,7 @@
                 <field name="market_sku"/>
                 <field name="thumbnail" widget="url" optional="hide"/>
                 <field name="synced_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -93,7 +93,7 @@
     <record id="action_oncity_product" model="ir.actions.act_window">
         <field name="name">OnCity</field>
         <field name="res_model">retailer.oncity.product</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_oncity_product_search"/>
     </record>
 

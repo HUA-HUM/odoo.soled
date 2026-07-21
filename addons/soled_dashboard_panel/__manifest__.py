@@ -1,7 +1,7 @@
 {
     "name": "SOLED Dashboard Panel",
     "summary": "Vista inicial de modulos operativos SOLED",
-    "version": "16.0.1.0.0",
+    "version": "18.0.1.0.0",
     "category": "Sales",
     "author": "SOLED",
     "license": "LGPL-3",

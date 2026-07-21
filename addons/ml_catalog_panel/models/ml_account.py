@@ -161,7 +161,7 @@ class MlAccount(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Catalogo MercadoLibre"),
             "res_model": "ml.product",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
         }
 
     def action_open_orders(self):
@@ -169,7 +169,7 @@ class MlAccount(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Ordenes MercadoLibre"),
             "res_model": "ml.order",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
         }
 
     def _apply_token_response(self, response):

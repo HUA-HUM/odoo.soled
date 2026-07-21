@@ -4,9 +4,9 @@
         <field name="name">ml.product.tree</field>
         <field name="model">ml.product</field>
         <field name="arch" type="xml">
-            <tree string="Catalogo MercadoLibre" create="false" decoration-danger="available_quantity == 0" decoration-warning="available_quantity &lt;= 2 and available_quantity &gt; 0" decoration-muted="status != 'active'">
+            <list string="Catalogo MercadoLibre" create="false" decoration-danger="available_quantity == 0" decoration-warning="available_quantity &lt;= 2 and available_quantity &gt; 0" decoration-muted="status != 'active'">
                 <field name="permalink" invisible="1"/>
-                <button name="action_open_permalink" string="Abrir" type="object" icon="fa-external-link" attrs="{'invisible': [('permalink', '=', False)]}"/>
+                <button name="action_open_permalink" string="Abrir" type="object" icon="fa-external-link" invisible="not permalink"/>
                 <field name="sku"/>
                 <field name="title"/>
                 <field name="status" widget="badge"/>
@@ -24,7 +24,7 @@
                 <field name="thumbnail" widget="url" optional="hide"/>
                 <field name="last_seen_at" optional="hide"/>
                 <field name="updated_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -147,7 +147,7 @@
     <record id="action_ml_product" model="ir.actions.act_window">
         <field name="name">Catalogo</field>
         <field name="res_model">ml.product</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_ml_product_search"/>
         <field name="context">{}</field>
     </record>

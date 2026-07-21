@@ -4,14 +4,14 @@
         <field name="name">ml.account.tree</field>
         <field name="model">ml.account</field>
         <field name="arch" type="xml">
-            <tree string="Cuentas MercadoLibre">
+            <list string="Cuentas MercadoLibre">
                 <field name="name"/>
                 <field name="connected"/>
                 <field name="seller_id"/>
                 <field name="nickname"/>
                 <field name="token_expires_at"/>
                 <field name="last_connection_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -22,8 +22,8 @@
             <form string="Cuenta MercadoLibre">
                 <header>
                     <button name="action_connect" string="Conectar con MercadoLibre" type="object" class="btn-primary"/>
-                    <button name="action_refresh_token" string="Actualizar token" type="object" attrs="{'invisible': [('refresh_token', '=', False)]}"/>
-                    <button name="action_test_connection" string="Probar conexion" type="object" attrs="{'invisible': [('access_token', '=', False)]}"/>
+                    <button name="action_refresh_token" string="Actualizar token" type="object" invisible="not refresh_token"/>
+                    <button name="action_test_connection" string="Probar conexion" type="object" invisible="not access_token"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -79,8 +79,8 @@
         <field name="arch" type="xml">
             <form string="Dashboard MercadoLibre" create="false">
                 <header>
-                    <button name="action_test_connection" string="Probar cuenta" type="object" class="btn-primary" attrs="{'invisible': [('access_token', '=', False)]}"/>
-                    <button name="action_refresh_token" string="Actualizar token" type="object" attrs="{'invisible': [('refresh_token', '=', False)]}"/>
+                    <button name="action_test_connection" string="Probar cuenta" type="object" class="btn-primary" invisible="not access_token"/>
+                    <button name="action_refresh_token" string="Actualizar token" type="object" invisible="not refresh_token"/>
                 </header>
                 <sheet>
                     <field name="access_token" invisible="1"/>
@@ -154,14 +154,14 @@
     <record id="action_ml_account" model="ir.actions.act_window">
         <field name="name">Cuenta MercadoLibre</field>
         <field name="res_model">ml.account</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="context">{}</field>
     </record>
 
     <record id="action_ml_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard</field>
         <field name="res_model">ml.account</field>
-        <field name="view_mode">form,tree</field>
+        <field name="view_mode">form,list</field>
         <field name="view_id" ref="view_ml_account_dashboard_form"/>
         <field name="domain">[('connected', '=', True)]</field>
         <field name="context">{'create': False}</field>

@@ -72,11 +72,11 @@
         <field name="name">retailer.marketplace.tree</field>
         <field name="model">retailer.marketplace</field>
         <field name="arch" type="xml">
-            <tree string="Marketplaces" create="false" edit="false">
+            <list string="Marketplaces" create="false" edit="false">
                 <field name="name"/>
                 <field name="status"/>
                 <field name="product_count"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -97,8 +97,8 @@
                     <div class="o_retailer_workspace">
                         <section class="o_retailer_hero">
                             <div class="o_retailer_hero_logo">
-                                <img src="/retailer_marketplace_panel/static/src/img/oncity_logo.png" alt="OnCity" attrs="{'invisible': [('code', '!=', 'oncity')]}"/>
-                                <img src="/retailer_marketplace_panel/static/src/img/logofravega.png" alt="Fravega" attrs="{'invisible': [('code', '!=', 'fravega')]}"/>
+                                <img src="/retailer_marketplace_panel/static/src/img/oncity_logo.png" alt="OnCity" invisible="code != 'oncity'"/>
+                                <img src="/retailer_marketplace_panel/static/src/img/logofravega.png" alt="Fravega" invisible="code != 'fravega'"/>
                             </div>
                             <div class="o_retailer_hero_content">
                                 <div class="o_retailer_eyebrow">Marketplace</div>
@@ -109,8 +109,8 @@
                                     <field name="description"/>
                                 </p>
                                 <div class="o_retailer_hero_meta">
-                                    <span class="o_retailer_status o_retailer_status_available" attrs="{'invisible': [('status', '!=', 'available')]}">Disponible</span>
-                                    <span class="o_retailer_status o_retailer_status_pending" attrs="{'invisible': [('status', '!=', 'pending')]}">Pendiente</span>
+                                    <span class="o_retailer_status o_retailer_status_available" invisible="status != 'available'">Disponible</span>
+                                    <span class="o_retailer_status o_retailer_status_pending" invisible="status != 'pending'">Pendiente</span>
                                     <span>Operacion marketplace</span>
                                 </div>
                             </div>
@@ -186,6 +186,6 @@
     <record id="action_retailer_marketplace" model="ir.actions.act_window">
         <field name="name">Marketplaces</field>
         <field name="res_model">retailer.marketplace</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
 </odoo>

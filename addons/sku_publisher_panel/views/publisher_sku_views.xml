@@ -40,13 +40,13 @@
                                     <span t-attf-class="#{record.published_fravega.raw_value ? 'is-published' : 'is-pending'}">Fravega</span>
                                 </div>
                                 <div class="o_publisher_candidate_actions">
-                                    <button name="action_publish_oncity" type="object" class="btn btn-sm btn-primary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                    <button name="action_publish_oncity" type="object" class="btn btn-sm btn-primary" invisible="not ready_to_publish">
                                         OnCity
                                     </button>
-                                    <button name="action_publish_fravega" type="object" class="btn btn-sm btn-secondary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                    <button name="action_publish_fravega" type="object" class="btn btn-sm btn-secondary" invisible="not ready_to_publish">
                                         Fravega
                                     </button>
-                                    <button name="action_publish_both" type="object" class="btn btn-sm btn-secondary" attrs="{'invisible': [('ready_to_publish', '=', False)]}">
+                                    <button name="action_publish_both" type="object" class="btn btn-sm btn-secondary" invisible="not ready_to_publish">
                                         Ambos
                                     </button>
                                 </div>
@@ -62,7 +62,7 @@
         <field name="name">publisher.sku.tree</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <tree string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
+            <list string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
                 <field name="ready_to_publish" invisible="1"/>
                 <button name="action_open_ml_product" string="ML" type="object" icon="fa-external-link"/>
                 <field name="sku"/>
@@ -77,7 +77,7 @@
                 <field name="publish_status" widget="badge"/>
                 <field name="meli_item_id" optional="hide"/>
                 <field name="last_checked_at"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -87,9 +87,9 @@
         <field name="arch" type="xml">
             <form string="SKU publicador" create="false">
                 <header>
-                    <button name="action_publish_oncity" string="Publicar OnCity" type="object" class="btn-primary" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
-                    <button name="action_publish_fravega" string="Publicar Fravega" type="object" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
-                    <button name="action_publish_both" string="Publicar ambos" type="object" attrs="{'invisible': [('ready_to_publish', '=', False)]}"/>
+                    <button name="action_publish_oncity" string="Publicar OnCity" type="object" class="btn-primary" invisible="not ready_to_publish"/>
+                    <button name="action_publish_fravega" string="Publicar Fravega" type="object" invisible="not ready_to_publish"/>
+                    <button name="action_publish_both" string="Publicar ambos" type="object" invisible="not ready_to_publish"/>
                     <button name="action_open_ml_product" string="Ver producto ML" type="object"/>
                 </header>
                 <sheet>
@@ -162,7 +162,7 @@
     <record id="action_publisher_sku" model="ir.actions.act_window">
         <field name="name">Candidatos</field>
         <field name="res_model">publisher.sku</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_publisher_sku_search"/>
         <field name="context">{'search_default_ready': 1}</field>
     </record>
