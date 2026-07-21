@@ -1,4 +1,4 @@
-name: Deploy Odoo
+name: Deploy Odoo 18 Preview
 
 on:
   push:
@@ -7,16 +7,16 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: production-deploy
+  group: odoo18-preview-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy to DigitalOcean
+    name: Deploy Odoo 18 preview to DigitalOcean
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy over SSH
+      - name: Deploy Odoo 18 preview over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -27,21 +27,52 @@ jobs:
           script: |
             set -euo pipefail
 
-            cd "${{ secrets.DEPLOY_PATH }}"
+            PROD_PATH="${{ secrets.DEPLOY_PATH }}"
+            PREVIEW_PATH="${PROD_PATH%/}18"
+            REPO_URL="https://github.com/HUA-HUM/odoo.soled.git"
+            COMPOSE="docker compose"
 
-            mkdir -p backups
-            docker-compose exec -T db pg_dump -U odoo soled > "backups/soled-$(date +%Y%m%d-%H%M%S).sql"
+            if ! docker compose version >/dev/null 2>&1; then
+              mkdir -p /usr/local/lib/docker/cli-plugins
+              curl -SL \
+                https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64 \
+                -o /usr/local/lib/docker/cli-plugins/docker-compose
+              chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+            fi
 
+            docker compose version
+
+            if [ -d "$PROD_PATH" ]; then
+              cd "$PROD_PATH"
+              mkdir -p backups
+              docker-compose exec -T db pg_dump -U odoo soled > "backups/soled-$(date +%Y%m%d-%H%M%S).sql" || true
+            fi
+
+            if [ ! -d "$PREVIEW_PATH/.git" ]; then
+              rm -rf "$PREVIEW_PATH"
+              git clone "$REPO_URL" "$PREVIEW_PATH"
+            fi
+
+            cd "$PREVIEW_PATH"
             git fetch origin main
             git reset --hard origin/main
 
-            docker-compose pull
-            docker-compose up -d
+            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml pull
+            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml up -d db
 
-            docker-compose exec -T odoo odoo \
+            sleep 5
+
+            MODULE_MODE="-i"
+            if $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml exec -T db \
+              psql -U odoo -tAc "SELECT 1 FROM pg_database WHERE datname='soled'" | grep -q 1; then
+              MODULE_MODE="-u"
+            fi
+
+            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml run --rm odoo odoo \
               -d soled \
-              -u ml_catalog_panel,retailer_marketplace_panel,sku_publisher_panel,coresa_panel,soled_dashboard_panel \
+              "$MODULE_MODE" base,ml_catalog_panel,retailer_marketplace_panel,sku_publisher_panel,coresa_panel,soled_dashboard_panel \
+              --without-demo=all \
               --stop-after-init
 
-            docker-compose restart odoo
-            docker-compose ps
+            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml up -d odoo
+            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml ps
