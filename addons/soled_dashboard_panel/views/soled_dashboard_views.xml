@@ -14,61 +14,73 @@
                         <div class="o_soled_sidebar">
                             <div class="o_soled_sidebar_brand">
                                 <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                                <span>Panel SOLED</span>
+                                <div>
+                                    <strong>SOLED</strong>
+                                    <span>Panel operativo</span>
+                                </div>
+                            </div>
+
+                            <div class="o_soled_sidebar_caption">Areas</div>
+                            <div class="o_soled_nav_group">
+                                <div class="o_soled_nav_parent">
+                                    <span class="o_soled_nav_dot"></span>
+                                    <span>Administracion</span>
+                                </div>
+                                <button name="action_open_administration" type="object" class="o_soled_nav_item">Resumen</button>
                             </div>
 
                             <div class="o_soled_nav_group">
-                                <div class="o_soled_nav_title">Administracion</div>
-                                <button name="action_open_users" type="object" class="o_soled_nav_item">Usuarios</button>
-                                <button name="action_open_companies" type="object" class="o_soled_nav_item">Companias</button>
-                                <button name="action_open_settings" type="object" class="o_soled_nav_item">Configuracion</button>
-                            </div>
-
-                            <div class="o_soled_nav_group">
-                                <div class="o_soled_nav_title">Comercial</div>
+                                <div class="o_soled_nav_parent">
+                                    <span class="o_soled_nav_dot o_soled_nav_dot_accent"></span>
+                                    <span>Comercial</span>
+                                </div>
                                 <button name="action_open_ml" type="object" class="o_soled_nav_item">MercadoLibre</button>
                                 <button name="action_open_retailers" type="object" class="o_soled_nav_item">Retailers</button>
                                 <button name="action_open_publisher" type="object" class="o_soled_nav_item">Publicador</button>
                                 <button name="action_open_coresa" type="object" class="o_soled_nav_item">Coresa</button>
                             </div>
+
+                            <div class="o_soled_nav_group">
+                                <div class="o_soled_nav_parent">
+                                    <span class="o_soled_nav_dot o_soled_nav_dot_soft"></span>
+                                    <span>Configuraciones</span>
+                                </div>
+                                <button name="action_open_invite_users" type="object" class="o_soled_nav_item">Invitar usuarios</button>
+                                <button name="action_open_users" type="object" class="o_soled_nav_item">Usuarios y permisos</button>
+                                <button name="action_open_companies" type="object" class="o_soled_nav_item">Companias</button>
+                                <button name="action_open_settings" type="object" class="o_soled_nav_item">Ajustes generales</button>
+                            </div>
                         </div>
 
                         <div class="o_soled_dashboard">
                             <div class="o_soled_dashboard_header">
-                                <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                                <div>
-                                    <h1>Panel SOLED</h1>
-                                    <p>Elegir una seccion para operar el panel.</p>
+                                <div class="o_soled_header_identity">
+                                    <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
+                                    <div>
+                                        <span class="o_soled_eyebrow">Workspace SOLED</span>
+                                        <h1>Panel operativo</h1>
+                                        <p>Gestion por areas para operar la empresa desde un solo lugar.</p>
+                                    </div>
+                                </div>
+                                <div class="o_soled_header_pills">
+                                    <span>Administracion</span>
+                                    <span>Comercial</span>
+                                    <span>Configuraciones</span>
                                 </div>
                             </div>
 
-                            <div class="o_soled_section">
+                            <div class="o_soled_section o_soled_section_admin">
                                 <div class="o_soled_section_header">
                                     <span>Administracion</span>
-                                    <small>Usuarios, permisos y configuracion general.</small>
+                                    <small>Area preparada para procesos internos.</small>
                                 </div>
-                                <div class="o_soled_section_grid o_soled_admin_grid">
-                                    <button name="action_open_users" type="object" class="o_soled_module_card o_soled_admin_card">
-                                        <div class="o_soled_module_logo o_soled_text_logo">US</div>
-                                        <div>
-                                            <strong>Usuarios</strong>
-                                            <span>Alta de usuarios, accesos y permisos.</span>
-                                        </div>
-                                    </button>
-                                    <button name="action_open_companies" type="object" class="o_soled_module_card o_soled_admin_card">
-                                        <div class="o_soled_module_logo o_soled_text_logo">CO</div>
-                                        <div>
-                                            <strong>Companias</strong>
-                                            <span>Datos de compania y entidades relacionadas.</span>
-                                        </div>
-                                    </button>
-                                    <button name="action_open_settings" type="object" class="o_soled_module_card o_soled_admin_card">
-                                        <div class="o_soled_module_logo o_soled_text_logo">AJ</div>
-                                        <div>
-                                            <strong>Ajustes</strong>
-                                            <span>Configuracion base del entorno.</span>
-                                        </div>
-                                    </button>
+                                <div class="o_soled_empty_area">
+                                    <div class="o_soled_empty_badge">AD</div>
+                                    <div>
+                                        <strong>Administracion</strong>
+                                        <p>Disponible para sumar finanzas, compras, recursos humanos u otros procesos internos cuando los definamos.</p>
+                                    </div>
+                                    <span class="o_soled_status_chip">Proximamente</span>
                                 </div>
                             </div>
 
@@ -83,35 +95,80 @@
                                             <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
                                         </div>
                                         <div>
+                                            <small>Canal principal</small>
                                             <strong>MercadoLibre</strong>
                                             <span>Catalogo, ordenes, facturacion, mensajes y cuenta conectada.</span>
                                         </div>
+                                        <span class="o_soled_card_action">Abrir</span>
                                     </button>
                                     <button name="action_open_retailers" type="object" class="o_soled_module_card o_soled_module_retailers">
                                         <div class="o_soled_module_logo">
                                             <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
                                         </div>
                                         <div>
+                                            <small>Marketplaces</small>
                                             <strong>Retailers</strong>
                                             <span>Marketplaces, OnCity, Fravega, catalogos y operaciones.</span>
                                         </div>
+                                        <span class="o_soled_card_action">Abrir</span>
                                     </button>
                                     <button name="action_open_publisher" type="object" class="o_soled_module_card o_soled_module_publisher">
                                         <div class="o_soled_module_logo">
                                             <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
                                         </div>
                                         <div>
+                                            <small>Operaciones</small>
                                             <strong>Publicador</strong>
                                             <span>SKUs candidatos, publicacion y seguimiento de procesos.</span>
                                         </div>
+                                        <span class="o_soled_card_action">Abrir</span>
                                     </button>
                                     <button name="action_open_coresa" type="object" class="o_soled_module_card o_soled_module_coresa">
                                         <div class="o_soled_module_logo">
                                             <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
                                         </div>
                                         <div>
+                                            <small>Nuevo canal</small>
                                             <strong>Coresa</strong>
                                             <span>Catalogo, ordenes y operaciones.</span>
+                                        </div>
+                                        <span class="o_soled_card_action">Abrir</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="o_soled_section">
+                                <div class="o_soled_section_header">
+                                    <span>Configuraciones</span>
+                                    <small>Usuarios, accesos y ajustes de entorno.</small>
+                                </div>
+                                <div class="o_soled_settings_grid">
+                                    <button name="action_open_invite_users" type="object" class="o_soled_settings_card">
+                                        <div class="o_soled_settings_icon">+</div>
+                                        <div>
+                                            <strong>Invitar usuarios</strong>
+                                            <span>Crear accesos y sumar personas al panel.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_users" type="object" class="o_soled_settings_card">
+                                        <div class="o_soled_settings_icon">US</div>
+                                        <div>
+                                            <strong>Usuarios y permisos</strong>
+                                            <span>Administrar cuentas, roles y seguridad.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_companies" type="object" class="o_soled_settings_card">
+                                        <div class="o_soled_settings_icon">CO</div>
+                                        <div>
+                                            <strong>Companias</strong>
+                                            <span>Datos legales y companias configuradas.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_settings" type="object" class="o_soled_settings_card">
+                                        <div class="o_soled_settings_icon">AJ</div>
+                                        <div>
+                                            <strong>Ajustes generales</strong>
+                                            <span>Configuracion base del sistema.</span>
                                         </div>
                                     </button>
                                 </div>

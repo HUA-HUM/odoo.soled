@@ -21,6 +21,20 @@ class SoledDashboard(models.Model):
             }
         return action.read()[0]
 
+    def action_open_administration(self):
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Administracion",
+                "message": "Esta area queda preparada para sumar procesos internos.",
+                "type": "info",
+            },
+        }
+
+    def action_open_invite_users(self):
+        return self.action_open_users()
+
     def action_open_users(self):
         return self._open_action("base.action_res_users")
 
