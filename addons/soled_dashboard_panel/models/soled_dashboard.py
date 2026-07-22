@@ -8,7 +8,27 @@ class SoledDashboard(models.Model):
     name = fields.Char(default="Panel SOLED")
 
     def _open_action(self, xmlid):
-        return self.env.ref(xmlid).read()[0]
+        action = self.env.ref(xmlid, raise_if_not_found=False)
+        if not action:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": "Accion no disponible",
+                    "message": "Todavia no encontramos esa seccion en Odoo.",
+                    "type": "warning",
+                },
+            }
+        return action.read()[0]
+
+    def action_open_users(self):
+        return self._open_action("base.action_res_users")
+
+    def action_open_companies(self):
+        return self._open_action("base.action_res_company_form")
+
+    def action_open_settings(self):
+        return self._open_action("base_setup.action_general_configuration")
 
     def action_open_ml(self):
         return self._open_action("ml_catalog_panel.action_ml_dashboard")

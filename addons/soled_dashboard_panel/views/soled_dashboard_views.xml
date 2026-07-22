@@ -10,51 +10,112 @@
         <field name="arch" type="xml">
             <form string="Panel SOLED" create="false" edit="false">
                 <sheet class="o_soled_dashboard_sheet">
-                    <div class="o_soled_dashboard">
-                        <div class="o_soled_dashboard_header">
-                            <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                            <div>
-                                <h1>Panel SOLED</h1>
-                                <p>Selecciona el modulo operativo con el que queres trabajar.</p>
+                    <div class="o_soled_workspace">
+                        <div class="o_soled_sidebar">
+                            <div class="o_soled_sidebar_brand">
+                                <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
+                                <span>Panel SOLED</span>
+                            </div>
+
+                            <div class="o_soled_nav_group">
+                                <div class="o_soled_nav_title">Administracion</div>
+                                <button name="action_open_users" type="object" class="o_soled_nav_item">Usuarios</button>
+                                <button name="action_open_companies" type="object" class="o_soled_nav_item">Companias</button>
+                                <button name="action_open_settings" type="object" class="o_soled_nav_item">Configuracion</button>
+                            </div>
+
+                            <div class="o_soled_nav_group">
+                                <div class="o_soled_nav_title">Comercial</div>
+                                <button name="action_open_ml" type="object" class="o_soled_nav_item">MercadoLibre</button>
+                                <button name="action_open_retailers" type="object" class="o_soled_nav_item">Retailers</button>
+                                <button name="action_open_publisher" type="object" class="o_soled_nav_item">Publicador</button>
+                                <button name="action_open_coresa" type="object" class="o_soled_nav_item">Coresa</button>
                             </div>
                         </div>
-                        <div class="o_soled_module_grid">
-                            <button name="action_open_ml" type="object" class="o_soled_module_card o_soled_module_ml">
-                                <div class="o_soled_module_logo">
-                                    <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
-                                </div>
+
+                        <div class="o_soled_dashboard">
+                            <div class="o_soled_dashboard_header">
+                                <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
                                 <div>
-                                    <strong>MercadoLibre</strong>
-                                    <span>Catalogo, ordenes, facturacion, mensajes y cuenta conectada.</span>
+                                    <h1>Panel SOLED</h1>
+                                    <p>Elegir una seccion para operar el panel.</p>
                                 </div>
-                            </button>
-                            <button name="action_open_retailers" type="object" class="o_soled_module_card o_soled_module_retailers">
-                                <div class="o_soled_module_logo">
-                                    <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
+                            </div>
+
+                            <div class="o_soled_section">
+                                <div class="o_soled_section_header">
+                                    <span>Administracion</span>
+                                    <small>Usuarios, permisos y configuracion general.</small>
                                 </div>
-                                <div>
-                                    <strong>Retailers</strong>
-                                    <span>Marketplaces, OnCity, Fravega, catalogos y operaciones.</span>
+                                <div class="o_soled_section_grid o_soled_admin_grid">
+                                    <button name="action_open_users" type="object" class="o_soled_module_card o_soled_admin_card">
+                                        <div class="o_soled_module_logo o_soled_text_logo">US</div>
+                                        <div>
+                                            <strong>Usuarios</strong>
+                                            <span>Alta de usuarios, accesos y permisos.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_companies" type="object" class="o_soled_module_card o_soled_admin_card">
+                                        <div class="o_soled_module_logo o_soled_text_logo">CO</div>
+                                        <div>
+                                            <strong>Companias</strong>
+                                            <span>Datos de compania y entidades relacionadas.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_settings" type="object" class="o_soled_module_card o_soled_admin_card">
+                                        <div class="o_soled_module_logo o_soled_text_logo">AJ</div>
+                                        <div>
+                                            <strong>Ajustes</strong>
+                                            <span>Configuracion base del entorno.</span>
+                                        </div>
+                                    </button>
                                 </div>
-                            </button>
-                            <button name="action_open_publisher" type="object" class="o_soled_module_card o_soled_module_publisher">
-                                <div class="o_soled_module_logo">
-                                    <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
+                            </div>
+
+                            <div class="o_soled_section">
+                                <div class="o_soled_section_header">
+                                    <span>Comercial</span>
+                                    <small>Catalogos, marketplaces y procesos de publicacion.</small>
                                 </div>
-                                <div>
-                                    <strong>Publicador</strong>
-                                    <span>SKUs candidatos, publicacion y seguimiento de procesos.</span>
+                                <div class="o_soled_section_grid">
+                                    <button name="action_open_ml" type="object" class="o_soled_module_card o_soled_module_ml">
+                                        <div class="o_soled_module_logo">
+                                            <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
+                                        </div>
+                                        <div>
+                                            <strong>MercadoLibre</strong>
+                                            <span>Catalogo, ordenes, facturacion, mensajes y cuenta conectada.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_retailers" type="object" class="o_soled_module_card o_soled_module_retailers">
+                                        <div class="o_soled_module_logo">
+                                            <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
+                                        </div>
+                                        <div>
+                                            <strong>Retailers</strong>
+                                            <span>Marketplaces, OnCity, Fravega, catalogos y operaciones.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_publisher" type="object" class="o_soled_module_card o_soled_module_publisher">
+                                        <div class="o_soled_module_logo">
+                                            <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
+                                        </div>
+                                        <div>
+                                            <strong>Publicador</strong>
+                                            <span>SKUs candidatos, publicacion y seguimiento de procesos.</span>
+                                        </div>
+                                    </button>
+                                    <button name="action_open_coresa" type="object" class="o_soled_module_card o_soled_module_coresa">
+                                        <div class="o_soled_module_logo">
+                                            <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
+                                        </div>
+                                        <div>
+                                            <strong>Coresa</strong>
+                                            <span>Catalogo, ordenes y operaciones.</span>
+                                        </div>
+                                    </button>
                                 </div>
-                            </button>
-                            <button name="action_open_coresa" type="object" class="o_soled_module_card o_soled_module_coresa">
-                                <div class="o_soled_module_logo">
-                                    <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
-                                </div>
-                                <div>
-                                    <strong>Coresa</strong>
-                                    <span>Nuevo modulo preparado para catalogo, ordenes y operaciones.</span>
-                                </div>
-                            </button>
+                            </div>
                         </div>
                     </div>
                 </sheet>

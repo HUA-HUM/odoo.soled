@@ -7,6 +7,7 @@
     "license": "LGPL-3",
     "depends": [
         "base",
+        "base_setup",
         "web",
         "ml_catalog_panel",
         "retailer_marketplace_panel",
