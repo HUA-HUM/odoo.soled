@@ -33,12 +33,15 @@
 
                         <div class="o_soled_area_grid">
                             <button name="action_open_administration" type="object" class="o_soled_area_card o_soled_area_admin">
+                                <i class="fa fa-building-o o_soled_area_icon"></i>
                                 <span>Administracion</span>
                             </button>
                             <button name="action_open_commercial" type="object" class="o_soled_area_card o_soled_area_commercial">
+                                <i class="fa fa-line-chart o_soled_area_icon"></i>
                                 <span>Comercial</span>
                             </button>
                             <button name="action_open_configurations" type="object" class="o_soled_area_card o_soled_area_config">
+                                <i class="fa fa-cog o_soled_area_icon"></i>
                                 <span>Configuraciones</span>
                             </button>
                         </div>

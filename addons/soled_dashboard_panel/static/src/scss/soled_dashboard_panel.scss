@@ -4,6 +4,10 @@
     padding: 0 !important;
 }
 
+.o_action_manager:has(.o_soled_dashboard_sheet) .o_control_panel {
+    display: none !important;
+}
+
 .o_soled_home,
 .o_soled_area_page {
     color: #17303f;
@@ -67,12 +71,27 @@
     color: #17303f;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
+    gap: 18px;
     justify-content: center;
     min-height: 190px;
     padding: 24px;
     text-align: center;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
     width: 100%;
+}
+
+.o_soled_area_icon {
+    align-items: center;
+    background: #f4f7f8;
+    border: 1px solid #d9e1e5;
+    border-radius: 16px;
+    color: #17303f;
+    display: flex;
+    font-size: 34px;
+    height: 82px;
+    justify-content: center;
+    width: 82px;
 }
 
 .o_soled_area_card:hover,
@@ -93,12 +112,30 @@
     border-top: 5px solid #ffb173;
 }
 
+.o_soled_area_admin .o_soled_area_icon {
+    background: #fff3e8;
+    border-color: #ffd4af;
+    color: #9f4d05;
+}
+
 .o_soled_area_commercial {
     border-top: 5px solid #f65359;
 }
 
+.o_soled_area_commercial .o_soled_area_icon {
+    background: #fff0f1;
+    border-color: #ffc8cb;
+    color: #f65359;
+}
+
 .o_soled_area_config {
     border-top: 5px solid #17303f;
+}
+
+.o_soled_area_config .o_soled_area_icon {
+    background: #edf4f7;
+    border-color: #cbd8df;
+    color: #17303f;
 }
 
 .o_soled_area_header {
