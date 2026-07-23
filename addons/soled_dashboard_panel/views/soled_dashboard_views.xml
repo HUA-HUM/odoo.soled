@@ -4,175 +4,153 @@
         <field name="name">Panel SOLED</field>
     </record>
 
-    <record id="view_soled_dashboard_form" model="ir.ui.view">
-        <field name="name">soled.dashboard.form</field>
+    <record id="soled_dashboard_administration_record" model="soled.dashboard">
+        <field name="name">Administracion</field>
+    </record>
+
+    <record id="soled_dashboard_commercial_record" model="soled.dashboard">
+        <field name="name">Comercial</field>
+    </record>
+
+    <record id="soled_dashboard_configurations_record" model="soled.dashboard">
+        <field name="name">Configuraciones</field>
+    </record>
+
+    <record id="view_soled_dashboard_home_form" model="ir.ui.view">
+        <field name="name">soled.dashboard.home.form</field>
         <field name="model">soled.dashboard</field>
         <field name="arch" type="xml">
             <form string="Panel SOLED" create="false" edit="false">
                 <sheet class="o_soled_dashboard_sheet">
-                    <div class="o_soled_workspace">
-                        <div class="o_soled_sidebar">
-                            <div class="o_soled_sidebar_brand">
-                                <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                                <div>
-                                    <strong>SOLED</strong>
-                                    <span>Panel operativo</span>
-                                </div>
-                            </div>
-
-                            <div class="o_soled_sidebar_caption">Areas</div>
-                            <div class="o_soled_nav_group">
-                                <div class="o_soled_nav_parent">
-                                    <span class="o_soled_nav_dot"></span>
-                                    <span>Administracion</span>
-                                </div>
-                                <button name="action_open_administration" type="object" class="o_soled_nav_item">Resumen</button>
-                            </div>
-
-                            <div class="o_soled_nav_group">
-                                <div class="o_soled_nav_parent">
-                                    <span class="o_soled_nav_dot o_soled_nav_dot_accent"></span>
-                                    <span>Comercial</span>
-                                </div>
-                                <button name="action_open_ml" type="object" class="o_soled_nav_item">MercadoLibre</button>
-                                <button name="action_open_retailers" type="object" class="o_soled_nav_item">Retailers</button>
-                                <button name="action_open_publisher" type="object" class="o_soled_nav_item">Publicador</button>
-                                <button name="action_open_coresa" type="object" class="o_soled_nav_item">Coresa</button>
-                            </div>
-
-                            <div class="o_soled_nav_group">
-                                <div class="o_soled_nav_parent">
-                                    <span class="o_soled_nav_dot o_soled_nav_dot_soft"></span>
-                                    <span>Configuraciones</span>
-                                </div>
-                                <button name="action_open_invite_users" type="object" class="o_soled_nav_item">Invitar usuarios</button>
-                                <button name="action_open_users" type="object" class="o_soled_nav_item">Usuarios y permisos</button>
-                                <button name="action_open_companies" type="object" class="o_soled_nav_item">Companias</button>
-                                <button name="action_open_settings" type="object" class="o_soled_nav_item">Ajustes generales</button>
+                    <div class="o_soled_home">
+                        <div class="o_soled_home_hero">
+                            <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
+                            <div>
+                                <span>Panel SOLED</span>
+                                <h1>Elegir area de trabajo</h1>
                             </div>
                         </div>
 
-                        <div class="o_soled_dashboard">
-                            <div class="o_soled_dashboard_header">
-                                <div class="o_soled_header_identity">
-                                    <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                                    <div>
-                                        <span class="o_soled_eyebrow">Workspace SOLED</span>
-                                        <h1>Panel operativo</h1>
-                                        <p>Gestion por areas para operar la empresa desde un solo lugar.</p>
-                                    </div>
-                                </div>
-                                <div class="o_soled_header_pills">
-                                    <span>Administracion</span>
-                                    <span>Comercial</span>
-                                    <span>Configuraciones</span>
-                                </div>
-                            </div>
+                        <div class="o_soled_area_grid">
+                            <button name="action_open_administration" type="object" class="o_soled_area_card o_soled_area_admin">
+                                <span>Administracion</span>
+                            </button>
+                            <button name="action_open_commercial" type="object" class="o_soled_area_card o_soled_area_commercial">
+                                <span>Comercial</span>
+                            </button>
+                            <button name="action_open_configurations" type="object" class="o_soled_area_card o_soled_area_config">
+                                <span>Configuraciones</span>
+                            </button>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-                            <div class="o_soled_section o_soled_section_admin">
-                                <div class="o_soled_section_header">
-                                    <span>Administracion</span>
-                                    <small>Area preparada para procesos internos.</small>
-                                </div>
-                                <div class="o_soled_empty_area">
-                                    <div class="o_soled_empty_badge">AD</div>
-                                    <div>
-                                        <strong>Administracion</strong>
-                                        <p>Disponible para sumar finanzas, compras, recursos humanos u otros procesos internos cuando los definamos.</p>
-                                    </div>
-                                    <span class="o_soled_status_chip">Proximamente</span>
-                                </div>
+    <record id="view_soled_dashboard_administration_form" model="ir.ui.view">
+        <field name="name">soled.dashboard.administration.form</field>
+        <field name="model">soled.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Administracion" create="false" edit="false">
+                <sheet class="o_soled_dashboard_sheet">
+                    <div class="o_soled_area_page">
+                        <div class="o_soled_area_header">
+                            <button name="action_open_home" type="object" class="o_soled_back_button">Volver</button>
+                            <div>
+                                <span>Area</span>
+                                <h1>Administracion</h1>
                             </div>
+                        </div>
+                        <div class="o_soled_placeholder_panel">
+                            <strong>Administracion</strong>
+                            <p>Esta seccion queda preparada para sumar procesos internos mas adelante.</p>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-                            <div class="o_soled_section">
-                                <div class="o_soled_section_header">
-                                    <span>Comercial</span>
-                                    <small>Catalogos, marketplaces y procesos de publicacion.</small>
-                                </div>
-                                <div class="o_soled_section_grid">
-                                    <button name="action_open_ml" type="object" class="o_soled_module_card o_soled_module_ml">
-                                        <div class="o_soled_module_logo">
-                                            <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
-                                        </div>
-                                        <div>
-                                            <small>Canal principal</small>
-                                            <strong>MercadoLibre</strong>
-                                            <span>Catalogo, ordenes, facturacion, mensajes y cuenta conectada.</span>
-                                        </div>
-                                        <span class="o_soled_card_action">Abrir</span>
-                                    </button>
-                                    <button name="action_open_retailers" type="object" class="o_soled_module_card o_soled_module_retailers">
-                                        <div class="o_soled_module_logo">
-                                            <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
-                                        </div>
-                                        <div>
-                                            <small>Marketplaces</small>
-                                            <strong>Retailers</strong>
-                                            <span>Marketplaces, OnCity, Fravega, catalogos y operaciones.</span>
-                                        </div>
-                                        <span class="o_soled_card_action">Abrir</span>
-                                    </button>
-                                    <button name="action_open_publisher" type="object" class="o_soled_module_card o_soled_module_publisher">
-                                        <div class="o_soled_module_logo">
-                                            <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
-                                        </div>
-                                        <div>
-                                            <small>Operaciones</small>
-                                            <strong>Publicador</strong>
-                                            <span>SKUs candidatos, publicacion y seguimiento de procesos.</span>
-                                        </div>
-                                        <span class="o_soled_card_action">Abrir</span>
-                                    </button>
-                                    <button name="action_open_coresa" type="object" class="o_soled_module_card o_soled_module_coresa">
-                                        <div class="o_soled_module_logo">
-                                            <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
-                                        </div>
-                                        <div>
-                                            <small>Nuevo canal</small>
-                                            <strong>Coresa</strong>
-                                            <span>Catalogo, ordenes y operaciones.</span>
-                                        </div>
-                                        <span class="o_soled_card_action">Abrir</span>
-                                    </button>
-                                </div>
+    <record id="view_soled_dashboard_commercial_form" model="ir.ui.view">
+        <field name="name">soled.dashboard.commercial.form</field>
+        <field name="model">soled.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Comercial" create="false" edit="false">
+                <sheet class="o_soled_dashboard_sheet">
+                    <div class="o_soled_area_page">
+                        <div class="o_soled_area_header">
+                            <button name="action_open_home" type="object" class="o_soled_back_button">Volver</button>
+                            <div>
+                                <span>Area</span>
+                                <h1>Comercial</h1>
                             </div>
+                        </div>
 
-                            <div class="o_soled_section">
-                                <div class="o_soled_section_header">
-                                    <span>Configuraciones</span>
-                                    <small>Usuarios, accesos y ajustes de entorno.</small>
+                        <div class="o_soled_module_grid">
+                            <button name="action_open_ml" type="object" class="o_soled_module_card o_soled_module_ml">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/mercadolibre.svg" alt="MercadoLibre"/>
                                 </div>
-                                <div class="o_soled_settings_grid">
-                                    <button name="action_open_invite_users" type="object" class="o_soled_settings_card">
-                                        <div class="o_soled_settings_icon">+</div>
-                                        <div>
-                                            <strong>Invitar usuarios</strong>
-                                            <span>Crear accesos y sumar personas al panel.</span>
-                                        </div>
-                                    </button>
-                                    <button name="action_open_users" type="object" class="o_soled_settings_card">
-                                        <div class="o_soled_settings_icon">US</div>
-                                        <div>
-                                            <strong>Usuarios y permisos</strong>
-                                            <span>Administrar cuentas, roles y seguridad.</span>
-                                        </div>
-                                    </button>
-                                    <button name="action_open_companies" type="object" class="o_soled_settings_card">
-                                        <div class="o_soled_settings_icon">CO</div>
-                                        <div>
-                                            <strong>Companias</strong>
-                                            <span>Datos legales y companias configuradas.</span>
-                                        </div>
-                                    </button>
-                                    <button name="action_open_settings" type="object" class="o_soled_settings_card">
-                                        <div class="o_soled_settings_icon">AJ</div>
-                                        <div>
-                                            <strong>Ajustes generales</strong>
-                                            <span>Configuracion base del sistema.</span>
-                                        </div>
-                                    </button>
+                                <strong>MercadoLibre</strong>
+                            </button>
+                            <button name="action_open_retailers" type="object" class="o_soled_module_card">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Retailers"/>
                                 </div>
+                                <strong>Retailers</strong>
+                            </button>
+                            <button name="action_open_publisher" type="object" class="o_soled_module_card">
+                                <div class="o_soled_module_logo">
+                                    <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
+                                </div>
+                                <strong>Publicador</strong>
+                            </button>
+                            <button name="action_open_coresa" type="object" class="o_soled_module_card">
+                                <div class="o_soled_module_logo">
+                                    <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
+                                </div>
+                                <strong>Coresa</strong>
+                            </button>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_soled_dashboard_configurations_form" model="ir.ui.view">
+        <field name="name">soled.dashboard.configurations.form</field>
+        <field name="model">soled.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Configuraciones" create="false" edit="false">
+                <sheet class="o_soled_dashboard_sheet">
+                    <div class="o_soled_area_page">
+                        <div class="o_soled_area_header">
+                            <button name="action_open_home" type="object" class="o_soled_back_button">Volver</button>
+                            <div>
+                                <span>Area</span>
+                                <h1>Configuraciones</h1>
                             </div>
+                        </div>
+
+                        <div class="o_soled_module_grid">
+                            <button name="action_open_invite_users" type="object" class="o_soled_module_card">
+                                <div class="o_soled_text_logo">+</div>
+                                <strong>Invitar usuarios</strong>
+                            </button>
+                            <button name="action_open_users" type="object" class="o_soled_module_card">
+                                <div class="o_soled_text_logo">US</div>
+                                <strong>Usuarios</strong>
+                            </button>
+                            <button name="action_open_companies" type="object" class="o_soled_module_card">
+                                <div class="o_soled_text_logo">CO</div>
+                                <strong>Companias</strong>
+                            </button>
+                            <button name="action_open_settings" type="object" class="o_soled_module_card">
+                                <div class="o_soled_text_logo">AJ</div>
+                                <strong>Ajustes</strong>
+                            </button>
                         </div>
                     </div>
                 </sheet>
@@ -184,8 +162,35 @@
         <field name="name">Panel SOLED</field>
         <field name="res_model">soled.dashboard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_soled_dashboard_form"/>
+        <field name="view_id" ref="view_soled_dashboard_home_form"/>
         <field name="res_id" ref="soled_dashboard_record"/>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_soled_dashboard_administration" model="ir.actions.act_window">
+        <field name="name">Administracion</field>
+        <field name="res_model">soled.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_soled_dashboard_administration_form"/>
+        <field name="res_id" ref="soled_dashboard_administration_record"/>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_soled_dashboard_commercial" model="ir.actions.act_window">
+        <field name="name">Comercial</field>
+        <field name="res_model">soled.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_soled_dashboard_commercial_form"/>
+        <field name="res_id" ref="soled_dashboard_commercial_record"/>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_soled_dashboard_configurations" model="ir.actions.act_window">
+        <field name="name">Configuraciones</field>
+        <field name="res_model">soled.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_soled_dashboard_configurations_form"/>
+        <field name="res_id" ref="soled_dashboard_configurations_record"/>
         <field name="target">current</field>
     </record>
 </odoo>

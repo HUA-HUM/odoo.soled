@@ -21,16 +21,17 @@ class SoledDashboard(models.Model):
             }
         return action.read()[0]
 
+    def action_open_home(self):
+        return self._open_action("soled_dashboard_panel.action_soled_dashboard")
+
     def action_open_administration(self):
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": "Administracion",
-                "message": "Esta area queda preparada para sumar procesos internos.",
-                "type": "info",
-            },
-        }
+        return self._open_action("soled_dashboard_panel.action_soled_dashboard_administration")
+
+    def action_open_commercial(self):
+        return self._open_action("soled_dashboard_panel.action_soled_dashboard_commercial")
+
+    def action_open_configurations(self):
+        return self._open_action("soled_dashboard_panel.action_soled_dashboard_configurations")
 
     def action_open_invite_users(self):
         return self.action_open_users()
