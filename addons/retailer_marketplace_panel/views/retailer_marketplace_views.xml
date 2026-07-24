@@ -18,6 +18,15 @@
         <field name="description">Catalogo y ordenes conectados por API.</field>
     </record>
 
+    <record id="marketplace_publisher" model="retailer.marketplace">
+        <field name="name">Publicador</field>
+        <field name="code">publisher</field>
+        <field name="sequence">30</field>
+        <field name="logo_url">/soled_dashboard_panel/static/src/img/publisher.webp</field>
+        <field name="status">available</field>
+        <field name="description">Publicacion masiva de SKUs en retailers.</field>
+    </record>
+
     <record id="view_retailer_marketplace_kanban" model="ir.ui.view">
         <field name="name">retailer.marketplace.kanban</field>
         <field name="model">retailer.marketplace</field>
@@ -49,17 +58,26 @@
                             </div>
                             <div class="o_retailer_marketplace_count">
                                 <strong><field name="product_count"/></strong>
-                                <span>productos</span>
+                                <span t-if="record.code.raw_value != 'publisher'">productos</span>
+                                <span t-if="record.code.raw_value == 'publisher'">procesos</span>
                             </div>
                             <div class="o_retailer_marketplace_actions">
-                                <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
-                                    <i class="fa fa-cubes"/>
-                                    Catalogo
-                                </button>
-                                <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
-                                    <i class="fa fa-shopping-cart"/>
-                                    Ordenes
-                                </button>
+                                <t t-if="record.code.raw_value == 'publisher'">
+                                    <button name="action_open_publisher" type="object" class="btn o_retailer_marketplace_action o_retailer_marketplace_action_full">
+                                        <i class="fa fa-paper-plane"/>
+                                        Abrir publicador
+                                    </button>
+                                </t>
+                                <t t-if="record.code.raw_value != 'publisher'">
+                                    <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
+                                        <i class="fa fa-cubes"/>
+                                        Catalogo
+                                    </button>
+                                    <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
+                                        <i class="fa fa-shopping-cart"/>
+                                        Ordenes
+                                    </button>
+                                </t>
                             </div>
                         </div>
                     </t>
