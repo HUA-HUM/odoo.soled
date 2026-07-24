@@ -8,6 +8,33 @@
     display: none !important;
 }
 
+.o_web_client:has(.o_soled_home) .o_main_navbar {
+    display: none !important;
+}
+
+.o_web_client:has(.o_soled_home) .o_content,
+.o_web_client:has(.o_soled_home) .o_form_view,
+.o_web_client:has(.o_soled_home) .o_form_sheet_bg {
+    background: #f4f7f8 !important;
+}
+
+.o_web_client:has(.o_soled_home) .o_form_sheet_bg {
+    padding: 0 !important;
+}
+
+.o_web_client:has(.o_soled_home) .o_form_view .o_form_sheet {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+.o_web_client:has(.o_soled_home) .o_soled_dashboard_sheet {
+    min-height: 100vh;
+}
+
 .o_soled_home,
 .o_soled_area_page {
     color: #17303f;
@@ -16,16 +43,24 @@
     padding: 46px 24px 64px;
 }
 
+.o_soled_home {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+}
+
 .o_soled_home_hero {
     align-items: center;
     background: #17303f;
-    border-radius: 14px;
-    box-shadow: 0 20px 42px rgba(23, 48, 63, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 22px 50px rgba(23, 48, 63, 0.12);
     display: flex;
-    gap: 24px;
-    margin-bottom: 22px;
-    min-height: 150px;
-    padding: 28px 34px;
+    gap: 22px;
+    margin-bottom: 20px;
+    min-height: 138px;
+    padding: 26px 32px;
 }
 
 .o_soled_home_hero img {
@@ -51,7 +86,7 @@
 .o_soled_home_hero h1,
 .o_soled_area_header h1 {
     color: #ffffff;
-    font-size: 34px;
+    font-size: 36px;
     font-weight: 850;
     margin: 0;
 }
@@ -66,18 +101,18 @@
     align-items: center;
     background: #ffffff;
     border: 1px solid #d9e1e5;
-    border-radius: 14px;
-    box-shadow: 0 12px 28px rgba(23, 48, 63, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 16px 36px rgba(23, 48, 63, 0.07);
     color: #17303f;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
     justify-content: center;
-    min-height: 190px;
-    padding: 24px;
+    min-height: 176px;
+    padding: 22px;
     text-align: center;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
     width: 100%;
 }
 
@@ -85,13 +120,13 @@
     align-items: center;
     background: #f4f7f8;
     border: 1px solid #d9e1e5;
-    border-radius: 16px;
+    border-radius: 18px;
     color: #17303f;
     display: flex;
-    font-size: 34px;
-    height: 82px;
+    font-size: 30px;
+    height: 74px;
     justify-content: center;
-    width: 82px;
+    width: 74px;
 }
 
 .o_soled_area_card:hover,
@@ -104,12 +139,12 @@
 }
 
 .o_soled_area_card span {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 850;
 }
 
 .o_soled_area_admin {
-    border-top: 5px solid #ffb173;
+    border-top: 4px solid #ffb173;
 }
 
 .o_soled_area_admin .o_soled_area_icon {
@@ -119,7 +154,7 @@
 }
 
 .o_soled_area_commercial {
-    border-top: 5px solid #f65359;
+    border-top: 4px solid #f65359;
 }
 
 .o_soled_area_commercial .o_soled_area_icon {
@@ -129,7 +164,7 @@
 }
 
 .o_soled_area_config {
-    border-top: 5px solid #17303f;
+    border-top: 4px solid #17303f;
 }
 
 .o_soled_area_config .o_soled_area_icon {
@@ -257,6 +292,10 @@
         grid-template-columns: 1fr;
     }
 
+    .o_soled_home {
+        justify-content: flex-start;
+    }
+
     .o_soled_module_grid {
         grid-template-columns: repeat(2, minmax(190px, 1fr));
     }
@@ -277,6 +316,10 @@
     .o_soled_home_hero h1,
     .o_soled_area_header h1 {
         font-size: 28px;
+    }
+
+    .o_soled_area_card {
+        min-height: 156px;
     }
 
     .o_soled_module_grid {
