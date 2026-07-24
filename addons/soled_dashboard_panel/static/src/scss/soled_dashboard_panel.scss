@@ -4,7 +4,14 @@
     padding: 0 !important;
 }
 
-.o_action_manager:has(.o_soled_dashboard_sheet) .o_control_panel {
+.o_action_manager:has(.o_soled_dashboard_sheet) .o_control_panel,
+.o_action_manager:has(.o_retailer_dashboard_sheet) .o_control_panel,
+.o_action_manager:has(.o_retailer_marketplace_kanban) .o_control_panel,
+.o_action_manager:has(.o_retailer_marketplace_sheet) .o_control_panel,
+.o_action_manager:has(.o_publisher_dashboard_sheet) .o_control_panel,
+.o_action_manager:has(.o_publisher_candidates_page) .o_control_panel,
+.o_action_manager:has(.o_coresa_dashboard_sheet) .o_control_panel,
+.o_action_manager:has(.o_ml_dashboard_grid) .o_control_panel {
     display: none !important;
 }
 
