@@ -45,17 +45,7 @@ class RetailerMarketplace(models.Model):
             marketplace.question_count = 0
 
     def action_open_marketplace(self):
-        self.ensure_one()
-        if self.code == "publisher":
-            return self.action_open_publisher()
         return self.action_open_catalog()
-
-    def action_open_publisher(self):
-        self.ensure_one()
-        action = self.env.ref("sku_publisher_panel.action_publisher_dashboard", raise_if_not_found=False)
-        if action:
-            return action.read()[0]
-        return self._section_pending_notification("Publicador")
 
     def action_open_catalog(self):
         self.ensure_one()

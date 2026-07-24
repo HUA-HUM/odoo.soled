@@ -49,7 +49,7 @@ class SoledDashboard(models.Model):
         return self._open_action("ml_catalog_panel.action_ml_dashboard")
 
     def action_open_retailers(self):
-        return self._open_action("retailer_marketplace_panel.action_retailer_marketplace")
+        return self._open_action("retailer_marketplace_panel.action_retailer_dashboard")
 
     def action_open_publisher(self):
         return self._open_action("sku_publisher_panel.action_publisher_dashboard")

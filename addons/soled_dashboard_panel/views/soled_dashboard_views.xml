@@ -103,12 +103,6 @@
                                 </div>
                                 <strong>Retailers</strong>
                             </button>
-                            <button name="action_open_publisher" type="object" class="o_soled_module_card">
-                                <div class="o_soled_module_logo">
-                                    <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
-                                </div>
-                                <strong>Publicador</strong>
-                            </button>
                             <button name="action_open_coresa" type="object" class="o_soled_module_card">
                                 <div class="o_soled_module_logo">
                                     <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>

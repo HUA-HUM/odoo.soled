@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_retailer_dashboard_user,retailer.dashboard user,model_retailer_dashboard,base.group_user,1,1,1,0
 access_retailer_marketplace_user,retailer.marketplace user,model_retailer_marketplace,base.group_user,1,1,1,0
 access_retailer_oncity_product_user,retailer.oncity.product user,model_retailer_oncity_product,base.group_user,1,1,1,0
 access_retailer_fravega_product_user,retailer.fravega.product user,model_retailer_fravega_product,base.group_user,1,1,1,0

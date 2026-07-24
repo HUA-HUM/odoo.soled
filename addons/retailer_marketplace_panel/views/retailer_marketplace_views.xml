@@ -18,13 +18,43 @@
         <field name="description">Catalogo y ordenes conectados por API.</field>
     </record>
 
-    <record id="marketplace_publisher" model="retailer.marketplace">
-        <field name="name">Publicador</field>
-        <field name="code">publisher</field>
-        <field name="sequence">30</field>
-        <field name="logo_url">/soled_dashboard_panel/static/src/img/publisher.webp</field>
-        <field name="status">available</field>
-        <field name="description">Publicacion masiva de SKUs en retailers.</field>
+    <record id="retailer_dashboard_record" model="retailer.dashboard">
+        <field name="name">Retailers</field>
+    </record>
+
+    <record id="view_retailer_dashboard_form" model="ir.ui.view">
+        <field name="name">retailer.dashboard.form</field>
+        <field name="model">retailer.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Retailers" create="false" edit="false">
+                <sheet class="o_retailer_dashboard_sheet">
+                    <div class="o_retailer_dashboard">
+                        <section class="o_retailer_dashboard_hero">
+                            <span>Retailers</span>
+                            <h1>Operacion de retailers</h1>
+                        </section>
+
+                        <section class="o_retailer_dashboard_grid">
+                            <button name="action_open_marketplaces" type="object" class="o_retailer_dashboard_card">
+                                <div class="o_retailer_dashboard_icon">
+                                    <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Marketplaces"/>
+                                </div>
+                                <strong>Marketplaces</strong>
+                                <span>Fravega, OnCity y proximos canales.</span>
+                            </button>
+
+                            <button name="action_open_publisher" type="object" class="o_retailer_dashboard_card">
+                                <div class="o_retailer_dashboard_icon">
+                                    <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
+                                </div>
+                                <strong>Publicador</strong>
+                                <span>SKUs candidatos, jobs y runs de publicacion.</span>
+                            </button>
+                        </section>
+                    </div>
+                </sheet>
+            </form>
+        </field>
     </record>
 
     <record id="view_retailer_marketplace_kanban" model="ir.ui.view">
@@ -58,26 +88,17 @@
                             </div>
                             <div class="o_retailer_marketplace_count">
                                 <strong><field name="product_count"/></strong>
-                                <span t-if="record.code.raw_value != 'publisher'">productos</span>
-                                <span t-if="record.code.raw_value == 'publisher'">procesos</span>
+                                <span>productos</span>
                             </div>
                             <div class="o_retailer_marketplace_actions">
-                                <t t-if="record.code.raw_value == 'publisher'">
-                                    <button name="action_open_publisher" type="object" class="btn o_retailer_marketplace_action o_retailer_marketplace_action_full">
-                                        <i class="fa fa-paper-plane"/>
-                                        Abrir publicador
-                                    </button>
-                                </t>
-                                <t t-if="record.code.raw_value != 'publisher'">
-                                    <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
-                                        <i class="fa fa-cubes"/>
-                                        Catalogo
-                                    </button>
-                                    <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
-                                        <i class="fa fa-shopping-cart"/>
-                                        Ordenes
-                                    </button>
-                                </t>
+                                <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
+                                    <i class="fa fa-cubes"/>
+                                    Catalogo
+                                </button>
+                                <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
+                                    <i class="fa fa-shopping-cart"/>
+                                    Ordenes
+                                </button>
                             </div>
                         </div>
                     </t>
@@ -205,5 +226,15 @@
         <field name="name">Marketplaces</field>
         <field name="res_model">retailer.marketplace</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('code', 'in', ['fravega', 'oncity'])]</field>
+    </record>
+
+    <record id="action_retailer_dashboard" model="ir.actions.act_window">
+        <field name="name">Retailers</field>
+        <field name="res_model">retailer.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_retailer_dashboard_form"/>
+        <field name="res_id" ref="retailer_dashboard_record"/>
+        <field name="target">current</field>
     </record>
 </odoo>
