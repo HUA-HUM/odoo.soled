@@ -12,6 +12,75 @@
     display: none !important;
 }
 
+.o_web_client:has(.o_soled_area_page) .o_main_navbar {
+    align-items: center;
+    background: #17303f !important;
+    border: 0 !important;
+    box-shadow: 0 10px 28px rgba(23, 48, 63, 0.14);
+    min-height: 58px !important;
+    padding: 0 18px !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_toggle,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_brand,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .dropdown-toggle {
+    align-items: center;
+    border-radius: 12px !important;
+    color: #f5fafb !important;
+    display: inline-flex;
+    font-weight: 800;
+    min-height: 38px;
+    padding: 0 13px !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_toggle {
+    background: rgba(255, 255, 255, 0.08) !important;
+    justify-content: center;
+    margin-right: 8px;
+    min-width: 38px;
+    padding: 0 !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_brand,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry.active,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry[aria-current="page"],
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .show > .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry:hover,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .dropdown-toggle:hover,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_toggle:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_systray {
+    align-items: center;
+    gap: 8px;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_systray > * {
+    margin: 0 !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .dropdown-toggle,
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_switch_company_menu .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .dropdown-toggle {
+    padding-right: 14px !important;
+}
+
+.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .oe_topbar_name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .o_web_client:has(.o_soled_home) .o_content,
 .o_web_client:has(.o_soled_home) .o_form_view,
 .o_web_client:has(.o_soled_home) .o_form_sheet_bg {
@@ -302,6 +371,16 @@
 }
 
 @media (max-width: 640px) {
+    .o_web_client:has(.o_soled_area_page) .o_main_navbar {
+        min-height: 54px !important;
+        padding: 0 10px !important;
+    }
+
+    .o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_brand,
+    .o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry {
+        padding: 0 10px !important;
+    }
+
     .o_soled_home,
     .o_soled_area_page {
         padding: 24px 14px 42px;
