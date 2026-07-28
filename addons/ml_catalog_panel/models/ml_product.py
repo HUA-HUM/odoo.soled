@@ -41,6 +41,7 @@ class MlProduct(models.Model):
     model = fields.Char(string="Modelo")
     gtin = fields.Char(string="GTIN")
     thumbnail = fields.Char(string="Imagen principal")
+    video_id = fields.Char(string="Video ID")
     logistic_type = fields.Char(string="Tipo de logistica")
     shipping_mode = fields.Char(string="Modo de envio")
     free_shipping = fields.Boolean(string="Envio gratis")
@@ -52,6 +53,8 @@ class MlProduct(models.Model):
     updated_at = fields.Datetime(string="Actualizado en")
     attributes_json = fields.Text(string="Atributos JSON")
     pictures_json = fields.Text(string="Imagenes JSON")
+    variations_json = fields.Text(string="Variaciones JSON")
+    raw_payload_json = fields.Text(string="Raw payload JSON")
     payload_json = fields.Text(string="Payload completo JSON")
 
     _sql_constraints = [
@@ -143,6 +146,7 @@ class MlProduct(models.Model):
             "model": product.get("model"),
             "gtin": product.get("gtin"),
             "thumbnail": product.get("thumbnail"),
+            "video_id": product.get("video_id"),
             "logistic_type": product.get("logistic_type"),
             "shipping_mode": product.get("shipping_mode"),
             "free_shipping": self._to_bool(product.get("free_shipping")),
@@ -154,6 +158,8 @@ class MlProduct(models.Model):
             "updated_at": self._to_datetime(product.get("updated_at")),
             "attributes_json": self._to_json(product.get("attributes")),
             "pictures_json": self._to_json(product.get("pictures")),
+            "variations_json": self._to_json(product.get("variations")),
+            "raw_payload_json": self._to_json(product.get("raw_payload")),
             "payload_json": self._to_json(product),
         }
 

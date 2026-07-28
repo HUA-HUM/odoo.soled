@@ -1,5 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="view_ml_product_kanban" model="ir.ui.view">
+        <field name="name">ml.product.kanban</field>
+        <field name="model">ml.product</field>
+        <field name="arch" type="xml">
+            <kanban string="Catalogo MercadoLibre" class="o_ml_product_kanban" create="false" sample="1">
+                <field name="thumbnail"/>
+                <field name="sku"/>
+                <field name="title"/>
+                <field name="status"/>
+                <field name="listing_type_id"/>
+                <field name="price"/>
+                <field name="base_price"/>
+                <field name="original_price"/>
+                <field name="available_quantity"/>
+                <field name="sold_quantity"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <field name="category_name"/>
+                <field name="logistic_type"/>
+                <field name="shipping_mode"/>
+                <field name="free_shipping"/>
+                <field name="local_pick_up"/>
+                <field name="meli_item_id"/>
+                <field name="updated_at"/>
+                <field name="permalink"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_ml_product_card oe_kanban_global_click">
+                            <div class="o_ml_product_media">
+                                <img t-if="record.thumbnail.raw_value" t-att-src="record.thumbnail.raw_value" alt="Producto MercadoLibre"/>
+                                <div t-else="" class="o_ml_product_media_empty">ML</div>
+                                <span class="o_ml_product_status">
+                                    <field name="status"/>
+                                </span>
+                            </div>
+                            <div class="o_ml_product_body">
+                                <div class="o_ml_product_topline">
+                                    <strong class="o_ml_product_sku">
+                                        <field name="sku"/>
+                                    </strong>
+                                    <span class="o_ml_product_listing">
+                                        <field name="listing_type_id"/>
+                                    </span>
+                                </div>
+                                <h3 class="o_ml_product_title">
+                                    <field name="title"/>
+                                </h3>
+                                <div class="o_ml_product_meta">
+                                    <span>
+                                        <strong>ML</strong>
+                                        <field name="meli_item_id"/>
+                                    </span>
+                                    <span t-if="record.brand.raw_value">
+                                        <strong>Marca</strong>
+                                        <field name="brand"/>
+                                    </span>
+                                    <span t-if="record.category_name.raw_value">
+                                        <strong>Categoria</strong>
+                                        <field name="category_name"/>
+                                    </span>
+                                </div>
+                                <div class="o_ml_product_metrics">
+                                    <span>
+                                        <small>Precio</small>
+                                        <strong>$ <field name="price"/></strong>
+                                    </span>
+                                    <span>
+                                        <small>Stock</small>
+                                        <strong><field name="available_quantity"/></strong>
+                                    </span>
+                                    <span>
+                                        <small>Vendidos</small>
+                                        <strong><field name="sold_quantity"/></strong>
+                                    </span>
+                                </div>
+                                <div class="o_ml_product_footer">
+                                    <span class="o_ml_product_chip">
+                                        <field name="logistic_type"/>
+                                    </span>
+                                    <span class="o_ml_product_chip">
+                                        <field name="shipping_mode"/>
+                                    </span>
+                                    <span t-if="record.free_shipping.raw_value" class="o_ml_product_chip is-success">Envio gratis</span>
+                                    <span t-if="record.local_pick_up.raw_value" class="o_ml_product_chip">Retiro local</span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_ml_product_tree" model="ir.ui.view">
         <field name="name">ml.product.tree</field>
         <field name="model">ml.product</field>
@@ -10,6 +103,7 @@
                 <field name="sku"/>
                 <field name="title"/>
                 <field name="status" widget="badge"/>
+                <field name="listing_type_id" widget="badge"/>
                 <field name="price"/>
                 <field name="available_quantity"/>
                 <field name="sold_quantity"/>
@@ -76,6 +170,7 @@
                             <field name="brand" readonly="1"/>
                             <field name="model" readonly="1"/>
                             <field name="gtin" readonly="1"/>
+                            <field name="video_id" readonly="1"/>
                         </group>
                     </group>
                     <group>
@@ -107,6 +202,12 @@
                         <page string="Imagenes JSON">
                             <field name="pictures_json" readonly="1" nolabel="1"/>
                         </page>
+                        <page string="Variaciones JSON">
+                            <field name="variations_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Raw payload JSON">
+                            <field name="raw_payload_json" readonly="1" nolabel="1"/>
+                        </page>
                         <page string="Payload JSON">
                             <field name="payload_json" readonly="1" nolabel="1"/>
                         </page>
@@ -127,8 +228,12 @@
                 <field name="brand"/>
                 <field name="category_name"/>
                 <field name="status"/>
+                <field name="listing_type_id"/>
                 <filter name="active" string="Activos" domain="[('status', '=', 'active')]"/>
                 <filter name="paused" string="Pausados" domain="[('status', '=', 'paused')]"/>
+                <filter name="gold_pro_or_classic" string="Gold Pro / Classic" domain="[('listing_type_id', 'in', ['gold_pro', 'gold_clasic', 'gold_classic'])]"/>
+                <filter name="gold_pro" string="Gold Pro" domain="[('listing_type_id', '=', 'gold_pro')]"/>
+                <filter name="gold_clasic" string="Gold Clasic" domain="[('listing_type_id', 'in', ['gold_clasic', 'gold_classic'])]"/>
                 <filter name="with_stock" string="Con stock" domain="[('available_quantity', '&gt;', 0)]"/>
                 <filter name="low_stock" string="Stock bajo" domain="[('available_quantity', '&gt;', 0), ('available_quantity', '&lt;=', 2)]"/>
                 <filter name="without_stock" string="Sin stock" domain="[('available_quantity', '=', 0)]"/>
@@ -139,6 +244,7 @@
                     <filter name="group_brand" string="Marca" context="{'group_by': 'brand'}"/>
                     <filter name="group_category" string="Categoria" context="{'group_by': 'category_name'}"/>
                     <filter name="group_logistic" string="Logistica" context="{'group_by': 'logistic_type'}"/>
+                    <filter name="group_listing_type" string="Tipo de publicacion" context="{'group_by': 'listing_type_id'}"/>
                 </group>
             </search>
         </field>
@@ -147,7 +253,7 @@
     <record id="action_ml_product" model="ir.actions.act_window">
         <field name="name">Catalogo</field>
         <field name="res_model">ml.product</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="view_ml_product_search"/>
         <field name="context">{}</field>
     </record>
@@ -156,7 +262,7 @@
         <field name="name">Sincronizar productos ML</field>
         <field name="model_id" ref="model_ml_product"/>
         <field name="binding_model_id" ref="model_ml_product"/>
-        <field name="binding_view_types">tree,form</field>
+        <field name="binding_view_types">kanban,tree,form</field>
         <field name="state">code</field>
         <field name="code">action = model.action_sync_products()</field>
     </record>
