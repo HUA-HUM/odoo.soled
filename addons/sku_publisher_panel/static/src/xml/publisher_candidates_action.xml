@@ -11,24 +11,42 @@
                 </div>
             </div>
             <section class="o_publisher_candidates_toolbar">
-                <form t-on-submit="searchSku" class="o_publisher_candidates_search">
-                    <input type="text" t-model="state.sku" placeholder="Buscar por SKU" t-att-disabled="state.loading || state.publishing"/>
-                    <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.publishing">Buscar</button>
-                    <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.publishing">Limpiar</button>
-                </form>
-                <div class="o_publisher_candidates_bulk">
-                    <button type="button" class="btn btn-secondary" t-on-click="selectPage" t-att-disabled="state.loading || state.publishing">
-                        Seleccionar página
-                    </button>
-                    <select t-model="state.marketplace" t-att-disabled="state.loading || state.publishing">
-                        <option value="both">OnCity + Fravega</option>
-                        <option value="oncity">OnCity</option>
-                        <option value="fravega">Fravega</option>
-                    </select>
-                    <button type="button" class="btn btn-primary" t-on-click="publishSelected" t-att-disabled="state.loading || state.publishing">
-                        <t t-if="state.publishing">Publicando...</t>
-                        <t t-else="">Publicar <t t-esc="selectedSkus.length"/></t>
-                    </button>
+                <div class="o_publisher_candidates_toolbar_group">
+                    <form t-on-submit="searchSku" class="o_publisher_candidates_search">
+                        <label>Buscar SKU</label>
+                        <div>
+                            <input type="text" t-model="state.sku" placeholder="Ej: RMS-2M-NEG" t-att-disabled="state.loading || state.publishing"/>
+                            <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.publishing">Buscar</button>
+                            <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.publishing">Limpiar</button>
+                        </div>
+                    </form>
+                    <div class="o_publisher_candidates_filter">
+                        <label>Tipo de publicacion</label>
+                        <select t-model="state.listingType" t-on-change="changeListingType" t-att-disabled="state.loading || state.publishing">
+                            <option value="all">Todos</option>
+                            <option value="gold_pro">Gold Pro</option>
+                            <option value="gold_clasic">Gold Classic</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="o_publisher_candidates_toolbar_group is-actions">
+                    <div class="o_publisher_candidates_bulk">
+                        <label>Publicar en</label>
+                        <div>
+                            <button type="button" class="btn btn-secondary" t-on-click="selectPage" t-att-disabled="state.loading || state.publishing">
+                                Seleccionar página
+                            </button>
+                            <select t-model="state.marketplace" t-att-disabled="state.loading || state.publishing">
+                                <option value="both">OnCity + Fravega</option>
+                                <option value="oncity">OnCity</option>
+                                <option value="fravega">Fravega</option>
+                            </select>
+                            <button type="button" class="btn btn-primary" t-on-click="publishSelected" t-att-disabled="state.loading || state.publishing">
+                                <t t-if="state.publishing">Publicando...</t>
+                                <t t-else="">Publicar <t t-esc="selectedSkus.length"/></t>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -47,7 +65,7 @@
             </section>
 
             <section t-else="" class="o_publisher_candidates_grid">
-                <article t-foreach="state.items" t-as="item" t-key="item.sku" t-attf-class="o_publisher_candidate_card #{state.selected[item.sku] ? 'is-selected' : ''}">
+                <article t-foreach="state.items" t-as="item" t-key="item.sku" t-attf-class="o_publisher_candidate_card #{state.selected[item.sku] ? 'is-selected' : ''} #{isExpanded(item.sku) ? 'is-expanded' : ''}">
                     <label class="o_publisher_candidate_check">
                         <input type="checkbox" t-att-checked="state.selected[item.sku]" t-on-change="() => this.toggleSku(item.sku)"/>
                     </label>
@@ -60,14 +78,48 @@
                             <strong t-esc="item.sku"/>
                             <span t-esc="item.status"/>
                         </div>
+                        <div class="o_publisher_candidate_badges">
+                            <span t-if="item.listing_type_id" t-esc="item.listing_type_id"/>
+                            <span t-if="item.logistic_type" t-esc="item.logistic_type"/>
+                        </div>
                         <div class="o_publisher_candidate_title" t-esc="item.title"/>
                         <div class="o_publisher_candidate_meta">
                             <span>$ <t t-esc="item.price"/></span>
                             <span>Stock <t t-esc="item.stock"/></span>
+                            <span>Vendidos <t t-esc="item.sold_quantity || 0"/></span>
+                        </div>
+                        <div class="o_publisher_candidate_summary">
+                            <span t-if="item.brand"><strong>Marca</strong><t t-esc="item.brand"/></span>
+                            <span t-if="item.category_name"><strong>Categoria</strong><t t-esc="item.category_name"/></span>
                         </div>
                         <div class="o_publisher_candidate_marketplaces">
                             <span t-attf-class="#{item.oncity ? 'is-published' : 'is-pending'}">OnCity</span>
                             <span t-attf-class="#{item.fravega ? 'is-published' : 'is-pending'}">Fravega</span>
+                        </div>
+                        <div class="o_publisher_candidate_actions">
+                            <button type="button" class="btn btn-secondary" t-on-click="() => this.toggleDetail(item.sku)">
+                                <t t-if="isExpanded(item.sku)">Ocultar detalle</t>
+                                <t t-else="">Ver detalle</t>
+                            </button>
+                            <button type="button" class="btn btn-secondary" t-if="item.permalink" t-on-click="() => this.openPermalink(item)">
+                                Abrir ML
+                            </button>
+                        </div>
+                        <div t-if="isExpanded(item.sku)" class="o_publisher_candidate_details">
+                            <div><strong>ID ML</strong><span t-esc="item.meli_item_id || '-'"/></div>
+                            <div><strong>Seller</strong><span t-esc="item.seller_id || '-'"/></div>
+                            <div><strong>Condicion</strong><span t-esc="item.condition_type || '-'"/></div>
+                            <div><strong>Modelo</strong><span t-esc="item.model || '-'"/></div>
+                            <div><strong>GTIN</strong><span t-esc="item.gtin || '-'"/></div>
+                            <div><strong>Categoria ID</strong><span t-esc="item.category_id || '-'"/></div>
+                            <div><strong>Envio</strong><span t-esc="item.shipping_mode || '-'"/></div>
+                            <div><strong>Envio gratis</strong><span t-esc="formatBool(item.free_shipping)"/></div>
+                            <div><strong>Actualizado ML</strong><span t-esc="item.updated_at || '-'"/></div>
+                            <div class="is-wide" t-if="item.description"><strong>Descripcion</strong><span t-esc="item.description"/></div>
+                            <details class="is-wide" t-if="item.payload_json">
+                                <summary>Payload candidato</summary>
+                                <pre t-esc="item.payload_json"/>
+                            </details>
                         </div>
                     </div>
                 </article>

@@ -17,6 +17,8 @@ class PublisherCandidatesAction extends Component {
             total: 0,
             sku: "",
             marketplace: "both",
+            listingType: "all",
+            expanded: {},
             loading: false,
             publishing: false,
         });
@@ -52,12 +54,14 @@ class PublisherCandidatesAction extends Component {
                 limit: this.state.limit,
                 offset,
                 sku: this.state.sku || false,
+                listing_type: this.state.listingType,
             });
             this.state.items = result.items || [];
             this.state.offset = result.pagination.offset || 0;
             this.state.limit = result.pagination.limit || this.state.limit;
             this.state.total = result.pagination.total || 0;
             this.state.selected = {};
+            this.state.expanded = {};
         } finally {
             this.state.loading = false;
         }
@@ -70,6 +74,10 @@ class PublisherCandidatesAction extends Component {
 
     clearSearch() {
         this.state.sku = "";
+        this.loadPage(0);
+    }
+
+    changeListingType() {
         this.loadPage(0);
     }
 
@@ -87,6 +95,24 @@ class PublisherCandidatesAction extends Component {
 
     toggleSku(sku) {
         this.state.selected[sku] = !this.state.selected[sku];
+    }
+
+    toggleDetail(sku) {
+        this.state.expanded[sku] = !this.state.expanded[sku];
+    }
+
+    isExpanded(sku) {
+        return Boolean(this.state.expanded[sku]);
+    }
+
+    formatBool(value) {
+        return value ? "Si" : "No";
+    }
+
+    openPermalink(item) {
+        if (item.permalink) {
+            window.open(item.permalink, "_blank", "noopener");
+        }
     }
 
     selectPage() {

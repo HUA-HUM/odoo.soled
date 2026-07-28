@@ -21,6 +21,18 @@ class PublisherSku(models.Model):
     ml_price = fields.Float(string="Precio ML")
     ml_stock = fields.Integer(string="Stock ML")
     ml_permalink = fields.Char(string="Link ML")
+    seller_id = fields.Char(string="Seller ID", index=True)
+    condition_type = fields.Char(string="Condicion")
+    listing_type_id = fields.Char(string="Tipo de publicacion", index=True)
+    sold_quantity = fields.Integer(string="Cantidad vendida")
+    category_id = fields.Char(string="ID categoria")
+    model = fields.Char(string="Modelo")
+    gtin = fields.Char(string="GTIN")
+    logistic_type = fields.Char(string="Tipo de logistica")
+    shipping_mode = fields.Char(string="Modo de envio")
+    free_shipping = fields.Boolean(string="Envio gratis")
+    ml_updated_at = fields.Datetime(string="Actualizado en ML")
+    description = fields.Text(string="Descripcion ML")
     thumbnail = fields.Char(string="Imagen")
     published_oncity = fields.Boolean(string="Publicado OnCity", index=True)
     oncity_product_id = fields.Many2one("retailer.oncity.product", string="Producto OnCity")
@@ -141,6 +153,18 @@ class PublisherSku(models.Model):
             "ml_price": self._to_float(item.get("price")),
             "ml_stock": ml_stock,
             "ml_permalink": ml_product.permalink if ml_product else False,
+            "seller_id": ml_product.seller_id if ml_product else False,
+            "condition_type": ml_product.condition_type if ml_product else False,
+            "listing_type_id": ml_product.listing_type_id if ml_product else item.get("listing_type_id"),
+            "sold_quantity": ml_product.sold_quantity if ml_product else 0,
+            "category_id": ml_product.category_id if ml_product else False,
+            "model": ml_product.model if ml_product else False,
+            "gtin": ml_product.gtin if ml_product else False,
+            "logistic_type": ml_product.logistic_type if ml_product else False,
+            "shipping_mode": ml_product.shipping_mode if ml_product else False,
+            "free_shipping": ml_product.free_shipping if ml_product else False,
+            "ml_updated_at": ml_product.updated_at if ml_product else False,
+            "description": ml_product.description if ml_product else False,
             "thumbnail": item.get("thumbnail"),
             "published_oncity": published_oncity,
             "oncity_product_id": False,
@@ -152,43 +176,92 @@ class PublisherSku(models.Model):
         }
 
     @api.model
-    def get_candidates_page(self, limit=24, offset=0, sku=None):
-        payload = self._fetch_publication_status(limit=limit, offset=offset, sku=sku)
-        items = payload.get("items") or []
+    def get_candidates_page(self, limit=24, offset=0, sku=None, listing_type=None):
+        listing_type = listing_type if listing_type and listing_type != "all" else None
+        fetch_limit = limit
+        fetch_offset = offset
         records = []
-        for item in items:
-            values = self._prepare_candidate_values_from_api(item)
-            existing = self.search([("sku", "=", values["sku"])], limit=1)
-            if existing:
-                existing.write(values)
-                record = existing
-            else:
-                record = self.create(values)
-            records.append(
-                {
-                    "id": record.id,
-                    "sku": record.sku,
-                    "meli_item_id": record.meli_item_id,
-                    "title": record.title,
-                    "status": record.ml_status,
-                    "price": record.ml_price,
-                    "stock": record.ml_stock,
-                    "thumbnail": record.thumbnail,
-                    "oncity": record.published_oncity,
-                    "fravega": record.published_fravega,
-                    "ready": record.ready_to_publish,
-                    "publish_status": record.publish_status,
-                }
-            )
-        pagination = payload.get("pagination") or {}
+        pagination = {}
+        payload = {}
+
+        while len(records) < limit:
+            payload = self._fetch_publication_status(limit=fetch_limit, offset=fetch_offset, sku=sku)
+            items = payload.get("items") or []
+            pagination = payload.get("pagination") or {}
+            for item in items:
+                values = self._prepare_candidate_values_from_api(item)
+                if listing_type and not self._matches_listing_type(values.get("listing_type_id"), listing_type):
+                    continue
+                record = self._upsert_candidate(values)
+                records.append(self._candidate_card_payload(record))
+                if len(records) >= limit:
+                    break
+            if not items or not listing_type:
+                break
+            total = int(pagination.get("total") or 0)
+            fetch_offset += fetch_limit
+            if fetch_offset >= total:
+                break
+
+        total_count = int((pagination or {}).get("total") or len(records))
+        if listing_type:
+            total_count = max(offset + len(records), total_count)
         return {
             "items": records,
             "marketplaces": payload.get("marketplaces") or ["oncity", "fravega"],
             "pagination": {
-                "limit": int(pagination.get("limit") or limit),
-                "offset": int(pagination.get("offset") or offset),
-                "total": int(pagination.get("total") or len(records)),
+                "limit": int((pagination or {}).get("limit") or limit),
+                "offset": int(offset or 0),
+                "total": total_count,
             },
+        }
+
+    @api.model
+    def _upsert_candidate(self, values):
+        existing = self.search([("sku", "=", values["sku"])], limit=1)
+        if existing:
+            existing.write(values)
+            return existing
+        return self.create(values)
+
+    @api.model
+    def _matches_listing_type(self, value, listing_type):
+        normalized = value or ""
+        if listing_type == "gold_clasic":
+            return normalized in ("gold_clasic", "gold_classic")
+        return normalized == listing_type
+
+    @api.model
+    def _candidate_card_payload(self, record):
+        return {
+            "id": record.id,
+            "sku": record.sku,
+            "meli_item_id": record.meli_item_id,
+            "title": record.title,
+            "status": record.ml_status,
+            "price": record.ml_price,
+            "stock": record.ml_stock,
+            "thumbnail": record.thumbnail,
+            "oncity": record.published_oncity,
+            "fravega": record.published_fravega,
+            "ready": record.ready_to_publish,
+            "publish_status": record.publish_status,
+            "brand": record.brand,
+            "category_name": record.category_name,
+            "category_id": record.category_id,
+            "seller_id": record.seller_id,
+            "condition_type": record.condition_type,
+            "listing_type_id": record.listing_type_id,
+            "sold_quantity": record.sold_quantity,
+            "model": record.model,
+            "gtin": record.gtin,
+            "logistic_type": record.logistic_type,
+            "shipping_mode": record.shipping_mode,
+            "free_shipping": record.free_shipping,
+            "permalink": record.ml_permalink,
+            "description": record.description,
+            "updated_at": fields.Datetime.to_string(record.ml_updated_at) if record.ml_updated_at else False,
+            "payload_json": record.payload_json,
         }
 
     @api.model
