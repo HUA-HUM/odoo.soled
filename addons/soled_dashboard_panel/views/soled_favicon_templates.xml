@@ -13,7 +13,7 @@
     </template>
 
     <template id="soled_login_logo_override" inherit_id="web.login_layout" name="SOLED Login Logo">
-        <xpath expr="//img[@alt='Logo']" position="replace">
+        <xpath expr="//img[contains(@t-attf-src, '/web/binary/company_logo')]" position="replace">
             <img
                 src="/soled_dashboard_panel/static/src/img/soled_login_logo.png"
                 alt="SOLED"
