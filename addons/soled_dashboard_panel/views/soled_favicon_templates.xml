@@ -11,4 +11,14 @@
             <attribute name="href">/soled_dashboard_panel/static/src/img/soled_app_icon_ios.png</attribute>
         </xpath>
     </template>
+
+    <template id="soled_login_logo_override" inherit_id="web.login_layout" name="SOLED Login Logo">
+        <xpath expr="//img[@alt='Logo']" position="replace">
+            <img
+                src="/soled_dashboard_panel/static/src/img/soled_login_logo.png"
+                alt="SOLED"
+                style="display:block; max-height:120px; max-width:180px; width:auto; margin:0 auto;"
+            />
+        </xpath>
+    </template>
 </odoo>
