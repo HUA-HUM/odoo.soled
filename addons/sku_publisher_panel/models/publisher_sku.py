@@ -227,8 +227,11 @@ class PublisherSku(models.Model):
     @api.model
     def _matches_listing_type(self, value, listing_type):
         normalized = value or ""
-        if listing_type == "gold_clasic":
-            return normalized in ("gold_clasic", "gold_classic")
+        if listing_type == "gold_special":
+            # Legacy candidates may still carry the old (incorrect) "gold_clasic"/
+            # "gold_classic" values that were written before this was fixed, so we
+            # keep matching them here to avoid hiding already-synced records.
+            return normalized in ("gold_special", "gold_clasic", "gold_classic")
         return normalized == listing_type
 
     @api.model

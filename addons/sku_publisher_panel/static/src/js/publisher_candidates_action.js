@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onWillUnmount, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -18,11 +18,19 @@ class PublisherCandidatesAction extends Component {
             sku: "",
             marketplace: "both",
             listingType: "all",
-            expanded: {},
+            detailSku: false,
             loading: false,
             publishing: false,
         });
         onWillStart(() => this.loadPage());
+
+        this._onKeydown = (ev) => {
+            if (ev.key === "Escape" && this.state.detailSku) {
+                this.closeDetail();
+            }
+        };
+        onMounted(() => window.addEventListener("keydown", this._onKeydown));
+        onWillUnmount(() => window.removeEventListener("keydown", this._onKeydown));
     }
 
     get selectedSkus() {
@@ -61,7 +69,7 @@ class PublisherCandidatesAction extends Component {
             this.state.limit = result.pagination.limit || this.state.limit;
             this.state.total = result.pagination.total || 0;
             this.state.selected = {};
-            this.state.expanded = {};
+            this.state.detailSku = false;
         } finally {
             this.state.loading = false;
         }
@@ -81,6 +89,16 @@ class PublisherCandidatesAction extends Component {
         this.loadPage(0);
     }
 
+    get hasActiveFilters() {
+        return Boolean(this.state.sku) || this.state.listingType !== "all";
+    }
+
+    resetFilters() {
+        this.state.sku = "";
+        this.state.listingType = "all";
+        this.loadPage(0);
+    }
+
     previousPage() {
         if (this.hasPrevious) {
             this.loadPage(Math.max(0, this.state.offset - this.state.limit));
@@ -97,12 +115,19 @@ class PublisherCandidatesAction extends Component {
         this.state.selected[sku] = !this.state.selected[sku];
     }
 
-    toggleDetail(sku) {
-        this.state.expanded[sku] = !this.state.expanded[sku];
+    openDetail(sku) {
+        this.state.detailSku = sku;
     }
 
-    isExpanded(sku) {
-        return Boolean(this.state.expanded[sku]);
+    closeDetail() {
+        this.state.detailSku = false;
+    }
+
+    get detailItem() {
+        if (!this.state.detailSku) {
+            return null;
+        }
+        return this.state.items.find((item) => item.sku === this.state.detailSku) || null;
     }
 
     formatBool(value) {
