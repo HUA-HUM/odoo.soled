@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="retailer_marketplace_panel.CatalogAction" owl="1">
+        <div class="o_retailer_catalog_page">
+            <div t-if="state.loading || state.syncingAll" class="o_retailer_catalog_loading_overlay">
+                <div class="o_retailer_catalog_loading_box">
+                    <span class="o_retailer_spinner"/>
+                    <strong t-if="state.syncingAll">Sincronizando catálogo completo...</strong>
+                    <strong t-else="">Actualizando catálogo...</strong>
+                    <small>Estamos consultando la API del marketplace, puede tardar unos segundos.</small>
+                </div>
+            </div>
+
+            <section class="o_retailer_catalog_toolbar">
+                <form t-on-submit="searchProducts" class="o_retailer_catalog_search">
+                    <input type="text" t-model="state.search" placeholder="Buscar por SKU o título" t-att-disabled="state.loading || state.syncingAll"/>
+                    <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.syncingAll">Buscar</button>
+                    <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.syncingAll">Limpiar</button>
+                </form>
+                <div class="o_retailer_catalog_bulk">
+                    <button type="button" class="btn o_retailer_catalog_refresh_button" t-on-click="() => this.loadPage()" t-att-disabled="state.loading || state.syncingAll">
+                        <i class="fa fa-refresh me-1"/>
+                        Actualizar página
+                    </button>
+                    <button type="button" class="btn o_retailer_catalog_secondary_button" t-on-click="syncAllProducts" t-att-disabled="state.loading || state.syncingAll">
+                        <i class="fa fa-cloud-download me-1"/>
+                        Sincronizar todo
+                    </button>
+                </div>
+            </section>
+
+            <section class="o_retailer_catalog_meta">
+                <span>
+                    Mostrando <t t-esc="state.items.length"/> de <t t-esc="state.total"/> productos
+                </span>
+                <span>
+                    Página <t t-esc="currentPage"/> / <t t-esc="totalPages"/>
+                </span>
+            </section>
+
+            <section t-if="state.loading &amp;&amp; !state.items.length" class="o_retailer_catalog_empty">
+                <span class="o_retailer_spinner"/>
+                <strong>Cargando catálogo...</strong>
+            </section>
+
+            <section t-elif="!state.items.length" class="o_retailer_catalog_empty">
+                <strong>No encontramos productos.</strong>
+                <small>Probá actualizar la página o sincronizar el catálogo completo.</small>
+            </section>
+
+            <section t-else="" class="o_retailer_catalog_grid">
+                <article t-foreach="state.items" t-as="item" t-key="item.id" t-attf-class="o_retailer_catalog_card #{item.active ? 'is-active' : 'is-inactive'}" t-on-click="() => this.openDetail(item)">
+                    <div class="o_retailer_catalog_media">
+                        <img t-if="item.thumbnail" t-att-src="item.thumbnail" t-att-alt="item.sku"/>
+                        <div t-else="" class="o_retailer_catalog_no_image">Sin imagen</div>
+                    </div>
+                    <div class="o_retailer_catalog_body">
+                        <div class="o_retailer_catalog_top">
+                            <strong t-esc="item.sku"/>
+                            <span t-attf-class="o_retailer_catalog_status #{item.active ? 'is-active' : 'is-inactive'}" t-esc="item.status_label || (item.active ? 'Activo' : 'Pausado')"/>
+                        </div>
+                        <div class="o_retailer_catalog_title" t-esc="item.title"/>
+                        <div class="o_retailer_catalog_meta_row">
+                            <span>$ <t t-esc="item.price"/></span>
+                            <span>Stock <t t-esc="item.stock"/></span>
+                        </div>
+                        <div class="o_retailer_catalog_actions">
+                            <button type="button" class="btn btn-secondary" t-on-click.stop="() => this.openDetail(item)">Ver detalle</button>
+                            <button t-if="item.link" type="button" class="btn btn-primary" t-on-click="(ev) => this.openLink(item, ev)">Abrir publicación</button>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section t-if="state.items.length" class="o_retailer_catalog_pager">
+                <button type="button" class="btn btn-secondary" t-att-disabled="!hasPrevious" t-on-click="previousPage">
+                    Anterior
+                </button>
+                <span>
+                    <t t-esc="state.offset + 1"/> - <t t-esc="Math.min(state.offset + state.limit, state.total)"/> de <t t-esc="state.total"/>
+                </span>
+                <button type="button" class="btn btn-secondary" t-att-disabled="!hasNext" t-on-click="nextPage">
+                    Siguiente
+                </button>
+            </section>
+        </div>
+    </t>
+</templates>

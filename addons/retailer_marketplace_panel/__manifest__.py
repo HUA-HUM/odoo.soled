@@ -12,13 +12,18 @@
         "views/oncity_product_views.xml",
         "views/fravega_product_views.xml",
         "views/marketplace_order_views.xml",
+        "views/marketplace_change_views.xml",
         "views/retailer_marketplace_menus.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "retailer_marketplace_panel/static/src/scss/retailer_marketplace_panel.scss",
             "retailer_marketplace_panel/static/src/js/oncity_list_controller.js",
+            "retailer_marketplace_panel/static/src/js/retailer_catalog_action.js",
+            "retailer_marketplace_panel/static/src/js/retailer_changes_action.js",
             "retailer_marketplace_panel/static/src/xml/oncity_list_buttons.xml",
+            "retailer_marketplace_panel/static/src/xml/retailer_catalog_action.xml",
+            "retailer_marketplace_panel/static/src/xml/retailer_changes_action.xml",
         ],
     },
     "application": True,

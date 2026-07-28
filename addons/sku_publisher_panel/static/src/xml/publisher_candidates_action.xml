@@ -18,7 +18,7 @@
                 </form>
                 <div class="o_publisher_candidates_bulk">
                     <button type="button" class="btn btn-secondary" t-on-click="selectPage" t-att-disabled="state.loading || state.publishing">
-                        Seleccionar pagina
+                        Seleccionar página
                     </button>
                     <select t-model="state.marketplace" t-att-disabled="state.loading || state.publishing">
                         <option value="both">OnCity + Fravega</option>
@@ -37,7 +37,7 @@
                     Mostrando <t t-esc="state.items.length"/> de <t t-esc="state.total"/> candidatos
                 </span>
                 <span>
-                    Pagina <t t-esc="currentPage"/> / <t t-esc="totalPages"/>
+                    Página <t t-esc="currentPage"/> / <t t-esc="totalPages"/>
                 </span>
             </section>
 

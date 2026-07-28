@@ -23,8 +23,8 @@ class RetailerMarketplaceOrder(models.Model):
     customer_name = fields.Char(string="Cliente", index=True)
     amount = fields.Float(string="Monto")
     status = fields.Char(string="Estado", index=True)
-    delivery_status = fields.Char(string="Estado envio", index=True)
-    delivery_type = fields.Char(string="Tipo envio")
+    delivery_status = fields.Char(string="Estado envío", index=True)
+    delivery_type = fields.Char(string="Tipo envío")
     items_quantity = fields.Integer(string="Cantidad items")
     products_summary = fields.Text(string="Productos")
     payload_json = fields.Text(string="Payload listado JSON")
@@ -150,9 +150,9 @@ class RetailerMarketplaceOrder(models.Model):
             response.raise_for_status()
             payload = response.json()
         except requests.RequestException as error:
-            raise UserError(_("Error consultando ordenes OnCity: %s") % error) from error
+            raise UserError(_("Error consultando órdenes OnCity: %s") % error) from error
         except ValueError as error:
-            raise UserError(_("OnCity no devolvio JSON valido.")) from error
+            raise UserError(_("OnCity no devolvió JSON válido.")) from error
 
         orders = payload if isinstance(payload, list) else payload.get("items") or payload.get("data") or []
         counts = {"created": 0, "updated": 0}
@@ -160,7 +160,7 @@ class RetailerMarketplaceOrder(models.Model):
             if not order.get("IdOrden"):
                 continue
             counts[self._upsert_order(self._prepare_oncity_order_values(order))] += 1
-        return self._notification("OnCity", _("Ordenes OnCity sincronizadas. Creadas: %(created)s. Actualizadas: %(updated)s.") % counts)
+        return self._notification("OnCity", _("Órdenes OnCity sincronizadas. Creadas: %(created)s. Actualizadas: %(updated)s.") % counts)
 
     @api.model
     def action_sync_fravega_orders(self):
@@ -178,9 +178,9 @@ class RetailerMarketplaceOrder(models.Model):
                 response.raise_for_status()
                 payload = response.json()
             except requests.RequestException as error:
-                raise UserError(_("Error consultando ordenes Fravega: %s") % error) from error
+                raise UserError(_("Error consultando órdenes Fravega: %s") % error) from error
             except ValueError as error:
-                raise UserError(_("Fravega no devolvio JSON valido.")) from error
+                raise UserError(_("Fravega no devolvió JSON válido.")) from error
 
             orders = payload.get("items") or []
             for order in orders:
@@ -192,12 +192,12 @@ class RetailerMarketplaceOrder(models.Model):
             if page >= pages or not orders:
                 break
             page += 1
-        return self._notification("Fravega", _("Ordenes Fravega sincronizadas. Creadas: %(created)s. Actualizadas: %(updated)s.") % counts)
+        return self._notification("Fravega", _("Órdenes Fravega sincronizadas. Creadas: %(created)s. Actualizadas: %(updated)s.") % counts)
 
     def action_fetch_fravega_detail(self):
         self.ensure_one()
         if self.marketplace != "fravega":
-            raise UserError(_("El detalle por ahora esta disponible para Fravega."))
+            raise UserError(_("El detalle por ahora está disponible para Fravega."))
         if not self.suborder_id or not self.order_id:
             raise UserError(_("La orden no tiene orderId/suborderId."))
         try:
@@ -212,7 +212,7 @@ class RetailerMarketplaceOrder(models.Model):
         except requests.RequestException as error:
             raise UserError(_("Error consultando detalle Fravega: %s") % error) from error
         except ValueError as error:
-            raise UserError(_("Fravega no devolvio JSON valido.")) from error
+            raise UserError(_("Fravega no devolvió JSON válido.")) from error
         self.write({"detail_json": self._to_json(payload), "detail_synced_at": fields.Datetime.now()})
         return self._notification("Fravega", _("Detalle de orden actualizado."))
 

@@ -6,7 +6,7 @@
         <field name="sequence">10</field>
         <field name="logo_url">/retailer_marketplace_panel/static/src/img/logofravega.png</field>
         <field name="status">available</field>
-        <field name="description">Catalogo y ordenes conectados por API.</field>
+        <field name="description">Catálogo y órdenes conectados por API.</field>
     </record>
 
     <record id="marketplace_oncity" model="retailer.marketplace">
@@ -15,7 +15,7 @@
         <field name="sequence">20</field>
         <field name="logo_url">/retailer_marketplace_panel/static/src/img/oncity_logo.png</field>
         <field name="status">available</field>
-        <field name="description">Catalogo y ordenes conectados por API.</field>
+        <field name="description">Catálogo y órdenes conectados por API.</field>
     </record>
 
     <record id="retailer_dashboard_record" model="retailer.dashboard">
@@ -31,7 +31,7 @@
                     <div class="o_retailer_dashboard">
                         <section class="o_retailer_dashboard_hero">
                             <span>Retailers</span>
-                            <h1>Operacion de retailers</h1>
+                            <h1>Operación de retailers</h1>
                         </section>
 
                         <section class="o_retailer_dashboard_grid">
@@ -40,7 +40,7 @@
                                     <img src="/soled_dashboard_panel/static/src/img/retailers.svg" alt="Marketplaces"/>
                                 </div>
                                 <strong>Marketplaces</strong>
-                                <span>Fravega, OnCity y proximos canales.</span>
+                                <span>Fravega, OnCity y próximos canales.</span>
                             </button>
 
                             <button name="action_open_publisher" type="object" class="o_retailer_dashboard_card">
@@ -48,7 +48,15 @@
                                     <img src="/soled_dashboard_panel/static/src/img/publisher.webp" alt="Publicador"/>
                                 </div>
                                 <strong>Publicador</strong>
-                                <span>SKUs candidatos, jobs y runs de publicacion.</span>
+                                <span>SKUs candidatos, jobs y runs de publicación.</span>
+                            </button>
+
+                            <button name="action_open_updater" type="object" class="o_retailer_dashboard_card">
+                                <div class="o_retailer_dashboard_icon o_retailer_dashboard_icon_font">
+                                    <i class="fa fa-refresh" title="Actualizador"/>
+                                </div>
+                                <strong>Actualizador</strong>
+                                <span>SKUs modificados y sus acciones de cambio por marketplace.</span>
                             </button>
                         </section>
                     </div>
@@ -93,11 +101,11 @@
                             <div class="o_retailer_marketplace_actions">
                                 <button name="action_open_catalog" type="object" class="btn o_retailer_marketplace_action">
                                     <i class="fa fa-cubes"/>
-                                    Catalogo
+                                    Catálogo
                                 </button>
                                 <button name="action_open_orders" type="object" class="btn o_retailer_marketplace_action">
                                     <i class="fa fa-shopping-cart"/>
-                                    Ordenes
+                                    Órdenes
                                 </button>
                             </div>
                         </div>
@@ -150,28 +158,28 @@
                                 <div class="o_retailer_hero_meta">
                                     <span class="o_retailer_status o_retailer_status_available" invisible="status != 'available'">Disponible</span>
                                     <span class="o_retailer_status o_retailer_status_pending" invisible="status != 'pending'">Pendiente</span>
-                                    <span>Operacion marketplace</span>
+                                    <span>Operación marketplace</span>
                                 </div>
                             </div>
                         </section>
 
                         <section class="o_retailer_kpis">
-                            <div class="o_retailer_kpi">
-                                <span class="o_retailer_kpi_label">Catalogo</span>
+                            <div class="o_retailer_kpi o_retailer_kpi_catalog">
+                                <span class="o_retailer_kpi_label">Catálogo</span>
                                 <strong><field name="product_count"/></strong>
                                 <span>productos</span>
                             </div>
-                            <div class="o_retailer_kpi">
-                                <span class="o_retailer_kpi_label">Ordenes</span>
+                            <div class="o_retailer_kpi o_retailer_kpi_orders">
+                                <span class="o_retailer_kpi_label">Órdenes</span>
                                 <strong><field name="order_count"/></strong>
                                 <span>pendientes</span>
                             </div>
-                            <div class="o_retailer_kpi">
-                                <span class="o_retailer_kpi_label">Envios</span>
+                            <div class="o_retailer_kpi o_retailer_kpi_shipments">
+                                <span class="o_retailer_kpi_label">Envíos</span>
                                 <strong><field name="shipment_count"/></strong>
                                 <span>a gestionar</span>
                             </div>
-                            <div class="o_retailer_kpi">
+                            <div class="o_retailer_kpi o_retailer_kpi_invoices">
                                 <span class="o_retailer_kpi_label">Facturas</span>
                                 <strong><field name="invoice_count"/></strong>
                                 <span>pendientes</span>
@@ -181,39 +189,39 @@
                         <section class="o_retailer_sections">
                             <button name="action_open_catalog" type="object" class="o_retailer_section_card o_retailer_section_ready">
                                 <i class="fa fa-cubes"/>
-                                <span class="o_retailer_section_title">Catalogo</span>
+                                <span class="o_retailer_section_title">Catálogo</span>
                                 <span class="o_retailer_section_text">Productos, stock, precios y publicaciones.</span>
                                 <span class="o_retailer_section_metric"><field name="product_count"/> productos</span>
                             </button>
                             <button name="action_open_orders" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-shopping-cart"/>
-                                <span class="o_retailer_section_title">Ordenes</span>
-                                <span class="o_retailer_section_text">Ventas, estados de pago y preparacion.</span>
-                                <span class="o_retailer_section_metric"><field name="order_count"/> ordenes</span>
+                                <span class="o_retailer_section_title">Órdenes</span>
+                                <span class="o_retailer_section_text">Ventas, estados de pago y preparación.</span>
+                                <span class="o_retailer_section_metric"><field name="order_count"/> órdenes</span>
                             </button>
                             <button name="action_open_shipments" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-truck"/>
-                                <span class="o_retailer_section_title">Envios</span>
+                                <span class="o_retailer_section_title">Envíos</span>
                                 <span class="o_retailer_section_text">Despachos, etiquetas y seguimiento.</span>
-                                <span class="o_retailer_section_metric">Proxima integracion</span>
+                                <span class="o_retailer_section_metric">Próxima integración</span>
                             </button>
                             <button name="action_open_invoices" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="o_retailer_section_title">Facturas</span>
                                 <span class="o_retailer_section_text">Comprobantes y control administrativo.</span>
-                                <span class="o_retailer_section_metric">Proxima integracion</span>
+                                <span class="o_retailer_section_metric">Próxima integración</span>
                             </button>
                             <button name="action_open_questions" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-comments-o"/>
                                 <span class="o_retailer_section_title">Preguntas</span>
                                 <span class="o_retailer_section_text">Consultas de clientes y respuestas.</span>
-                                <span class="o_retailer_section_metric">Proxima integracion</span>
+                                <span class="o_retailer_section_metric">Próxima integración</span>
                             </button>
                             <button name="action_open_settings" type="object" class="o_retailer_section_card">
                                 <i class="fa fa-sliders"/>
-                                <span class="o_retailer_section_title">Configuracion</span>
-                                <span class="o_retailer_section_text">Credenciales, reglas y parametros.</span>
-                                <span class="o_retailer_section_metric">Proxima integracion</span>
+                                <span class="o_retailer_section_title">Configuración</span>
+                                <span class="o_retailer_section_text">Credenciales, reglas y parámetros.</span>
+                                <span class="o_retailer_section_metric">Próxima integración</span>
                             </button>
                         </section>
                     </div>

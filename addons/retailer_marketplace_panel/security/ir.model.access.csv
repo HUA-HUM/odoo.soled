@@ -4,3 +4,4 @@ access_retailer_marketplace_user,retailer.marketplace user,model_retailer_market
 access_retailer_oncity_product_user,retailer.oncity.product user,model_retailer_oncity_product,base.group_user,1,1,1,0
 access_retailer_fravega_product_user,retailer.fravega.product user,model_retailer_fravega_product,base.group_user,1,1,1,0
 access_retailer_marketplace_order_user,retailer.marketplace.order user,model_retailer_marketplace_order,base.group_user,1,1,1,0
+access_retailer_marketplace_change_user,retailer.marketplace.change user,model_retailer_marketplace_change,base.group_user,1,1,1,0

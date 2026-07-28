@@ -15,8 +15,8 @@ class RetailerDashboard(models.Model):
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": "Seccion no disponible",
-                "message": "Todavia no encontramos esa accion en Odoo.",
+                "title": "Sección no disponible",
+                "message": "Todavía no encontramos esa acción en Odoo.",
                 "type": "warning",
                 "sticky": False,
             },
@@ -27,3 +27,6 @@ class RetailerDashboard(models.Model):
 
     def action_open_publisher(self):
         return self._open_action("sku_publisher_panel.action_publisher_dashboard")
+
+    def action_open_updater(self):
+        return self._open_action("retailer_marketplace_panel.action_marketplace_change_cards")

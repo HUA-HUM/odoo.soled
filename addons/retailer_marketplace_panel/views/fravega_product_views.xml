@@ -4,9 +4,9 @@
         <field name="name">retailer.fravega.product.tree</field>
         <field name="model">retailer.fravega.product</field>
         <field name="arch" type="xml">
-            <list string="Catalogo Fravega" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="active == False">
+            <list string="Catálogo Fravega" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="active == False">
                 <header>
-                    <button name="action_sync_products" string="Actualizar catalogo" type="object" class="btn-primary"/>
+                    <button name="action_sync_products" string="Actualizar catálogo" type="object" class="btn-primary"/>
                 </header>
                 <field name="sku"/>
                 <field name="ref_id"/>
@@ -33,7 +33,7 @@
                         <h1><field name="title" readonly="1"/></h1>
                     </div>
                     <group>
-                        <group string="Identificacion">
+                        <group string="Identificación">
                             <field name="sku" readonly="1"/>
                             <field name="ref_id" readonly="1"/>
                             <field name="ean" readonly="1"/>
@@ -48,7 +48,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Imagenes">
+                        <page string="Imágenes">
                             <field name="images_json" readonly="1" nolabel="1"/>
                         </page>
                         <page string="Atributos">
@@ -88,14 +88,20 @@
     </record>
 
     <record id="action_fravega_product" model="ir.actions.act_window">
-        <field name="name">Catalogo Fravega</field>
+        <field name="name">Catálogo Fravega</field>
         <field name="res_model">retailer.fravega.product</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_fravega_product_search"/>
     </record>
 
+    <record id="action_fravega_catalog_cards" model="ir.actions.client">
+        <field name="name">Catálogo Fravega</field>
+        <field name="tag">retailer_marketplace_panel.catalog_action</field>
+        <field name="params" eval="{'model': 'retailer.fravega.product', 'title': 'Fravega'}"/>
+    </record>
+
     <record id="action_sync_fravega_products" model="ir.actions.server">
-        <field name="name">Actualizar catalogo Fravega</field>
+        <field name="name">Actualizar catálogo Fravega</field>
         <field name="model_id" ref="model_retailer_fravega_product"/>
         <field name="binding_model_id" ref="model_retailer_fravega_product"/>
         <field name="binding_view_types">list,form</field>

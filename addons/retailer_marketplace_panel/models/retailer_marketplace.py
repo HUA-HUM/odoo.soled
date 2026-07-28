@@ -50,10 +50,10 @@ class RetailerMarketplace(models.Model):
     def action_open_catalog(self):
         self.ensure_one()
         if self.code == "oncity":
-            return self.env.ref("retailer_marketplace_panel.action_oncity_product").read()[0]
+            return self.env.ref("retailer_marketplace_panel.action_oncity_catalog_cards").read()[0]
         if self.code == "fravega":
-            return self.env.ref("retailer_marketplace_panel.action_fravega_product").read()[0]
-        return self._section_pending_notification("Catalogo")
+            return self.env.ref("retailer_marketplace_panel.action_fravega_catalog_cards").read()[0]
+        return self._section_pending_notification("Catálogo")
 
     def action_open_orders(self):
         self.ensure_one()
@@ -65,7 +65,7 @@ class RetailerMarketplace(models.Model):
 
     def action_open_shipments(self):
         self.ensure_one()
-        return self._section_pending_notification("Envios")
+        return self._section_pending_notification("Envíos")
 
     def action_open_invoices(self):
         self.ensure_one()
@@ -77,7 +77,7 @@ class RetailerMarketplace(models.Model):
 
     def action_open_settings(self):
         self.ensure_one()
-        return self._section_pending_notification("Configuracion")
+        return self._section_pending_notification("Configuración")
 
     def _section_pending_notification(self, section_name):
         return {
@@ -85,7 +85,7 @@ class RetailerMarketplace(models.Model):
             "tag": "display_notification",
             "params": {
                 "title": "%s - %s" % (self.name, section_name),
-                "message": "Seccion preparada. Falta conectar el endpoint correspondiente.",
+                "message": "Sección preparada. Falta conectar el endpoint correspondiente.",
                 "type": "warning",
                 "sticky": False,
             },

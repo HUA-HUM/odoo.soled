@@ -4,9 +4,9 @@
         <field name="name">retailer.oncity.product.tree</field>
         <field name="model">retailer.oncity.product</field>
         <field name="arch" type="xml">
-            <list string="Catalogo OnCity" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="status != 'Activo'">
+            <list string="Catálogo OnCity" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="status != 'Activo'">
                 <header>
-                    <button name="action_sync_products" string="Actualizar catalogo" type="object" class="btn-primary"/>
+                    <button name="action_sync_products" string="Actualizar catálogo" type="object" class="btn-primary"/>
                 </header>
                 <field name="link_publication" invisible="1"/>
                 <button name="action_open_publication" string="Abrir" type="object" icon="fa-external-link" invisible="not link_publication"/>
@@ -29,7 +29,7 @@
         <field name="arch" type="xml">
             <form string="Producto OnCity" create="false">
                 <header>
-                    <button name="action_open_publication" string="Abrir publicacion" type="object" class="btn-primary"/>
+                    <button name="action_open_publication" string="Abrir publicación" type="object" class="btn-primary"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -39,7 +39,7 @@
                         </h1>
                     </div>
                     <group>
-                        <group string="Identificacion">
+                        <group string="Identificación">
                             <field name="publication_id" readonly="1"/>
                             <field name="seller_sku" readonly="1"/>
                             <field name="market_sku" readonly="1"/>
@@ -56,7 +56,7 @@
                         <page string="Imagen principal">
                             <field name="thumbnail" readonly="1" widget="url"/>
                         </page>
-                        <page string="Imagenes JSON">
+                        <page string="Imágenes JSON">
                             <field name="images_json" readonly="1" nolabel="1"/>
                         </page>
                         <page string="Payload JSON">
@@ -97,8 +97,14 @@
         <field name="search_view_id" ref="view_oncity_product_search"/>
     </record>
 
+    <record id="action_oncity_catalog_cards" model="ir.actions.client">
+        <field name="name">Catálogo OnCity</field>
+        <field name="tag">retailer_marketplace_panel.catalog_action</field>
+        <field name="params" eval="{'model': 'retailer.oncity.product', 'title': 'OnCity'}"/>
+    </record>
+
     <record id="action_sync_oncity_products" model="ir.actions.server">
-        <field name="name">Actualizar catalogo OnCity</field>
+        <field name="name">Actualizar catálogo OnCity</field>
         <field name="model_id" ref="model_retailer_oncity_product"/>
         <field name="binding_model_id" ref="model_retailer_oncity_product"/>
         <field name="binding_view_types">list,form</field>

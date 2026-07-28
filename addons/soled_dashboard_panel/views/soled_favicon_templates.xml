@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="soled_favicon_override" inherit_id="web.layout" name="SOLED Favicon">
+        <xpath expr="//link[@rel='shortcut icon']" position="replace">
+            <link type="image/png" rel="shortcut icon" t-att-href="x_icon or '/soled_dashboard_panel/static/src/img/soled_favicon.png'"/>
+        </xpath>
+    </template>
+
+    <template id="soled_apple_touch_icon_override" inherit_id="web.webclient_bootstrap" name="SOLED App Icon">
+        <xpath expr="//link[@rel='apple-touch-icon']" position="attributes">
+            <attribute name="href">/soled_dashboard_panel/static/src/img/soled_app_icon_ios.png</attribute>
+        </xpath>
+    </template>
+</odoo>

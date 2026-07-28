@@ -24,16 +24,28 @@ class PublisherDashboard(models.Model):
         return self.env.ref("sku_publisher_panel.action_publisher_candidates_cards").read()[0]
 
     def action_refresh_candidates(self):
-        return self.env["publisher.sku"].action_refresh_candidates()
+        result = self.env["publisher.sku"].action_refresh_candidates()
+        return self._with_reload(result)
 
     def action_open_jobs(self):
         return self.env.ref("sku_publisher_panel.action_publisher_job").read()[0]
 
     def action_sync_recent_jobs(self):
-        return self.env["publisher.job"].action_sync_recent_jobs()
+        result = self.env["publisher.job"].action_sync_recent_jobs()
+        return self._with_reload(result)
 
     def action_open_runs(self):
         return self.env.ref("sku_publisher_panel.action_publisher_run").read()[0]
 
     def action_sync_runs(self):
-        return self.env["publisher.job.line"].action_sync_runs()
+        result = self.env["publisher.job.line"].action_sync_runs()
+        return self._with_reload(result)
+
+    def _with_reload(self, result):
+        """Chain a same-page reload after the notification so the KPI counts
+        on the dashboard refresh immediately instead of waiting for a manual F5."""
+        if isinstance(result, dict) and result.get("tag") == "display_notification":
+            reload_action = self.env.ref("sku_publisher_panel.action_publisher_dashboard").read()[0]
+            reload_action["context"] = {"stackPosition": "replaceCurrentAction"}
+            result.setdefault("params", {})["next"] = reload_action
+        return result

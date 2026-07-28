@@ -4,7 +4,7 @@
         <field name="name">retailer.marketplace.order.tree</field>
         <field name="model">retailer.marketplace.order</field>
         <field name="arch" type="xml">
-            <list string="Ordenes marketplace" create="false" decoration-success="delivery_status == 'Delivered'" decoration-warning="delivery_status == 'Pending'">
+            <list string="Órdenes marketplace" create="false" decoration-success="delivery_status == 'Delivered'" decoration-warning="delivery_status == 'Pending'">
                 <header>
                     <button name="action_sync_oncity_orders" string="Actualizar OnCity" type="object" class="btn-primary"/>
                     <button name="action_sync_fravega_orders" string="Actualizar Fravega" type="object" class="btn-secondary"/>
@@ -71,14 +71,14 @@
         <field name="name">retailer.marketplace.order.search</field>
         <field name="model">retailer.marketplace.order</field>
         <field name="arch" type="xml">
-            <search string="Buscar ordenes">
+            <search string="Buscar órdenes">
                 <field name="order_id"/>
                 <field name="suborder_id"/>
                 <field name="customer_name"/>
                 <field name="status"/>
                 <filter name="oncity" string="OnCity" domain="[('marketplace', '=', 'oncity')]"/>
                 <filter name="fravega" string="Fravega" domain="[('marketplace', '=', 'fravega')]"/>
-                <filter name="pending_delivery" string="Envio pendiente" domain="[('delivery_status', '=', 'Pending')]"/>
+                <filter name="pending_delivery" string="Envío pendiente" domain="[('delivery_status', '=', 'Pending')]"/>
                 <filter name="delivered" string="Entregadas" domain="[('delivery_status', '=', 'Delivered')]"/>
                 <group expand="0" string="Agrupar por">
                     <filter name="group_marketplace" string="Marketplace" context="{'group_by': 'marketplace'}"/>
@@ -90,7 +90,7 @@
     </record>
 
     <record id="action_oncity_order" model="ir.actions.act_window">
-        <field name="name">Ordenes OnCity</field>
+        <field name="name">Órdenes OnCity</field>
         <field name="res_model">retailer.marketplace.order</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('marketplace', '=', 'oncity')]</field>
@@ -99,7 +99,7 @@
     </record>
 
     <record id="action_fravega_order" model="ir.actions.act_window">
-        <field name="name">Ordenes Fravega</field>
+        <field name="name">Órdenes Fravega</field>
         <field name="res_model">retailer.marketplace.order</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('marketplace', '=', 'fravega')]</field>
@@ -108,7 +108,7 @@
     </record>
 
     <record id="action_sync_oncity_orders" model="ir.actions.server">
-        <field name="name">Actualizar ordenes OnCity</field>
+        <field name="name">Actualizar órdenes OnCity</field>
         <field name="model_id" ref="model_retailer_marketplace_order"/>
         <field name="binding_model_id" ref="model_retailer_marketplace_order"/>
         <field name="binding_view_types">list,form</field>
@@ -117,7 +117,7 @@
     </record>
 
     <record id="action_sync_fravega_orders" model="ir.actions.server">
-        <field name="name">Actualizar ordenes Fravega</field>
+        <field name="name">Actualizar órdenes Fravega</field>
         <field name="model_id" ref="model_retailer_marketplace_order"/>
         <field name="binding_model_id" ref="model_retailer_marketplace_order"/>
         <field name="binding_view_types">list,form</field>

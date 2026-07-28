@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_marketplace_change_tree" model="ir.ui.view">
+        <field name="name">retailer.marketplace.change.tree</field>
+        <field name="model">retailer.marketplace.change</field>
+        <field name="arch" type="xml">
+            <list string="Cambios de marketplace" create="false" decoration-danger="status == 'failed'" decoration-success="status == 'completed'" decoration-info="status in ('queued', 'processing')">
+                <header>
+                    <button name="action_sync_all" string="Sincronizar todo" type="object" class="btn-primary"/>
+                </header>
+                <field name="sku"/>
+                <field name="marketplace"/>
+                <field name="change_type"/>
+                <field name="status" widget="badge"/>
+                <field name="summary"/>
+                <field name="external_created_at"/>
+                <field name="external_updated_at"/>
+                <field name="synced_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_marketplace_change_form" model="ir.ui.view">
+        <field name="name">retailer.marketplace.change.form</field>
+        <field name="model">retailer.marketplace.change</field>
+        <field name="arch" type="xml">
+            <form string="Cambio de marketplace" create="false">
+                <header>
+                    <button name="action_fetch_detail" string="Actualizar detalle" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="sku"/>
+                        <h1>
+                            <field name="sku" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identificación">
+                            <field name="action_id" readonly="1"/>
+                            <field name="marketplace" readonly="1"/>
+                            <field name="change_type" readonly="1"/>
+                        </group>
+                        <group string="Estado">
+                            <field name="status" readonly="1"/>
+                            <field name="summary" readonly="1"/>
+                            <field name="external_created_at" readonly="1"/>
+                            <field name="external_updated_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="error_message" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Payload listado">
+                            <field name="payload_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload detalle">
+                            <field name="detail_json" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_marketplace_change_search" model="ir.ui.view">
+        <field name="name">retailer.marketplace.change.search</field>
+        <field name="model">retailer.marketplace.change</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cambios">
+                <field name="sku"/>
+                <field name="action_id"/>
+                <field name="marketplace"/>
+                <field name="status"/>
+                <filter name="oncity" string="OnCity" domain="[('marketplace', '=', 'oncity')]"/>
+                <filter name="fravega" string="Fravega" domain="[('marketplace', '=', 'fravega')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_marketplace" string="Marketplace" context="{'group_by': 'marketplace'}"/>
+                    <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_marketplace_change" model="ir.actions.act_window">
+        <field name="name">Actualizador</field>
+        <field name="res_model">retailer.marketplace.change</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_marketplace_change_search"/>
+    </record>
+
+    <record id="action_marketplace_change_cards" model="ir.actions.client">
+        <field name="name">Actualizador</field>
+        <field name="tag">retailer_marketplace_panel.changes_action</field>
+    </record>
+</odoo>

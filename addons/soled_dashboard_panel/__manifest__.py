@@ -16,6 +16,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/company_logo.xml",
+        "views/soled_favicon_templates.xml",
         "views/soled_dashboard_views.xml",
         "views/soled_dashboard_menus.xml",
     ],
