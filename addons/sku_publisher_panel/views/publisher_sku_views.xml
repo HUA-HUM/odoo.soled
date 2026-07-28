@@ -62,7 +62,7 @@
         <field name="name">publisher.sku.tree</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <list string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
+            <tree string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
                 <field name="ready_to_publish" invisible="1"/>
                 <button name="action_open_ml_product" string="ML" type="object" icon="fa-external-link"/>
                 <field name="sku"/>
@@ -77,7 +77,7 @@
                 <field name="publish_status" widget="badge"/>
                 <field name="meli_item_id" optional="hide"/>
                 <field name="last_checked_at"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -162,7 +162,7 @@
     <record id="action_publisher_sku" model="ir.actions.act_window">
         <field name="name">Candidatos</field>
         <field name="res_model">publisher.sku</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="search_view_id" ref="view_publisher_sku_search"/>
         <field name="context">{'search_default_ready': 1}</field>
     </record>
@@ -176,7 +176,7 @@
         <field name="name">Actualizar candidatos</field>
         <field name="model_id" ref="model_publisher_sku"/>
         <field name="binding_model_id" ref="model_publisher_sku"/>
-        <field name="binding_view_types">list,form</field>
+        <field name="binding_view_types">tree,form</field>
         <field name="state">code</field>
         <field name="code">action = model.action_refresh_candidates()</field>
     </record>

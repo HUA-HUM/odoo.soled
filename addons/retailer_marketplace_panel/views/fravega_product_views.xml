@@ -4,7 +4,7 @@
         <field name="name">retailer.fravega.product.tree</field>
         <field name="model">retailer.fravega.product</field>
         <field name="arch" type="xml">
-            <list string="Catálogo Fravega" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="active == False">
+            <tree string="Catálogo Fravega" create="false" decoration-danger="stock == 0" decoration-warning="stock &lt;= 2 and stock &gt; 0" decoration-muted="active == False">
                 <header>
                     <button name="action_sync_products" string="Actualizar catálogo" type="object" class="btn-primary"/>
                 </header>
@@ -18,7 +18,7 @@
                 <field name="stock"/>
                 <field name="ean"/>
                 <field name="synced_at"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -90,7 +90,7 @@
     <record id="action_fravega_product" model="ir.actions.act_window">
         <field name="name">Catálogo Fravega</field>
         <field name="res_model">retailer.fravega.product</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_fravega_product_search"/>
     </record>
 
@@ -104,7 +104,7 @@
         <field name="name">Actualizar catálogo Fravega</field>
         <field name="model_id" ref="model_retailer_fravega_product"/>
         <field name="binding_model_id" ref="model_retailer_fravega_product"/>
-        <field name="binding_view_types">list,form</field>
+        <field name="binding_view_types">tree,form</field>
         <field name="state">code</field>
         <field name="code">action = model.action_sync_products()</field>
     </record>

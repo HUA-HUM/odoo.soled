@@ -4,7 +4,7 @@
         <field name="name">publisher.job.tree</field>
         <field name="model">publisher.job</field>
         <field name="arch" type="xml">
-            <list string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status == 'processing'">
+            <tree string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status == 'processing'">
                 <header>
                     <button name="action_sync_recent_jobs" string="Sincronizar procesos" type="object" class="btn-primary"/>
                 </header>
@@ -17,7 +17,7 @@
                 <field name="error_items"/>
                 <field name="backend_job_id"/>
                 <field name="create_date"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -53,14 +53,14 @@
                     <notebook>
                         <page string="Lineas">
                             <field name="line_ids" readonly="1">
-                                <list decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
+                                <tree decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
                                     <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" invisible="status not in ['failed', 'skipped']"/>
                                     <field name="sku"/>
                                     <field name="retailer"/>
                                     <field name="status" widget="badge"/>
                                     <field name="run_id"/>
                                     <field name="message"/>
-                                </list>
+                                </tree>
                             </field>
                         </page>
                         <page string="Payload API">
@@ -75,14 +75,14 @@
     <record id="action_publisher_job" model="ir.actions.act_window">
         <field name="name">Jobs</field>
         <field name="res_model">publisher.job</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 
     <record id="view_publisher_run_tree" model="ir.ui.view">
         <field name="name">publisher.job.line.tree</field>
         <field name="model">publisher.job.line</field>
         <field name="arch" type="xml">
-            <list string="Runs de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
+            <tree string="Runs de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
                 <header>
                     <button name="action_sync_runs" string="Sincronizar runs" type="object" class="btn-primary"/>
                 </header>
@@ -97,7 +97,7 @@
                 <field name="message"/>
                 <field name="error_message"/>
                 <field name="create_date"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -168,7 +168,7 @@
     <record id="action_publisher_run" model="ir.actions.act_window">
         <field name="name">Runs</field>
         <field name="res_model">publisher.job.line</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_publisher_run_search"/>
     </record>
 
@@ -193,7 +193,7 @@
         <field name="name">Sincronizar procesos</field>
         <field name="model_id" ref="model_publisher_job"/>
         <field name="binding_model_id" ref="model_publisher_job"/>
-        <field name="binding_view_types">list,form</field>
+        <field name="binding_view_types">tree,form</field>
         <field name="state">code</field>
         <field name="code">action = model.action_sync_recent_jobs()</field>
     </record>
@@ -202,7 +202,7 @@
         <field name="name">Sincronizar runs</field>
         <field name="model_id" ref="model_publisher_job_line"/>
         <field name="binding_model_id" ref="model_publisher_job_line"/>
-        <field name="binding_view_types">list,form</field>
+        <field name="binding_view_types">tree,form</field>
         <field name="state">code</field>
         <field name="code">action = model.action_sync_runs()</field>
     </record>

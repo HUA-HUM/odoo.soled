@@ -4,14 +4,14 @@
         <field name="name">ml.account.tree</field>
         <field name="model">ml.account</field>
         <field name="arch" type="xml">
-            <list string="Cuentas MercadoLibre">
+            <tree string="Cuentas MercadoLibre">
                 <field name="name"/>
                 <field name="connected"/>
                 <field name="seller_id"/>
                 <field name="nickname"/>
                 <field name="token_expires_at"/>
                 <field name="last_connection_at"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -154,14 +154,14 @@
     <record id="action_ml_account" model="ir.actions.act_window">
         <field name="name">Cuenta MercadoLibre</field>
         <field name="res_model">ml.account</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="context">{}</field>
     </record>
 
     <record id="action_ml_dashboard" model="ir.actions.act_window">
         <field name="name">Dashboard</field>
         <field name="res_model">ml.account</field>
-        <field name="view_mode">form,list</field>
+        <field name="view_mode">form,tree</field>
         <field name="view_id" ref="view_ml_account_dashboard_form"/>
         <field name="domain">[('connected', '=', True)]</field>
         <field name="context">{'create': False}</field>

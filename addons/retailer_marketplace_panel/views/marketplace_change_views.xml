@@ -4,7 +4,7 @@
         <field name="name">retailer.marketplace.change.tree</field>
         <field name="model">retailer.marketplace.change</field>
         <field name="arch" type="xml">
-            <list string="Cambios de marketplace" create="false" decoration-danger="status == 'failed'" decoration-success="status == 'completed'" decoration-info="status in ('queued', 'processing')">
+            <tree string="Cambios de marketplace" create="false" decoration-danger="status == 'failed'" decoration-success="status == 'completed'" decoration-info="status in ('queued', 'processing')">
                 <header>
                     <button name="action_sync_all" string="Sincronizar todo" type="object" class="btn-primary"/>
                 </header>
@@ -16,7 +16,7 @@
                 <field name="external_created_at"/>
                 <field name="external_updated_at"/>
                 <field name="synced_at"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -86,7 +86,7 @@
     <record id="action_marketplace_change" model="ir.actions.act_window">
         <field name="name">Actualizador</field>
         <field name="res_model">retailer.marketplace.change</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_marketplace_change_search"/>
     </record>
 

@@ -119,11 +119,11 @@
         <field name="name">retailer.marketplace.tree</field>
         <field name="model">retailer.marketplace</field>
         <field name="arch" type="xml">
-            <list string="Marketplaces" create="false" edit="false">
+            <tree string="Marketplaces" create="false" edit="false">
                 <field name="name"/>
                 <field name="status"/>
                 <field name="product_count"/>
-            </list>
+            </tree>
         </field>
     </record>
 
@@ -233,7 +233,7 @@
     <record id="action_retailer_marketplace" model="ir.actions.act_window">
         <field name="name">Marketplaces</field>
         <field name="res_model">retailer.marketplace</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="domain">[('code', 'in', ['fravega', 'oncity'])]</field>
     </record>
 
