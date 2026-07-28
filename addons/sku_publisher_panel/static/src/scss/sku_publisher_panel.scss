@@ -395,8 +395,12 @@
 
 .o_publisher_candidates_page {
     background: var(--publisher-surface);
-    height: auto;
-    min-height: calc(100vh - 56px);
+    /* Fixed (not auto) height is required here: it's what makes this element
+       the actual scrolling region. With height:auto the box simply grows to
+       fit its content and overflow-y:auto never triggers, so long candidate
+       lists get clipped by the surrounding action container instead of
+       scrolling. */
+    height: calc(100vh - 56px);
     overflow-y: auto;
     padding: 20px 24px 28px;
     position: relative;
