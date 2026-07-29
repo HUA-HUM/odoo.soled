@@ -54,7 +54,7 @@
                         <page string="Lineas">
                             <field name="line_ids" readonly="1">
                                 <tree decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
-                                    <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" invisible="status not in ['failed', 'skipped']"/>
+                                    <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
                                     <field name="sku"/>
                                     <field name="retailer"/>
                                     <field name="status" widget="badge"/>
@@ -86,7 +86,7 @@
                 <header>
                     <button name="action_sync_runs" string="Sincronizar runs" type="object" class="btn-primary"/>
                 </header>
-                <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" invisible="status not in ['failed', 'skipped']"/>
+                <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
                 <field name="sku"/>
                 <field name="retailer"/>
                 <field name="status" widget="badge"/>
@@ -107,7 +107,7 @@
         <field name="arch" type="xml">
             <form string="Run de publicacion" create="false">
                 <header>
-                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-primary" invisible="status not in ['failed', 'skipped']"/>
+                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-primary" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
                 </header>
                 <sheet>
                     <div class="oe_title">

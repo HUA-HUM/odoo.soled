@@ -144,8 +144,8 @@
                     <div class="o_retailer_workspace">
                         <section class="o_retailer_hero">
                             <div class="o_retailer_hero_logo">
-                                <img src="/retailer_marketplace_panel/static/src/img/oncity_logo.png" alt="OnCity" invisible="code != 'oncity'"/>
-                                <img src="/retailer_marketplace_panel/static/src/img/logofravega.png" alt="Fravega" invisible="code != 'fravega'"/>
+                                <img src="/retailer_marketplace_panel/static/src/img/oncity_logo.png" alt="OnCity" attrs="{'invisible': [('code', '!=', 'oncity')]}"/>
+                                <img src="/retailer_marketplace_panel/static/src/img/logofravega.png" alt="Fravega" attrs="{'invisible': [('code', '!=', 'fravega')]}"/>
                             </div>
                             <div class="o_retailer_hero_content">
                                 <div class="o_retailer_eyebrow">Marketplace</div>
@@ -156,8 +156,8 @@
                                     <field name="description"/>
                                 </p>
                                 <div class="o_retailer_hero_meta">
-                                    <span class="o_retailer_status o_retailer_status_available" invisible="status != 'available'">Disponible</span>
-                                    <span class="o_retailer_status o_retailer_status_pending" invisible="status != 'pending'">Pendiente</span>
+                                    <span class="o_retailer_status o_retailer_status_available" attrs="{'invisible': [('status', '!=', 'available')]}">Disponible</span>
+                                    <span class="o_retailer_status o_retailer_status_pending" attrs="{'invisible': [('status', '!=', 'pending')]}">Pendiente</span>
                                     <span>Operación marketplace</span>
                                 </div>
                             </div>

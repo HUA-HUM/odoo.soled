@@ -30,7 +30,8 @@
         <field name="arch" type="xml">
             <form string="Orden marketplace" create="false">
                 <header>
-                    <button name="action_fetch_fravega_detail" string="Traer detalle Fravega" type="object" class="btn-primary" invisible="marketplace != 'fravega'"/>
+                    <field name="marketplace" invisible="1"/>
+                    <button name="action_fetch_fravega_detail" string="Traer detalle Fravega" type="object" class="btn-primary" attrs="{'invisible': [('marketplace', '!=', 'fravega')]}"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
