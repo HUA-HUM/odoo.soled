@@ -1093,3 +1093,112 @@
     min-width: 160px;
     text-align: center;
 }
+
+/* Job tracking views */
+
+.o_form_view .o_publisher_job_sheet {
+    background: #ffffff;
+    border: 0;
+    box-shadow: none;
+    max-width: 1320px;
+    padding: 24px 28px 32px;
+}
+
+.o_publisher_job_form .oe_title h1,
+.o_publisher_run_form .oe_title h1 {
+    color: var(--publisher-text);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 18px;
+}
+
+.o_publisher_job_summary {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(220px, 1.8fr) repeat(6, minmax(120px, 1fr));
+    margin: 18px 0 26px;
+}
+
+.o_publisher_job_summary_card {
+    background: #ffffff;
+    border: 1px solid var(--publisher-border);
+    border-radius: var(--publisher-radius-md);
+    box-shadow: var(--publisher-shadow-sm);
+    min-height: 112px;
+    padding: 16px;
+}
+
+.o_publisher_job_summary_card span {
+    color: var(--publisher-text-muted);
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.o_publisher_job_summary_card strong {
+    color: var(--publisher-text);
+    display: block;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.o_publisher_job_summary_card .o_field_progressbar {
+    margin-top: 16px;
+}
+
+.o_publisher_job_progress {
+    background: linear-gradient(135deg, var(--publisher-ink) 0%, var(--publisher-ink-soft) 100%);
+    color: #ffffff;
+}
+
+.o_publisher_job_progress span,
+.o_publisher_job_progress strong {
+    color: #ffffff;
+}
+
+.o_publisher_job_done {
+    border-top: 4px solid #22c55e;
+}
+
+.o_publisher_job_skipped {
+    border-top: 4px solid var(--publisher-peach);
+}
+
+.o_publisher_job_error {
+    border-top: 4px solid var(--publisher-coral);
+}
+
+.o_publisher_job_form .o_notebook,
+.o_publisher_run_form .o_notebook {
+    margin-top: 22px;
+}
+
+.o_publisher_job_form textarea,
+.o_publisher_run_form textarea {
+    background: #101820;
+    border-radius: var(--publisher-radius-sm);
+    color: #edf2f7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    min-height: 260px;
+}
+
+@media (max-width: 1100px) {
+    .o_publisher_job_summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .o_form_view .o_publisher_job_sheet {
+        padding: 18px 14px 24px;
+    }
+
+    .o_publisher_job_summary {
+        grid-template-columns: 1fr;
+    }
+}

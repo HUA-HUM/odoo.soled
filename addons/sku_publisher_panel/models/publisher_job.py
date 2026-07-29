@@ -27,10 +27,20 @@ class PublisherJob(models.Model):
         index=True,
     )
     retailer_targets = fields.Char(string="Retailers")
+    source = fields.Char(default="mercadolibre")
     progress = fields.Integer(default=0)
     total_items = fields.Integer()
+    queued_items = fields.Integer()
+    processing_items = fields.Integer()
     done_items = fields.Integer()
     error_items = fields.Integer()
+    skipped_items = fields.Integer()
+    requested_by_odoo_user_id = fields.Char(string="Usuario Odoo backend")
+    requested_by_name = fields.Char(string="Solicitado por")
+    requested_by_email = fields.Char(string="Email solicitante")
+    idempotency_key = fields.Char(string="Idempotency key")
+    started_at = fields.Datetime()
+    finished_at = fields.Datetime()
     backend_job_id = fields.Char(string="Job backend")
     message = fields.Text()
     line_ids = fields.One2many("publisher.job.line", "job_id", string="Lineas")
@@ -106,6 +116,22 @@ class PublisherJob(models.Model):
         return default
 
     @api.model
+    def _api_datetime(self, value):
+        if not value:
+            return False
+        date_value = str(value).replace("T", " ").replace("Z", "")
+        date_value = date_value.split(".")[0]
+        if "+" in date_value:
+            date_value = date_value.split("+")[0].strip()
+        return date_value
+
+    @api.model
+    def _json_dump(self, value):
+        if value in (None, False, ""):
+            return False
+        return json.dumps(value, ensure_ascii=False, indent=2)
+
+    @api.model
     def create_from_candidates(self, candidates, retailers):
         candidates = candidates.filtered(lambda item: item.ready_to_publish and item.sku)
         if not candidates:
@@ -150,6 +176,8 @@ class PublisherJob(models.Model):
             raise UserError(_("products.api no devolvio jobId."))
 
         total_items = int(self._payload_value(payload, "totalItems", "total_items", default=0) or 0)
+        queued_items = int(self._payload_value(payload, "queuedItems", "queued_items", default=0) or 0)
+        processing_items = int(self._payload_value(payload, "processingItems", "processing_items", default=0) or 0)
         done_items = int(self._payload_value(payload, "doneItems", "done_items", default=0) or 0)
         error_items = int(self._payload_value(payload, "errorItems", "error_items", default=0) or 0)
         skipped_items = int(self._payload_value(payload, "skippedItems", "skipped_items", default=0) or 0)
@@ -162,12 +190,22 @@ class PublisherJob(models.Model):
         values = {
             "name": _("Publicacion %(job)s") % {"job": backend_job_id},
             "backend_job_id": backend_job_id,
+            "source": payload.get("source") or "mercadolibre",
             "status": payload.get("status") or "queued",
             "retailer_targets": ", ".join(marketplaces),
             "progress": int(progress or 0),
             "total_items": total_items,
+            "queued_items": queued_items,
+            "processing_items": processing_items,
             "done_items": done_items,
             "error_items": error_items,
+            "skipped_items": skipped_items,
+            "requested_by_odoo_user_id": self._payload_value(payload, "requestedByOdooUserId", "requested_by_odoo_user_id"),
+            "requested_by_name": self._payload_value(payload, "requestedByName", "requested_by_name"),
+            "requested_by_email": self._payload_value(payload, "requestedByEmail", "requested_by_email"),
+            "idempotency_key": self._payload_value(payload, "idempotencyKey", "idempotency_key"),
+            "started_at": self._api_datetime(self._payload_value(payload, "startedAt", "started_at")),
+            "finished_at": self._api_datetime(self._payload_value(payload, "finishedAt", "finished_at")),
             "raw_payload_json": json.dumps(payload, ensure_ascii=False, indent=2),
         }
         job = self.search([("backend_job_id", "=", backend_job_id)], limit=1)
@@ -194,6 +232,18 @@ class PublisherJob(models.Model):
                 "message": item.get("message"),
                 "run_id": run_id,
                 "backend_reference": run_id,
+                "attempts": int(item.get("attempts") or 0),
+                "max_attempts": int(item.get("max_attempts") or item.get("maxAttempts") or 0),
+                "error_message": item.get("error_message") or item.get("errorMessage"),
+                "error_code": item.get("error_code") or item.get("errorCode"),
+                "marketplace_publication_id": item.get("marketplace_publication_id"),
+                "external_product_id": item.get("external_product_id"),
+                "started_at": self._api_datetime(item.get("started_at") or item.get("startedAt")),
+                "finished_at": self._api_datetime(item.get("finished_at") or item.get("finishedAt")),
+                "source_product_snapshot_json": self._json_dump(item.get("source_product_snapshot")),
+                "payload_snapshot_json": self._json_dump(item.get("payload_snapshot")),
+                "response_snapshot_json": self._json_dump(item.get("response_snapshot")),
+                "raw_payload_json": self._json_dump(item),
             }
             if line:
                 line.write(line_values)
@@ -206,13 +256,32 @@ class PublisherJob(models.Model):
         if not self.backend_job_id:
             raise UserError(_("Este proceso todavia no tiene jobId backend."))
         payload = self._api_request("GET", "/publisher/jobs/%s" % self.backend_job_id)
-        self._upsert_from_payload(payload)
+        job = self._upsert_from_payload(payload)
+        job.action_refresh_run_details()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Publicador"),
-                "message": _("Progreso actualizado."),
+                "message": _("Progreso y runs actualizados."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_refresh_run_details(self):
+        synced_count = 0
+        for job in self:
+            for line in job.line_ids.filtered("run_id"):
+                payload = self._internal_api_request("GET", "/internal/publisher/runs/%s" % line.run_id)
+                if self.env["publisher.job.line"]._upsert_from_run_payload(payload):
+                    synced_count += 1
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Publicador"),
+                "message": _("Detalle de runs actualizado: %s") % synced_count,
                 "type": "success",
                 "sticky": False,
             },
@@ -220,12 +289,18 @@ class PublisherJob(models.Model):
 
     @api.model
     def action_sync_recent_jobs(self):
-        payload = self._api_request("GET", "/publisher/jobs", params={"status": "queued", "limit": 50, "offset": 0})
+        payload = self._api_request("GET", "/publisher/jobs", params={"limit": 100, "offset": 0})
         jobs = payload.get("items") or payload.get("jobs") or payload.get("data") or []
         synced_count = 0
         for job_payload in jobs:
             if self._payload_value(job_payload, "jobId", "job_id"):
-                self._upsert_from_payload(job_payload)
+                job = self._upsert_from_payload(job_payload)
+                if job.status in ("queued", "processing", "completed_with_errors", "failed", "completed"):
+                    try:
+                        refreshed = self._api_request("GET", "/publisher/jobs/%s" % job.backend_job_id)
+                        self._upsert_from_payload(refreshed)
+                    except UserError:
+                        pass
                 synced_count += 1
         return {
             "type": "ir.actions.client",
@@ -280,13 +355,20 @@ class PublisherJobLine(models.Model):
     external_product_id = fields.Char()
     started_at = fields.Datetime()
     finished_at = fields.Datetime()
+    source_product_snapshot_json = fields.Text(string="Producto origen")
+    payload_snapshot_json = fields.Text(string="Payload marketplace")
+    response_snapshot_json = fields.Text(string="Respuesta marketplace")
     raw_payload_json = fields.Text(string="Payload API")
 
     @api.model
     def _api_datetime(self, value):
         if not value:
             return False
-        return str(value).replace("T", " ").replace("Z", "").split(".")[0]
+        date_value = str(value).replace("T", " ").replace("Z", "")
+        date_value = date_value.split(".")[0]
+        if "+" in date_value:
+            date_value = date_value.split("+")[0].strip()
+        return date_value
 
     @api.model
     def _upsert_from_run_payload(self, payload):
@@ -305,6 +387,8 @@ class PublisherJobLine(models.Model):
                     "raw_payload_json": json.dumps({"job_id": backend_job_id}, ensure_ascii=False, indent=2),
                 }
             )
+        if not job:
+            return False
 
         values = {
             "job_id": job.id,
@@ -322,6 +406,9 @@ class PublisherJobLine(models.Model):
             "external_product_id": payload.get("external_product_id"),
             "started_at": self._api_datetime(payload.get("started_at")),
             "finished_at": self._api_datetime(payload.get("finished_at")),
+            "source_product_snapshot_json": self.env["publisher.job"]._json_dump(payload.get("source_product_snapshot")),
+            "payload_snapshot_json": self.env["publisher.job"]._json_dump(payload.get("payload_snapshot")),
+            "response_snapshot_json": self.env["publisher.job"]._json_dump(payload.get("response_snapshot")),
             "raw_payload_json": json.dumps(payload, ensure_ascii=False, indent=2),
         }
         candidate = self.env["publisher.sku"].search([("sku", "=", values["sku"])], limit=1)
@@ -337,12 +424,20 @@ class PublisherJobLine(models.Model):
 
     @api.model
     def action_sync_runs(self):
-        payload = self.env["publisher.job"]._internal_api_request(
-            "GET",
-            "/internal/publisher/runs",
-            params={"status": "queued", "limit": 100},
-        )
-        runs = payload.get("items") or payload.get("runs") or payload.get("data") or []
+        runs = []
+        seen_run_ids = set()
+        statuses = ["queued", "processing", "retrying", "failed", "skipped", "completed", "cancelled"]
+        for status in statuses:
+            payload = self.env["publisher.job"]._internal_api_request(
+                "GET",
+                "/internal/publisher/runs",
+                params={"status": status, "limit": 100},
+            )
+            for run_payload in payload.get("items") or payload.get("runs") or payload.get("data") or []:
+                run_id = run_payload.get("run_id") or run_payload.get("runId")
+                if run_id and run_id not in seen_run_ids:
+                    seen_run_ids.add(run_id)
+                    runs.append(run_payload)
         synced_count = 0
         for run_payload in runs:
             if self._upsert_from_run_payload(run_payload):
@@ -353,6 +448,23 @@ class PublisherJobLine(models.Model):
             "params": {
                 "title": _("Publicador"),
                 "message": _("Runs sincronizados: %s") % synced_count,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_refresh_run_detail(self):
+        self.ensure_one()
+        if not self.run_id:
+            raise UserError(_("Este run no tiene runId backend."))
+        payload = self.env["publisher.job"]._internal_api_request("GET", "/internal/publisher/runs/%s" % self.run_id)
+        self._upsert_from_run_payload(payload)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Publicador"),
+                "message": _("Detalle del run actualizado."),
                 "type": "success",
                 "sticky": False,
             },

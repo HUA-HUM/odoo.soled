@@ -4,19 +4,24 @@
         <field name="name">publisher.job.tree</field>
         <field name="model">publisher.job</field>
         <field name="arch" type="xml">
-            <tree string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status == 'processing'">
+            <tree string="Procesos de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status in ('failed', 'completed_with_errors')" decoration-info="status in ('queued', 'processing')" decoration-muted="status == 'cancelled'">
                 <header>
-                    <button name="action_sync_recent_jobs" string="Sincronizar procesos" type="object" class="btn-primary"/>
+                    <button name="action_sync_recent_jobs" string="Actualizar jobs" type="object" class="btn-primary"/>
                 </header>
-                <field name="name"/>
+                <button name="action_refresh_progress" string="Actualizar" type="object" icon="fa-refresh"/>
+                <field name="backend_job_id" string="Job"/>
                 <field name="status" widget="badge"/>
-                <field name="retailer_targets"/>
                 <field name="progress" widget="progressbar"/>
-                <field name="total_items"/>
-                <field name="done_items"/>
-                <field name="error_items"/>
-                <field name="backend_job_id"/>
-                <field name="create_date"/>
+                <field name="retailer_targets" string="Marketplaces"/>
+                <field name="total_items" string="Total"/>
+                <field name="queued_items" string="Cola"/>
+                <field name="processing_items" string="Proceso"/>
+                <field name="done_items" string="OK"/>
+                <field name="skipped_items" string="Omitidos"/>
+                <field name="error_items" string="Errores"/>
+                <field name="requested_by_name"/>
+                <field name="create_date" string="Creado"/>
+                <field name="finished_at" string="Finalizado"/>
             </tree>
         </field>
     </record>
@@ -25,45 +30,93 @@
         <field name="name">publisher.job.form</field>
         <field name="model">publisher.job</field>
         <field name="arch" type="xml">
-            <form string="Proceso de publicacion" create="false">
+            <form string="Proceso de publicacion" create="false" class="o_publisher_job_form">
                 <header>
-                    <button name="action_refresh_progress" string="Actualizar progreso" type="object" class="btn-primary"/>
+                    <button name="action_refresh_progress" string="Actualizar job y runs" type="object" class="btn-primary"/>
+                    <button name="action_refresh_run_details" string="Actualizar detalle runs" type="object" class="btn-secondary"/>
+                    <field name="status" widget="statusbar" statusbar_visible="queued,processing,completed,completed_with_errors,failed,cancelled"/>
                 </header>
-                <sheet>
+                <sheet class="o_publisher_job_sheet">
                     <div class="oe_title">
-                        <label for="name"/>
+                        <label for="backend_job_id" string="Job de publicacion"/>
                         <h1>
-                            <field name="name" readonly="1"/>
+                            <field name="backend_job_id" readonly="1"/>
                         </h1>
                     </div>
+
+                    <div class="o_publisher_job_summary">
+                        <div class="o_publisher_job_summary_card o_publisher_job_progress">
+                            <span>Progreso</span>
+                            <strong><field name="progress" readonly="1"/>%</strong>
+                            <field name="progress" readonly="1" widget="progressbar" nolabel="1"/>
+                        </div>
+                        <div class="o_publisher_job_summary_card">
+                            <span>Total</span>
+                            <strong><field name="total_items" readonly="1"/></strong>
+                        </div>
+                        <div class="o_publisher_job_summary_card">
+                            <span>En cola</span>
+                            <strong><field name="queued_items" readonly="1"/></strong>
+                        </div>
+                        <div class="o_publisher_job_summary_card">
+                            <span>Procesando</span>
+                            <strong><field name="processing_items" readonly="1"/></strong>
+                        </div>
+                        <div class="o_publisher_job_summary_card o_publisher_job_done">
+                            <span>Completados</span>
+                            <strong><field name="done_items" readonly="1"/></strong>
+                        </div>
+                        <div class="o_publisher_job_summary_card o_publisher_job_skipped">
+                            <span>Omitidos</span>
+                            <strong><field name="skipped_items" readonly="1"/></strong>
+                        </div>
+                        <div class="o_publisher_job_summary_card o_publisher_job_error">
+                            <span>Errores</span>
+                            <strong><field name="error_items" readonly="1"/></strong>
+                        </div>
+                    </div>
+
                     <group>
-                        <group>
-                            <field name="status" readonly="1"/>
+                        <group string="Solicitud">
+                            <field name="name" readonly="1"/>
+                            <field name="source" readonly="1"/>
                             <field name="retailer_targets" readonly="1"/>
-                            <field name="progress" readonly="1" widget="progressbar"/>
-                            <field name="backend_job_id" readonly="1"/>
+                            <field name="requested_by_name" readonly="1"/>
+                            <field name="requested_by_email" readonly="1"/>
                         </group>
-                        <group>
-                            <field name="total_items" readonly="1"/>
-                            <field name="done_items" readonly="1"/>
-                            <field name="error_items" readonly="1"/>
-                            <field name="message" readonly="1"/>
+                        <group string="Backend">
+                            <field name="idempotency_key" readonly="1"/>
+                            <field name="requested_by_odoo_user_id" readonly="1"/>
+                            <field name="started_at" readonly="1"/>
+                            <field name="finished_at" readonly="1"/>
                         </group>
                     </group>
+                    <group string="Mensaje">
+                        <field name="message" readonly="1" nolabel="1"/>
+                    </group>
+
                     <notebook>
-                        <page string="Lineas">
+                        <page string="Runs">
                             <field name="line_ids" readonly="1">
                                 <tree decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
+                                    <button name="action_refresh_run_detail" string="Actualizar" type="object" icon="fa-refresh"/>
                                     <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
                                     <field name="sku"/>
                                     <field name="retailer"/>
                                     <field name="status" widget="badge"/>
-                                    <field name="run_id"/>
+                                    <field name="attempts"/>
+                                    <field name="max_attempts"/>
                                     <field name="message"/>
+                                    <field name="error_message"/>
+                                    <field name="marketplace_publication_id"/>
+                                    <field name="external_product_id"/>
+                                    <field name="run_id"/>
+                                    <field name="started_at"/>
+                                    <field name="finished_at"/>
                                 </tree>
                             </field>
                         </page>
-                        <page string="Payload API">
+                        <page string="Payload job">
                             <field name="raw_payload_json" readonly="1" nolabel="1"/>
                         </page>
                     </notebook>
@@ -84,18 +137,21 @@
         <field name="arch" type="xml">
             <tree string="Runs de publicacion" create="false" decoration-success="status == 'completed'" decoration-danger="status == 'failed'" decoration-warning="status == 'retrying'" decoration-muted="status in ('skipped', 'cancelled')" decoration-info="status == 'processing'">
                 <header>
-                    <button name="action_sync_runs" string="Sincronizar runs" type="object" class="btn-primary"/>
+                    <button name="action_sync_runs" string="Actualizar runs" type="object" class="btn-primary"/>
                 </header>
+                <button name="action_refresh_run_detail" string="Actualizar" type="object" icon="fa-refresh"/>
                 <button name="action_retry_run" string="Reintentar" type="object" icon="fa-repeat" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
                 <field name="sku"/>
                 <field name="retailer"/>
                 <field name="status" widget="badge"/>
                 <field name="attempts"/>
                 <field name="max_attempts"/>
-                <field name="run_id"/>
-                <field name="job_id"/>
                 <field name="message"/>
                 <field name="error_message"/>
+                <field name="marketplace_publication_id"/>
+                <field name="external_product_id"/>
+                <field name="run_id"/>
+                <field name="job_id"/>
                 <field name="create_date"/>
             </tree>
         </field>
@@ -105,11 +161,13 @@
         <field name="name">publisher.job.line.form</field>
         <field name="model">publisher.job.line</field>
         <field name="arch" type="xml">
-            <form string="Run de publicacion" create="false">
+            <form string="Run de publicacion" create="false" class="o_publisher_run_form">
                 <header>
-                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-primary" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
+                    <button name="action_refresh_run_detail" string="Actualizar detalle" type="object" class="btn-primary"/>
+                    <button name="action_retry_run" string="Reintentar" type="object" class="btn-secondary" attrs="{'invisible': [('status', 'not in', ['failed', 'skipped'])]}"/>
+                    <field name="status" widget="statusbar" statusbar_visible="queued,processing,retrying,completed,failed,skipped,cancelled"/>
                 </header>
-                <sheet>
+                <sheet class="o_publisher_job_sheet">
                     <div class="oe_title">
                         <label for="sku"/>
                         <h1>
@@ -117,26 +175,37 @@
                         </h1>
                     </div>
                     <group>
-                        <group>
+                        <group string="Publicacion">
                             <field name="retailer" readonly="1"/>
-                            <field name="status" readonly="1"/>
+                            <field name="job_id" readonly="1"/>
+                            <field name="run_id" readonly="1"/>
+                            <field name="backend_reference" readonly="1"/>
+                        </group>
+                        <group string="Ejecucion">
                             <field name="attempts" readonly="1"/>
                             <field name="max_attempts" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="run_id" readonly="1"/>
-                            <field name="job_id" readonly="1"/>
-                            <field name="marketplace_publication_id" readonly="1"/>
-                            <field name="external_product_id" readonly="1"/>
+                            <field name="started_at" readonly="1"/>
+                            <field name="finished_at" readonly="1"/>
                         </group>
                     </group>
-                    <group>
+                    <group string="Resultado">
                         <field name="message" readonly="1"/>
                         <field name="error_message" readonly="1"/>
                         <field name="error_code" readonly="1"/>
+                        <field name="marketplace_publication_id" readonly="1"/>
+                        <field name="external_product_id" readonly="1"/>
                     </group>
                     <notebook>
-                        <page string="Payload API">
+                        <page string="Producto origen">
+                            <field name="source_product_snapshot_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload enviado">
+                            <field name="payload_snapshot_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Respuesta marketplace">
+                            <field name="response_snapshot_json" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Payload completo">
                             <field name="raw_payload_json" readonly="1" nolabel="1"/>
                         </page>
                     </notebook>
@@ -155,11 +224,13 @@
                 <field name="job_id"/>
                 <filter name="queued" string="En cola" domain="[('status', '=', 'queued')]"/>
                 <filter name="processing" string="Procesando" domain="[('status', 'in', ['processing', 'retrying'])]"/>
+                <filter name="skipped" string="Omitidos" domain="[('status', '=', 'skipped')]"/>
                 <filter name="errors" string="Con error" domain="[('status', '=', 'failed')]"/>
                 <filter name="completed" string="Completados" domain="[('status', '=', 'completed')]"/>
                 <group expand="0" string="Agrupar por">
                     <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
                     <filter name="group_retailer" string="Marketplace" context="{'group_by': 'retailer'}"/>
+                    <filter name="group_job" string="Job" context="{'group_by': 'job_id'}"/>
                 </group>
             </search>
         </field>
@@ -179,11 +250,14 @@
             <search string="Buscar procesos">
                 <field name="name"/>
                 <field name="backend_job_id"/>
+                <field name="requested_by_name"/>
                 <filter name="active" string="En proceso" domain="[('status', 'in', ['queued', 'processing'])]"/>
                 <filter name="errors" string="Con errores" domain="[('status', 'in', ['failed', 'completed_with_errors'])]"/>
+                <filter name="skipped" string="Con omitidos" domain="[('skipped_items', '&gt;', 0)]"/>
                 <filter name="completed" string="Completados" domain="[('status', '=', 'completed')]"/>
                 <group expand="0" string="Agrupar por">
                     <filter name="group_status" string="Estado" context="{'group_by': 'status'}"/>
+                    <filter name="group_requester" string="Solicitante" context="{'group_by': 'requested_by_name'}"/>
                 </group>
             </search>
         </field>
