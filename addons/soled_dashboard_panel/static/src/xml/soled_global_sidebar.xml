@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="soled_dashboard_panel.GlobalSidebar" owl="1">
+        <aside class="o_soled_global_sidebar" aria-label="Accesos rápidos a módulos">
+            <header class="o_soled_sidebar_brand">
+                <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
+                <div>
+                    <strong>SOLED</strong>
+                    <span>Panel operativo</span>
+                </div>
+            </header>
+
+            <nav class="o_soled_sidebar_navigation">
+                <span class="o_soled_sidebar_section">Módulos</span>
+                <button t-foreach="operationalModules" t-as="module" t-key="module.key" type="button"
+                        t-att-title="module.label"
+                        t-attf-class="o_soled_sidebar_link #{state.activeKey === module.key ? 'is-active' : ''}"
+                        t-on-click="() => this.openModule(module)">
+                    <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{module.icon}"/></span>
+                    <span class="o_soled_sidebar_copy">
+                        <strong t-esc="module.label"/>
+                        <small t-esc="module.description"/>
+                    </span>
+                </button>
+
+                <span class="o_soled_sidebar_section o_soled_sidebar_system_title">Sistema</span>
+                <button t-foreach="systemModules" t-as="module" t-key="module.key" type="button"
+                        t-att-title="module.label"
+                        t-attf-class="o_soled_sidebar_link #{state.activeKey === module.key ? 'is-active' : ''}"
+                        t-on-click="() => this.openModule(module)">
+                    <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{module.icon}"/></span>
+                    <span class="o_soled_sidebar_copy">
+                        <strong t-esc="module.label"/>
+                        <small t-esc="module.description"/>
+                    </span>
+                </button>
+            </nav>
+
+            <footer class="o_soled_sidebar_footer">
+                <span class="o_soled_sidebar_status"/>
+                <span>Servicios activos</span>
+            </footer>
+        </aside>
+    </t>
+</templates>

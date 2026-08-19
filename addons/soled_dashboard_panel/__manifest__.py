@@ -1,7 +1,7 @@
 {
     "name": "SOLED Dashboard Panel",
     "summary": "Vista inicial de modulos operativos SOLED",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Sales",
     "author": "SOLED",
     "license": "LGPL-3",
@@ -23,6 +23,8 @@
     "assets": {
         "web.assets_backend": [
             "soled_dashboard_panel/static/src/scss/soled_dashboard_panel.scss",
+            "soled_dashboard_panel/static/src/js/soled_global_sidebar.js",
+            "soled_dashboard_panel/static/src/xml/soled_global_sidebar.xml",
         ],
     },
     "application": True,
