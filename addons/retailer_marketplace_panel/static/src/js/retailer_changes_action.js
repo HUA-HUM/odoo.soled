@@ -114,7 +114,7 @@ class RetailerChangesAction extends Component {
             res_model: MODEL,
             res_id: item.id,
             views: [[false, "form"]],
-            target: "current",
+            target: "new",
         });
     }
 }

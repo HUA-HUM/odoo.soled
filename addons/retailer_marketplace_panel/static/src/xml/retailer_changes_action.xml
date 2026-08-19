@@ -61,7 +61,7 @@
                         <span t-attf-class="o_retailer_change_status #{this.statusClass(item.status)}" t-esc="item.status || '—'"/>
                     </div>
                     <div class="o_retailer_change_badges">
-                        <span class="o_retailer_change_marketplace" t-esc="item.marketplace || '—'"/>
+                        <span t-attf-class="o_retailer_change_marketplace o_retailer_change_marketplace_#{item.marketplace || 'unknown'}" t-esc="item.marketplace || '—'"/>
                         <span t-if="item.change_type" class="o_retailer_change_type" t-esc="item.change_type"/>
                     </div>
                     <div t-if="item.summary" class="o_retailer_change_summary" t-esc="item.summary"/>

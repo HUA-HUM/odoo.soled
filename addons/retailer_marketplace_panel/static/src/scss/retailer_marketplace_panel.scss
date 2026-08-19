@@ -1081,10 +1081,71 @@
     text-transform: uppercase;
 }
 
+.o_retailer_change_marketplace_oncity {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: transparent;
+    color: var(--retailer-indigo);
+}
+
+.o_retailer_change_marketplace_fravega {
+    background: rgba(255, 179, 133, 0.22);
+    border-color: transparent;
+    color: #a75a1a;
+}
+
 .o_retailer_change_summary {
+    background: var(--retailer-surface);
+    border-radius: var(--retailer-radius-sm);
     color: var(--retailer-text);
     font-size: 13px;
+    font-weight: 600;
     line-height: 1.4;
+    padding: 8px 10px;
+}
+
+/* ---- Modal de detalle (form view) ---- */
+
+.o_retailer_change_detail .o_retailer_change_detail_header {
+    align-items: center;
+    border-bottom: 1px solid var(--retailer-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+}
+
+.o_retailer_change_detail .o_retailer_change_detail_header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.o_retailer_change_detail .o_retailer_change_detail_badges {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.o_retailer_change_detail .o_retailer_change_detail_badges .badge {
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.35em 0.8em;
+}
+
+.o_retailer_change_detail .o_retailer_change_detail_summary_box {
+    background: var(--retailer-surface);
+    border: 1px solid var(--retailer-border);
+    border-radius: var(--retailer-radius-md);
+    margin-bottom: 1.25rem;
+    padding: 0.9rem 1.1rem;
+}
+
+.o_retailer_change_detail .o_retailer_change_detail_summary_text {
+    color: var(--retailer-text);
+    font-size: 1.05rem;
+    font-weight: 700;
 }
 
 .o_retailer_change_error {

@@ -17,6 +17,8 @@ class RetailerMarketplaceChange(models.Model):
     status = fields.Char(string="Estado", index=True)
     change_type = fields.Char(string="Tipo de cambio", index=True)
     summary = fields.Char(string="Resumen")
+    old_value_json = fields.Text(string="Valor anterior JSON")
+    new_value_json = fields.Text(string="Valor nuevo JSON")
     error_message = fields.Text(string="Error")
     external_created_at = fields.Datetime(string="Creado en origen")
     external_updated_at = fields.Datetime(string="Actualizado en origen")
@@ -50,6 +52,47 @@ class RetailerMarketplaceChange(models.Model):
         return str(value).replace("T", " ").replace("Z", "").split(".")[0][:19]
 
     @api.model
+    def _format_money(self, value):
+        if value is None or value == "":
+            return "—"
+        try:
+            amount = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        return "${:,.0f}".format(amount).replace(",", ".")
+
+    @api.model
+    def _format_or_dash(self, value):
+        if value is None or value == "":
+            return "—"
+        return str(value)
+
+    @api.model
+    def _build_summary(self, change_type, old_value, new_value):
+        old_value = old_value if isinstance(old_value, dict) else {}
+        new_value = new_value if isinstance(new_value, dict) else {}
+
+        if change_type == "price":
+            return "Precio: {} → {}".format(
+                self._format_money(old_value.get("price")),
+                self._format_money(new_value.get("price")),
+            )
+
+        if change_type == "stock":
+            return "Stock: {} → {}".format(
+                self._format_or_dash(old_value.get("stock")),
+                self._format_or_dash(new_value.get("stock")),
+            )
+
+        if change_type == "status":
+            return "Estado: {} → {}".format(
+                self._format_or_dash(old_value.get("status")),
+                self._format_or_dash(new_value.get("status")),
+            )
+
+        return False
+
+    @api.model
     def _fetch_page(self, limit, offset, sku=None, marketplace=None, status=None):
         params = {"limit": limit, "offset": offset}
         if sku:
@@ -75,13 +118,21 @@ class RetailerMarketplaceChange(models.Model):
     @api.model
     def _prepare_values(self, item):
         action_id = self._payload_value(item, "actionId", "action_id", "id")
+        change_type = self._payload_value(item, "changeType", "change_type", "type")
+        old_value = self._payload_value(item, "oldValue", "old_value")
+        new_value = self._payload_value(item, "newValue", "new_value")
+        summary = self._build_summary(change_type, old_value, new_value) or self._payload_value(
+            item, "summary", "message", "description", "reason"
+        )
         return {
             "action_id": str(action_id) if action_id is not None else False,
             "sku": self._payload_value(item, "sku"),
             "marketplace": self._payload_value(item, "marketplace"),
             "status": self._payload_value(item, "status"),
-            "change_type": self._payload_value(item, "changeType", "change_type", "type"),
-            "summary": self._payload_value(item, "summary", "message", "description", "reason"),
+            "change_type": change_type,
+            "summary": summary,
+            "old_value_json": json.dumps(old_value, ensure_ascii=False, indent=2) if old_value is not None else False,
+            "new_value_json": json.dumps(new_value, ensure_ascii=False, indent=2) if new_value is not None else False,
             "error_message": self._payload_value(item, "errorMessage", "error_message", "error"),
             "external_created_at": self._parse_datetime(self._payload_value(item, "createdAt", "created_at")),
             "external_updated_at": self._parse_datetime(self._payload_value(item, "updatedAt", "updated_at")),

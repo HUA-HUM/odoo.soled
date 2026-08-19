@@ -24,39 +24,54 @@
         <field name="name">retailer.marketplace.change.form</field>
         <field name="model">retailer.marketplace.change</field>
         <field name="arch" type="xml">
-            <form string="Cambio de marketplace" create="false">
+            <form string="Cambio de marketplace" create="false" class="o_retailer_change_detail">
                 <header>
                     <button name="action_fetch_detail" string="Actualizar detalle" type="object" class="btn-primary"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <label for="sku"/>
+                    <div class="o_retailer_change_detail_header">
                         <h1>
-                            <field name="sku" readonly="1"/>
+                            <field name="sku" readonly="1" class="o_retailer_change_detail_sku"/>
                         </h1>
+                        <div class="o_retailer_change_detail_badges">
+                            <field name="marketplace" readonly="1" widget="badge"
+                                   decoration-info="marketplace == 'oncity'"
+                                   decoration-warning="marketplace == 'fravega'"/>
+                            <field name="status" readonly="1" widget="badge"
+                                   decoration-success="status == 'completed'"
+                                   decoration-danger="status == 'failed'"
+                                   decoration-info="status in ('queued', 'processing')"/>
+                        </div>
                     </div>
+
+                    <div class="o_retailer_change_detail_summary_box">
+                        <field name="summary" readonly="1" nolabel="1" class="o_retailer_change_detail_summary_text"/>
+                    </div>
+
                     <group>
                         <group string="Identificación">
                             <field name="action_id" readonly="1"/>
-                            <field name="marketplace" readonly="1"/>
-                            <field name="change_type" readonly="1"/>
+                            <field name="change_type" readonly="1" string="Tipo"/>
                         </group>
-                        <group string="Estado">
-                            <field name="status" readonly="1"/>
-                            <field name="summary" readonly="1"/>
-                            <field name="external_created_at" readonly="1"/>
-                            <field name="external_updated_at" readonly="1"/>
+                        <group string="Fechas">
+                            <field name="external_created_at" readonly="1" string="Creado"/>
+                            <field name="external_updated_at" readonly="1" string="Actualizado"/>
+                            <field name="synced_at" readonly="1" string="Sincronizado"/>
                         </group>
                     </group>
-                    <group>
-                        <field name="error_message" readonly="1"/>
+                    <group string="Error" class="o_retailer_change_detail_error_group">
+                        <field name="error_message" readonly="1" nolabel="1"/>
                     </group>
                     <notebook>
-                        <page string="Payload listado">
-                            <field name="payload_json" readonly="1" nolabel="1"/>
-                        </page>
-                        <page string="Payload detalle">
-                            <field name="detail_json" readonly="1" nolabel="1"/>
+                        <page string="Detalle técnico">
+                            <group>
+                                <field name="old_value_json" readonly="1" string="Valor anterior"/>
+                                <field name="new_value_json" readonly="1" string="Valor nuevo"/>
+                            </group>
+                            <group string="Payload crudo">
+                                <field name="payload_json" readonly="1" nolabel="1"/>
+                                <field name="detail_json" readonly="1" nolabel="1"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
