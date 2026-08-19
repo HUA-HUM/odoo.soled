@@ -1445,3 +1445,305 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Actualizador: visual sobrio, minimalista y orientado a operaciones. */
+.o_retailer_changes_page {
+    --changes-accent: #111827;
+    --changes-border: #e5e7eb;
+    --changes-muted: #6b7280;
+    --changes-surface: #ffffff;
+    background: #f8fafc;
+    padding: 28px clamp(18px, 3vw, 42px) 40px;
+}
+
+.o_retailer_changes_header {
+    align-items: flex-end;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--changes-accent);
+    margin: 0 auto 24px;
+    max-width: 1440px;
+    overflow: visible;
+    padding: 0;
+}
+
+.o_retailer_changes_header::after {
+    display: none;
+}
+
+.o_retailer_changes_eyebrow {
+    color: #64748b;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    margin-bottom: 7px;
+}
+
+.o_retailer_changes_header h1 {
+    color: var(--changes-accent);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+}
+
+.o_retailer_changes_header p {
+    color: var(--changes-muted);
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.o_retailer_changes_kpis {
+    gap: 8px;
+}
+
+.o_retailer_changes_kpi {
+    background: var(--changes-surface);
+    border: 1px solid var(--changes-border);
+    border-radius: 10px;
+    box-shadow: none;
+    min-width: 108px;
+    padding: 10px 13px;
+}
+
+.o_retailer_changes_kpi strong,
+.o_retailer_changes_kpi.is-success strong,
+.o_retailer_changes_kpi.is-danger strong {
+    color: var(--changes-accent);
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+}
+
+.o_retailer_changes_kpi span {
+    color: #94a3b8;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+}
+
+.o_retailer_changes_kpi.is-success {
+    border-bottom-color: #99f6e4;
+}
+
+.o_retailer_changes_kpi.is-danger {
+    border-bottom-color: #fecdd3;
+}
+
+.o_retailer_changes_page .o_retailer_catalog_toolbar {
+    background: var(--changes-surface);
+    border-color: var(--changes-border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    margin: 0 auto 14px;
+    max-width: 1440px;
+    padding: 14px 16px;
+    top: 10px;
+}
+
+.o_retailer_changes_page .o_retailer_catalog_search input,
+.o_retailer_changes_page .o_retailer_catalog_search select {
+    background-color: #ffffff;
+    border-color: #dfe3e8;
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 400;
+    min-height: 36px;
+}
+
+.o_retailer_changes_page .o_retailer_catalog_search input:focus,
+.o_retailer_changes_page .o_retailer_catalog_search select:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14);
+    outline: 0;
+}
+
+.o_retailer_changes_page .o_retailer_filter_field > span {
+    color: #94a3b8;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.o_retailer_changes_page .btn {
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 36px;
+}
+
+.o_retailer_changes_page .btn-primary,
+.o_retailer_changes_page .o_retailer_catalog_refresh_button {
+    background: var(--changes-accent);
+    border: 1px solid var(--changes-accent);
+    color: #ffffff;
+}
+
+.o_retailer_changes_page .btn-primary:hover,
+.o_retailer_changes_page .o_retailer_catalog_refresh_button:hover {
+    background: #273449;
+    filter: none;
+    transform: none;
+}
+
+.o_retailer_changes_page .btn-secondary,
+.o_retailer_changes_page .o_retailer_catalog_secondary_button {
+    background: #ffffff;
+    border-color: #dfe3e8;
+    color: #334155;
+}
+
+.o_retailer_changes_page .btn-secondary:hover,
+.o_retailer_changes_page .o_retailer_catalog_secondary_button:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.o_retailer_changes_page .o_retailer_catalog_meta,
+.o_retailer_changes_page .o_retailer_change_grid,
+.o_retailer_changes_page .o_retailer_catalog_pager,
+.o_retailer_changes_page .o_retailer_catalog_empty,
+.o_retailer_changes_page .o_retailer_changes_error {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1440px;
+}
+
+.o_retailer_changes_page .o_retailer_catalog_meta {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-bottom: 12px;
+}
+
+.o_retailer_changes_page .o_retailer_change_grid {
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+}
+
+.o_retailer_changes_page .o_retailer_change_card {
+    border: 1px solid var(--changes-border);
+    border-left: 1px solid var(--changes-border);
+    border-radius: 12px;
+    box-shadow: none;
+    gap: 11px;
+    padding: 16px;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.o_retailer_changes_page .o_retailer_change_card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    transform: none;
+}
+
+.o_retailer_changes_page .o_retailer_change_top strong {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 650;
+}
+
+.o_retailer_changes_page .o_retailer_change_status {
+    border: 1px solid transparent;
+    font-size: 10px;
+    font-weight: 650;
+    padding: 4px 8px;
+}
+
+.o_retailer_changes_page .o_retailer_change_status.is-completed {
+    background: #f0fdfa;
+    border-color: #ccfbf1;
+    color: #0f766e;
+}
+
+.o_retailer_changes_page .o_retailer_change_status.is-failed {
+    background: #fff1f2;
+    border-color: #ffe4e6;
+    color: #be123c;
+}
+
+.o_retailer_changes_page .o_retailer_change_status.is-pending {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #475569;
+}
+
+.o_retailer_changes_page .o_retailer_change_marketplace,
+.o_retailer_changes_page .o_retailer_change_type,
+.o_retailer_changes_page .o_retailer_change_marketplace_oncity,
+.o_retailer_changes_page .o_retailer_change_marketplace_fravega {
+    background: #f8fafc;
+    border: 1px solid #e9edf2;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    padding: 3px 7px;
+}
+
+.o_retailer_changes_page .o_retailer_change_summary {
+    background: transparent;
+    border-left: 2px solid #e2e8f0;
+    border-radius: 0;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 0 2px 10px;
+}
+
+.o_retailer_changes_page .o_retailer_change_meta {
+    border-top: 1px solid #f1f5f9;
+    color: #94a3b8;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding-top: 10px;
+}
+
+.o_retailer_changes_page .o_retailer_change_actions {
+    padding-top: 0;
+}
+
+.o_retailer_changes_page .o_retailer_change_actions .btn {
+    background: transparent;
+    border: 0;
+    color: #475569;
+    min-height: 28px;
+    padding: 4px 0;
+    text-align: left;
+}
+
+.o_retailer_changes_page .o_retailer_change_actions .btn:hover {
+    background: transparent;
+    color: #0f172a;
+}
+
+@media (max-width: 1050px) {
+    .o_retailer_changes_header {
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 680px) {
+    .o_retailer_changes_page {
+        padding: 20px 14px 32px;
+    }
+
+    .o_retailer_changes_header {
+        padding: 0;
+    }
+
+    .o_retailer_changes_kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .o_retailer_changes_kpi {
+        align-items: flex-start;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .o_retailer_changes_page .o_retailer_change_grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
