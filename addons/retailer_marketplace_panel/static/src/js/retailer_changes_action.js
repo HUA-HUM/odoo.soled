@@ -11,7 +11,13 @@ class RetailerChangesAction extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        const today = new Intl.DateTimeFormat("en-CA", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        }).format(new Date());
         this.state = useState({
+            activeTab: "changes",
             items: [],
             limit: 24,
             offset: 0,
@@ -22,6 +28,15 @@ class RetailerChangesAction extends Component {
             loading: false,
             syncingAll: false,
             error: "",
+            analytics: null,
+            analyticsLoading: false,
+            analyticsError: "",
+            analyticsFilters: {
+                date: today,
+                marketplace: "",
+                status: "",
+                source: "",
+            },
         });
         onWillStart(() => this.loadPage());
     }
@@ -99,6 +114,98 @@ class RetailerChangesAction extends Component {
         }
         const text = String(value).replace(/\s+/g, " ").trim();
         return text.length > 90 ? `${text.slice(0, 87)}…` : text;
+    }
+
+    get analyticsSummary() {
+        return (this.state.analytics && this.state.analytics.summary) || {};
+    }
+
+    get analyticsPeriod() {
+        return (this.state.analytics && this.state.analytics.period) || {};
+    }
+
+    get maxHourlyTotal() {
+        const rows = (this.state.analytics && this.state.analytics.byHour) || [];
+        return Math.max(1, ...rows.map((row) => Number(row.total) || 0));
+    }
+
+    formatNumber(value, maximumFractionDigits = 0) {
+        return new Intl.NumberFormat("es-AR", { maximumFractionDigits }).format(Number(value) || 0);
+    }
+
+    formatPercent(value) {
+        return `${this.formatNumber(value, 2)}%`;
+    }
+
+    formatDuration(value) {
+        if (value === null || value === undefined) {
+            return "—";
+        }
+        const milliseconds = Number(value) || 0;
+        if (milliseconds < 1000) {
+            return `${this.formatNumber(milliseconds, 0)} ms`;
+        }
+        return `${this.formatNumber(milliseconds / 1000, 2)} s`;
+    }
+
+    changeTypeLabel(value) {
+        return { price: "Precio", stock: "Stock", status: "Estado" }[value] || value || "Otro";
+    }
+
+    marketplaceLabel(value) {
+        return { oncity: "OnCity", fravega: "Frávega" }[value] || value || "Sin marketplace";
+    }
+
+    hourLabel(value) {
+        return `${String(value).padStart(2, "0")}h`;
+    }
+
+    hourBarHeight(row) {
+        const total = Number(row.total) || 0;
+        return `${total ? Math.max(8, (total / this.maxHourlyTotal) * 100) : 2}%`;
+    }
+
+    completionWidth(row) {
+        const total = Number(row.total) || 0;
+        const completed = Number(row.completed) || 0;
+        return `${total ? Math.min(100, (completed / total) * 100) : 0}%`;
+    }
+
+    async selectTab(tab) {
+        this.state.activeTab = tab;
+        if (tab === "analytics" && !this.state.analytics && !this.state.analyticsLoading) {
+            await this.loadAnalytics();
+        }
+    }
+
+    async loadAnalytics() {
+        this.state.analyticsLoading = true;
+        this.state.analyticsError = "";
+        try {
+            this.state.analytics = await this.orm.call(MODEL, "get_analytics", [], {
+                date: this.state.analyticsFilters.date || false,
+                marketplace: this.state.analyticsFilters.marketplace || false,
+                status: this.state.analyticsFilters.status || false,
+                source: this.state.analyticsFilters.source || false,
+            });
+        } catch (error) {
+            this.state.analyticsError = "No pudimos cargar las métricas. Revisá la conexión o reintentá.";
+            this.notification.add(this.state.analyticsError, { type: "danger" });
+        } finally {
+            this.state.analyticsLoading = false;
+        }
+    }
+
+    async searchAnalytics(ev) {
+        ev.preventDefault();
+        await this.loadAnalytics();
+    }
+
+    async clearAnalyticsFilters() {
+        this.state.analyticsFilters.marketplace = "";
+        this.state.analyticsFilters.status = "";
+        this.state.analyticsFilters.source = "";
+        await this.loadAnalytics();
     }
 
     async loadPage(offset = this.state.offset) {

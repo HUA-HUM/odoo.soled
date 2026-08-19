@@ -116,6 +116,49 @@ class RetailerMarketplaceChange(models.Model):
             raise UserError(_("El servicio de cambios no devolvió JSON válido.")) from error
 
     @api.model
+    def get_analytics(self, date=None, marketplace=None, status=None, source=None):
+        allowed_marketplaces = {"oncity", "fravega"}
+        allowed_statuses = {"queued", "processing", "completed", "failed", "skipped", "cancelled"}
+
+        if marketplace and marketplace not in allowed_marketplaces:
+            raise UserError(_("Marketplace inválido."))
+        if status and status not in allowed_statuses:
+            raise UserError(_("Estado inválido."))
+        if date:
+            try:
+                date = fields.Date.to_string(fields.Date.to_date(date))
+            except (TypeError, ValueError) as error:
+                raise UserError(_("La fecha debe tener formato YYYY-MM-DD.")) from error
+
+        params = {}
+        if date:
+            params["date"] = date
+        if marketplace:
+            params["marketplace"] = marketplace
+        if status:
+            params["status"] = status
+        if source:
+            params["source"] = str(source).strip()[:120]
+
+        try:
+            response = requests.get(
+                "%s/analytics" % self._api_base_url(),
+                headers=self._api_headers(),
+                params=params,
+                timeout=60,
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except requests.RequestException as error:
+            raise UserError(_("Error consultando métricas: %s") % error) from error
+        except ValueError as error:
+            raise UserError(_("El servicio de métricas no devolvió JSON válido.")) from error
+
+        if not isinstance(payload, dict):
+            raise UserError(_("El servicio de métricas devolvió una respuesta inválida."))
+        return payload
+
+    @api.model
     def _prepare_values(self, item):
         action_id = self._payload_value(item, "actionId", "action_id", "id")
         change_type = self._payload_value(item, "changeType", "change_type", "type")

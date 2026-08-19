@@ -2,10 +2,11 @@
 <templates xml:space="preserve">
     <t t-name="retailer_marketplace_panel.ChangesAction" owl="1">
         <div class="o_retailer_catalog_page o_retailer_changes_page">
-            <div t-if="state.loading || state.syncingAll" class="o_retailer_catalog_loading_overlay">
+            <div t-if="state.loading || state.syncingAll || state.analyticsLoading" class="o_retailer_catalog_loading_overlay">
                 <div class="o_retailer_catalog_loading_box">
                     <span class="o_retailer_spinner"/>
                     <strong t-if="state.syncingAll">Sincronizando todos los cambios...</strong>
+                    <strong t-elif="state.analyticsLoading">Actualizando métricas...</strong>
                     <strong t-else="">Actualizando cambios...</strong>
                     <small>Estamos consultando el servicio interno, puede tardar unos segundos.</small>
                 </div>
@@ -17,114 +18,153 @@
                     <h1>Actualizador</h1>
                     <p>Monitoreá los cambios enviados a OnCity y Frávega.</p>
                 </div>
-                <div class="o_retailer_changes_kpis" aria-label="Resumen de la página actual">
-                    <div class="o_retailer_changes_kpi">
-                        <strong t-esc="state.total"/>
-                        <span>Cambios</span>
-                    </div>
-                    <div class="o_retailer_changes_kpi is-success">
-                        <strong t-esc="completedCount"/>
-                        <span>Completados</span>
-                    </div>
-                    <div class="o_retailer_changes_kpi is-danger">
-                        <strong t-esc="failedCount"/>
-                        <span>Con error</span>
-                    </div>
+                <div t-if="state.activeTab === 'changes'" class="o_retailer_changes_kpis" aria-label="Resumen de la página actual">
+                    <div class="o_retailer_changes_kpi"><strong t-esc="state.total"/><span>Cambios</span></div>
+                    <div class="o_retailer_changes_kpi is-success"><strong t-esc="completedCount"/><span>Completados</span></div>
+                    <div class="o_retailer_changes_kpi is-danger"><strong t-esc="failedCount"/><span>Con error</span></div>
+                </div>
+                <div t-elif="state.analytics" class="o_retailer_changes_period">
+                    <i class="fa fa-calendar-o"/>
+                    <span>Métricas del <strong t-esc="analyticsPeriod.date || 'día actual'"/></span>
                 </div>
             </section>
 
-            <section class="o_retailer_catalog_toolbar">
-                <form t-on-submit="searchChanges" class="o_retailer_catalog_search">
-                    <label class="o_retailer_filter_field">
-                        <span>SKU</span>
-                        <input type="search" t-model="state.sku" placeholder="Ej. ABC-123" t-att-disabled="state.loading || state.syncingAll"/>
-                    </label>
-                    <label class="o_retailer_filter_field">
-                        <span>Marketplace</span>
-                        <select t-model="state.marketplace" t-att-disabled="state.loading || state.syncingAll">
-                            <option value="">Todos los marketplaces</option>
-                            <option value="oncity">OnCity</option>
-                            <option value="fravega">Frávega</option>
-                        </select>
-                    </label>
-                    <label class="o_retailer_filter_field">
-                        <span>Estado</span>
-                        <select t-model="state.status" t-att-disabled="state.loading || state.syncingAll">
-                            <option value="">Todos los estados</option>
-                            <option value="queued">Pendiente</option>
-                            <option value="processing">Procesando</option>
-                            <option value="completed">Completado</option>
-                            <option value="failed">Con error</option>
-                        </select>
-                    </label>
-                    <div class="o_retailer_filter_actions">
-                        <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.syncingAll">
-                            <i class="fa fa-search me-1"/>Buscar
-                        </button>
-                        <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.syncingAll">Limpiar</button>
-                    </div>
-                </form>
-                <div class="o_retailer_catalog_bulk">
-                    <button type="button" class="btn o_retailer_catalog_refresh_button" t-on-click="() => this.loadPage()" t-att-disabled="state.loading || state.syncingAll">
-                        <i class="fa fa-refresh me-1"/>Actualizar
-                    </button>
-                    <button type="button" class="btn o_retailer_catalog_secondary_button" t-on-click="syncAllChanges" t-att-disabled="state.loading || state.syncingAll">
-                        <i class="fa fa-cloud-download me-1"/>Sincronizar todo
-                    </button>
-                </div>
-            </section>
+            <nav class="o_retailer_changes_tabs" aria-label="Secciones del Actualizador">
+                <button type="button" t-attf-class="o_retailer_changes_tab #{state.activeTab === 'changes' ? 'is-active' : ''}" t-on-click="() => this.selectTab('changes')">
+                    <i class="fa fa-exchange"/>Actualizaciones
+                </button>
+                <button type="button" t-attf-class="o_retailer_changes_tab #{state.activeTab === 'analytics' ? 'is-active' : ''}" t-on-click="() => this.selectTab('analytics')">
+                    <i class="fa fa-bar-chart"/>Métricas
+                </button>
+            </nav>
 
-            <section t-if="state.error" class="o_retailer_changes_error" role="alert">
-                <div><i class="fa fa-exclamation-circle"/><span t-esc="state.error"/></div>
-                <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="() => this.loadPage()">Reintentar</button>
-            </section>
+            <div t-if="state.activeTab === 'changes'" class="o_retailer_changes_content">
+                <section class="o_retailer_catalog_toolbar">
+                    <form t-on-submit="searchChanges" class="o_retailer_catalog_search">
+                        <label class="o_retailer_filter_field"><span>SKU</span><input type="search" t-model="state.sku" placeholder="Ej. ABC-123" t-att-disabled="state.loading || state.syncingAll"/></label>
+                        <label class="o_retailer_filter_field">
+                            <span>Marketplace</span>
+                            <select t-model="state.marketplace" t-att-disabled="state.loading || state.syncingAll">
+                                <option value="">Todos los marketplaces</option><option value="oncity">OnCity</option><option value="fravega">Frávega</option>
+                            </select>
+                        </label>
+                        <label class="o_retailer_filter_field">
+                            <span>Estado</span>
+                            <select t-model="state.status" t-att-disabled="state.loading || state.syncingAll">
+                                <option value="">Todos los estados</option><option value="queued">Pendiente</option><option value="processing">Procesando</option><option value="completed">Completado</option><option value="failed">Con error</option>
+                            </select>
+                        </label>
+                        <div class="o_retailer_filter_actions">
+                            <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.syncingAll"><i class="fa fa-search me-1"/>Buscar</button>
+                            <button type="button" class="btn btn-secondary" t-on-click="clearSearch" t-att-disabled="state.loading || state.syncingAll">Limpiar</button>
+                        </div>
+                    </form>
+                    <div class="o_retailer_catalog_bulk">
+                        <button type="button" class="btn o_retailer_catalog_refresh_button" t-on-click="() => this.loadPage()" t-att-disabled="state.loading || state.syncingAll"><i class="fa fa-refresh me-1"/>Actualizar</button>
+                        <button type="button" class="btn o_retailer_catalog_secondary_button" t-on-click="syncAllChanges" t-att-disabled="state.loading || state.syncingAll"><i class="fa fa-cloud-download me-1"/>Sincronizar todo</button>
+                    </div>
+                </section>
 
-            <section class="o_retailer_catalog_meta">
-                <span>Mostrando <t t-esc="state.items.length"/> de <t t-esc="state.total"/> cambios</span>
-                <span>Página <t t-esc="currentPage"/> / <t t-esc="totalPages"/></span>
-            </section>
+                <section t-if="state.error" class="o_retailer_changes_error" role="alert">
+                    <div><i class="fa fa-exclamation-circle"/><span t-esc="state.error"/></div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" t-on-click="() => this.loadPage()">Reintentar</button>
+                </section>
+                <section class="o_retailer_catalog_meta"><span>Mostrando <t t-esc="state.items.length"/> de <t t-esc="state.total"/> cambios</span><span>Página <t t-esc="currentPage"/> / <t t-esc="totalPages"/></span></section>
+                <section t-if="state.loading &amp;&amp; !state.items.length" class="o_retailer_catalog_empty"><span class="o_retailer_spinner"/><strong>Cargando cambios...</strong></section>
+                <section t-elif="!state.items.length &amp;&amp; !state.error" class="o_retailer_catalog_empty"><i class="fa fa-inbox o_retailer_empty_icon"/><strong>No encontramos cambios.</strong><small>Probá limpiar los filtros o sincronizar todo.</small></section>
 
-            <section t-if="state.loading &amp;&amp; !state.items.length" class="o_retailer_catalog_empty">
-                <span class="o_retailer_spinner"/><strong>Cargando cambios...</strong>
-            </section>
-            <section t-elif="!state.items.length &amp;&amp; !state.error" class="o_retailer_catalog_empty">
-                <i class="fa fa-inbox o_retailer_empty_icon"/>
-                <strong>No encontramos cambios.</strong>
-                <small>Probá limpiar los filtros o sincronizar todo.</small>
-            </section>
+                <section t-if="state.items.length" class="o_retailer_change_grid">
+                    <article t-foreach="state.items" t-as="item" t-key="item.id" t-attf-class="o_retailer_change_card #{this.statusClass(item.status)}" t-on-click="() => this.openDetail(item)">
+                        <div class="o_retailer_change_top"><div><small>SKU</small><strong t-esc="item.sku || 'Sin SKU'"/></div><span t-attf-class="o_retailer_change_status #{this.statusClass(item.status)}" t-esc="this.statusLabel(item.status)"/></div>
+                        <div class="o_retailer_change_badges"><span t-attf-class="o_retailer_change_marketplace o_retailer_change_marketplace_#{item.marketplace || 'unknown'}" t-esc="item.marketplace || '—'"/><span t-if="item.change_type" class="o_retailer_change_type" t-esc="item.change_type"/></div>
+                        <div t-if="item.summary" class="o_retailer_change_summary" t-esc="item.summary"/>
+                        <div t-if="item.error_message" class="o_retailer_change_error" t-esc="item.error_message"/>
+                        <div t-if="!item.summary &amp;&amp; (item.old_value || item.new_value)" class="o_retailer_change_comparison"><div><span>Antes</span><strong t-esc="this.compactValue(item.old_value)"/></div><i class="fa fa-long-arrow-right" aria-hidden="true"/><div><span>Después</span><strong t-esc="this.compactValue(item.new_value)"/></div></div>
+                        <div class="o_retailer_change_meta"><span t-if="item.created_at"><i class="fa fa-clock-o me-1"/>Creado <t t-esc="this.formatDate(item.created_at)"/></span><span t-if="item.updated_at">Actualizado <t t-esc="this.formatDate(item.updated_at)"/></span></div>
+                        <div class="o_retailer_change_actions"><button type="button" class="btn btn-secondary" t-on-click.stop="() => this.openDetail(item)">Ver detalle <i class="fa fa-arrow-right ms-1"/></button></div>
+                    </article>
+                </section>
+                <section t-if="state.items.length" class="o_retailer_catalog_pager"><button type="button" class="btn btn-secondary" t-att-disabled="!hasPrevious" t-on-click="previousPage">Anterior</button><span><t t-esc="state.offset + 1"/> - <t t-esc="Math.min(state.offset + state.limit, state.total)"/> de <t t-esc="state.total"/></span><button type="button" class="btn btn-secondary" t-att-disabled="!hasNext" t-on-click="nextPage">Siguiente</button></section>
+            </div>
 
-            <section t-if="state.items.length" class="o_retailer_change_grid">
-                <article t-foreach="state.items" t-as="item" t-key="item.id" t-attf-class="o_retailer_change_card #{this.statusClass(item.status)}" t-on-click="() => this.openDetail(item)">
-                    <div class="o_retailer_change_top">
-                        <div><small>SKU</small><strong t-esc="item.sku || 'Sin SKU'"/></div>
-                        <span t-attf-class="o_retailer_change_status #{this.statusClass(item.status)}" t-esc="this.statusLabel(item.status)"/>
-                    </div>
-                    <div class="o_retailer_change_badges">
-                        <span t-attf-class="o_retailer_change_marketplace o_retailer_change_marketplace_#{item.marketplace || 'unknown'}" t-esc="item.marketplace || '—'"/>
-                        <span t-if="item.change_type" class="o_retailer_change_type" t-esc="item.change_type"/>
-                    </div>
-                    <div t-if="item.summary" class="o_retailer_change_summary" t-esc="item.summary"/>
-                    <div t-if="item.error_message" class="o_retailer_change_error" t-esc="item.error_message"/>
-                    <div t-if="!item.summary &amp;&amp; (item.old_value || item.new_value)" class="o_retailer_change_comparison">
-                        <div><span>Antes</span><strong t-esc="this.compactValue(item.old_value)"/></div>
-                        <i class="fa fa-long-arrow-right" aria-hidden="true"/>
-                        <div><span>Después</span><strong t-esc="this.compactValue(item.new_value)"/></div>
-                    </div>
-                    <div class="o_retailer_change_meta">
-                        <span t-if="item.created_at"><i class="fa fa-clock-o me-1"/>Creado <t t-esc="this.formatDate(item.created_at)"/></span>
-                        <span t-if="item.updated_at">Actualizado <t t-esc="this.formatDate(item.updated_at)"/></span>
-                    </div>
-                    <div class="o_retailer_change_actions">
-                        <button type="button" class="btn btn-secondary" t-on-click.stop="() => this.openDetail(item)">Ver detalle <i class="fa fa-arrow-right ms-1"/></button>
-                    </div>
-                </article>
-            </section>
+            <div t-if="state.activeTab === 'analytics'" class="o_retailer_analytics_content">
+                <section class="o_retailer_analytics_toolbar">
+                    <form t-on-submit="searchAnalytics" class="o_retailer_analytics_filters">
+                        <label class="o_retailer_filter_field"><span>Fecha</span><input type="date" t-model="state.analyticsFilters.date" t-att-disabled="state.analyticsLoading"/></label>
+                        <label class="o_retailer_filter_field"><span>Marketplace</span><select t-model="state.analyticsFilters.marketplace" t-att-disabled="state.analyticsLoading"><option value="">Todos</option><option value="oncity">OnCity</option><option value="fravega">Frávega</option></select></label>
+                        <label class="o_retailer_filter_field"><span>Estado</span><select t-model="state.analyticsFilters.status" t-att-disabled="state.analyticsLoading"><option value="">Todos</option><option value="queued">Pendiente</option><option value="processing">Procesando</option><option value="completed">Completado</option><option value="failed">Fallido</option><option value="skipped">Omitido</option><option value="cancelled">Cancelado</option></select></label>
+                        <label class="o_retailer_filter_field"><span>Origen</span><input type="text" t-model="state.analyticsFilters.source" placeholder="Ej. mercadolibre_webhook" t-att-disabled="state.analyticsLoading"/></label>
+                        <div class="o_retailer_filter_actions"><button type="submit" class="btn btn-primary" t-att-disabled="state.analyticsLoading"><i class="fa fa-filter me-1"/>Aplicar</button><button type="button" class="btn btn-secondary" t-on-click="clearAnalyticsFilters" t-att-disabled="state.analyticsLoading">Limpiar</button></div>
+                    </form>
+                    <button type="button" class="btn btn-secondary o_retailer_analytics_refresh" t-on-click="loadAnalytics" t-att-disabled="state.analyticsLoading"><i class="fa fa-refresh me-1"/>Actualizar</button>
+                </section>
 
-            <section t-if="state.items.length" class="o_retailer_catalog_pager">
-                <button type="button" class="btn btn-secondary" t-att-disabled="!hasPrevious" t-on-click="previousPage">Anterior</button>
-                <span><t t-esc="state.offset + 1"/> - <t t-esc="Math.min(state.offset + state.limit, state.total)"/> de <t t-esc="state.total"/></span>
-                <button type="button" class="btn btn-secondary" t-att-disabled="!hasNext" t-on-click="nextPage">Siguiente</button>
-            </section>
+                <section t-if="state.analyticsError" class="o_retailer_changes_error" role="alert"><div><i class="fa fa-exclamation-circle"/><span t-esc="state.analyticsError"/></div><button type="button" class="btn btn-sm btn-outline-danger" t-on-click="loadAnalytics">Reintentar</button></section>
+
+                <t t-if="state.analytics">
+                    <section class="o_retailer_analytics_summary">
+                        <article class="o_retailer_metric_card is-primary"><span>Acciones totales</span><strong t-esc="this.formatNumber(analyticsSummary.totalActions)"/><small><t t-esc="this.formatNumber(analyticsSummary.uniqueSkus)"/> SKU únicos</small></article>
+                        <article class="o_retailer_metric_card is-success"><span>Tasa de éxito</span><strong t-esc="this.formatPercent(analyticsSummary.successRate)"/><small><t t-esc="this.formatNumber(analyticsSummary.completedActions)"/> completadas</small></article>
+                        <article class="o_retailer_metric_card"><span>Completadas</span><strong t-esc="this.formatNumber(analyticsSummary.completedActions)"/><small>Procesadas correctamente</small></article>
+                        <article class="o_retailer_metric_card is-danger"><span>Fallidas</span><strong t-esc="this.formatNumber(analyticsSummary.failedActions)"/><small>Requieren revisión</small></article>
+                        <article class="o_retailer_metric_card"><span>Pendientes</span><strong t-esc="this.formatNumber(analyticsSummary.pendingActions)"/><small>En cola o procesando</small></article>
+                        <article class="o_retailer_metric_card"><span>Tiempo promedio</span><strong t-esc="this.formatDuration(analyticsSummary.averageProcessingTimeMs)"/><small>Por actualización</small></article>
+                    </section>
+
+                    <section class="o_retailer_analytics_quick_stats">
+                        <div><span>Publicaciones únicas</span><strong t-esc="this.formatNumber(analyticsSummary.uniqueMeliItems)"/></div>
+                        <div><span>Activaciones</span><strong><t t-esc="this.formatNumber(analyticsSummary.completedActivations)"/> / <t t-esc="this.formatNumber(analyticsSummary.activations)"/></strong></div>
+                        <div><span>Cambios de precio</span><strong><t t-esc="this.formatNumber(analyticsSummary.completedPriceChanges)"/> / <t t-esc="this.formatNumber(analyticsSummary.priceChanges)"/></strong></div>
+                        <div><span>Cambios de stock</span><strong><t t-esc="this.formatNumber(analyticsSummary.completedStockChanges)"/> / <t t-esc="this.formatNumber(analyticsSummary.stockChanges)"/></strong></div>
+                        <div><span>Cambios de estado</span><strong><t t-esc="this.formatNumber(analyticsSummary.completedStatusChanges)"/> / <t t-esc="this.formatNumber(analyticsSummary.statusChanges)"/></strong></div>
+                    </section>
+
+                    <section class="o_retailer_analytics_grid">
+                        <article class="o_retailer_analytics_panel o_retailer_analytics_hourly">
+                            <header><div><h2>Actividad por hora</h2><p>Volumen de actualizaciones durante el día.</p></div><span>Pico: <strong t-esc="this.formatNumber(maxHourlyTotal)"/></span></header>
+                            <div class="o_retailer_hour_chart">
+                                <div t-foreach="state.analytics.byHour || []" t-as="row" t-key="row.hour" class="o_retailer_hour_column" t-att-title="this.hourLabel(row.hour) + ': ' + this.formatNumber(row.total) + ' acciones'">
+                                    <div class="o_retailer_hour_value" t-esc="row.total || ''"/><div class="o_retailer_hour_track"><div class="o_retailer_hour_bar" t-att-style="'height: ' + this.hourBarHeight(row)"/></div><span t-esc="row.hour % 3 === 0 ? this.hourLabel(row.hour) : ''"/>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="o_retailer_analytics_panel">
+                            <header><div><h2>Por tipo de cambio</h2><p>Completadas sobre el total procesado.</p></div></header>
+                            <div class="o_retailer_breakdown_list">
+                                <div t-foreach="state.analytics.byChangeType || []" t-as="row" t-key="row.name" class="o_retailer_breakdown_row">
+                                    <div class="o_retailer_breakdown_label"><strong t-esc="this.changeTypeLabel(row.name)"/><span><t t-esc="this.formatNumber(row.completed)"/> de <t t-esc="this.formatNumber(row.total)"/></span></div>
+                                    <div class="o_retailer_progress"><span t-att-style="'width: ' + this.completionWidth(row)"/></div><small t-if="row.failed"><t t-esc="this.formatNumber(row.failed)"/> fallidas</small>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="o_retailer_analytics_panel">
+                            <header><div><h2>Por marketplace</h2><p>Distribución y efectividad por canal.</p></div></header>
+                            <div class="o_retailer_marketplace_metrics">
+                                <div t-foreach="state.analytics.byMarketplace || []" t-as="row" t-key="row.name">
+                                    <span t-esc="this.marketplaceLabel(row.name)"/><strong t-esc="this.formatNumber(row.total)"/><small><t t-esc="this.formatNumber(row.completed)"/> completadas<t t-if="row.failed"> · <t t-esc="this.formatNumber(row.failed)"/> fallidas</t></small>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="o_retailer_analytics_tables">
+                        <article class="o_retailer_analytics_panel">
+                            <header><div><h2>SKU con más actividad</h2><p>Productos con mayor cantidad de cambios.</p></div></header>
+                            <div class="o_retailer_table_wrap"><table><thead><tr><th>SKU</th><th>Total</th><th>Precio</th><th>Stock</th><th>Estado</th></tr></thead><tbody><tr t-foreach="state.analytics.topSkus || []" t-as="row" t-key="row.sku"><td><strong t-esc="row.sku"/></td><td t-esc="this.formatNumber(row.total)"/><td t-esc="this.formatNumber(row.priceChanges)"/><td t-esc="this.formatNumber(row.stockChanges)"/><td t-esc="this.formatNumber(row.statusChanges)"/></tr><tr t-if="!(state.analytics.topSkus || []).length"><td colspan="5" class="o_retailer_table_empty">Sin actividad para los filtros seleccionados.</td></tr></tbody></table></div>
+                        </article>
+                        <article class="o_retailer_analytics_panel">
+                            <header><div><h2>Marcas</h2><p>Volumen de acciones por marca.</p></div></header>
+                            <div class="o_retailer_rank_list"><div t-foreach="state.analytics.byBrand || []" t-as="row" t-key="row.name"><span t-esc="row.name || 'Sin marca'"/><strong t-esc="this.formatNumber(row.total)"/><small><t t-esc="this.formatNumber(row.completed)"/> completadas</small></div><div t-if="!(state.analytics.byBrand || []).length" class="o_retailer_table_empty">Sin datos de marcas.</div></div>
+                        </article>
+                        <article class="o_retailer_analytics_panel">
+                            <header><div><h2>Errores principales</h2><p>Motivos más frecuentes de falla.</p></div></header>
+                            <div class="o_retailer_error_list"><div t-foreach="state.analytics.topErrors || []" t-as="row" t-key="row.code"><span class="o_retailer_error_count" t-esc="this.formatNumber(row.total)"/><div><strong t-esc="row.code || 'Sin código'"/><small t-esc="row.message || 'Sin detalle disponible'"/></div></div><div t-if="!(state.analytics.topErrors || []).length" class="o_retailer_analytics_success_empty"><i class="fa fa-check-circle"/><span>Sin errores para los filtros seleccionados.</span></div></div>
+                        </article>
+                    </section>
+                </t>
+            </div>
         </div>
     </t>
 </templates>
