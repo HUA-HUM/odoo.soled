@@ -1,0 +1,14 @@
+<odoo>
+
+    <record id="ir_cron_sync_change_actions" model="ir.cron">
+        <field name="name">Soled Actualizador: sincronizar cambios de marketplace</field>
+        <field name="model_id" ref="model_soled_marketplace_change_action"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_sync_change_actions()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

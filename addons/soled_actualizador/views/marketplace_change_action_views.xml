@@ -1,0 +1,156 @@
+<odoo>
+
+    <record id="view_soled_change_action_tree" model="ir.ui.view">
+        <field name="name">soled.marketplace.change.action.tree</field>
+        <field name="model">soled.marketplace.change.action</field>
+        <field name="arch" type="xml">
+            <!-- Si tu Odoo es version 18+, puede que necesites cambiar
+                 la etiqueta <tree> por <list> en esta vista. -->
+            <tree string="Cambios propagados a marketplaces"
+                  class="o_soled_change_tree"
+                  create="false" edit="false" delete="false">
+                <field name="remote_created_at" string="Fecha"/>
+                <field name="sku"/>
+                <field name="marketplace" widget="badge"
+                       decoration-info="marketplace == 'oncity'"
+                       decoration-warning="marketplace == 'fravega'"/>
+                <field name="change_type" widget="badge" string="Tipo"/>
+                <field name="change_summary" string="Cambio"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'completed'"
+                       decoration-danger="status == 'failed'"
+                       decoration-warning="status in ('queued', 'processing')"
+                       decoration-muted="status in ('skipped', 'cancelled')"/>
+                <field name="source" optional="hide"/>
+                <field name="attempts" string="Int." optional="hide"/>
+                <button name="%(action_soled_change_action_detail)d"
+                        type="action"
+                        string="Ver detalle"
+                        class="btn btn-sm btn-link o_soled_view_detail_btn"
+                        icon="fa-external-link"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_soled_change_action_detail_form" model="ir.ui.view">
+        <field name="name">soled.marketplace.change.action.detail.form</field>
+        <field name="model">soled.marketplace.change.action</field>
+        <field name="arch" type="xml">
+            <form string="Detalle del cambio" create="false" edit="false" delete="false"
+                  class="o_soled_change_detail">
+                <sheet>
+                    <div class="o_soled_change_header">
+                        <h1>
+                            <field name="sku" class="o_soled_change_sku"/>
+                        </h1>
+                        <div class="o_soled_change_badges">
+                            <field name="marketplace" widget="badge"
+                                   decoration-info="marketplace == 'oncity'"
+                                   decoration-warning="marketplace == 'fravega'"/>
+                            <field name="status" widget="badge"
+                                   decoration-success="status == 'completed'"
+                                   decoration-danger="status == 'failed'"
+                                   decoration-warning="status in ('queued', 'processing')"
+                                   decoration-muted="status in ('skipped', 'cancelled')"/>
+                        </div>
+                    </div>
+
+                    <div class="o_soled_change_summary_box">
+                        <field name="change_summary" nolabel="1" class="o_soled_change_summary_text"/>
+                    </div>
+
+                    <group>
+                        <group string="Datos del cambio">
+                            <field name="change_type" string="Tipo"/>
+                            <field name="source" string="Origen"/>
+                            <field name="meli_item_id" string="Item MLA"/>
+                            <field name="external_sku" string="SKU externo"/>
+                        </group>
+                        <group string="Reintentos">
+                            <field name="attempts" string="Intentos"/>
+                            <field name="max_attempts" string="Máximo"/>
+                            <field name="remote_created_at" string="Creado"/>
+                            <field name="remote_finished_at" string="Finalizado"/>
+                        </group>
+                    </group>
+
+                    <group string="Error" class="o_soled_error_group">
+                        <field name="error_code" string="Código"/>
+                        <field name="error_message" string="Mensaje"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Detalle técnico">
+                            <group>
+                                <field name="old_value_json" widget="ace" options="{'mode': 'json'}" string="Valor anterior"/>
+                                <field name="new_value_json" widget="ace" options="{'mode': 'json'}" string="Valor nuevo"/>
+                                <field name="request_snapshot_json" widget="ace" options="{'mode': 'json'}" string="Request enviado"/>
+                                <field name="response_snapshot_json" widget="ace" options="{'mode': 'json'}" string="Response recibido"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_soled_change_action_search" model="ir.ui.view">
+        <field name="name">soled.marketplace.change.action.search</field>
+        <field name="model">soled.marketplace.change.action</field>
+        <field name="arch" type="xml">
+            <search string="Buscar cambios">
+                <field name="sku"/>
+                <field name="marketplace"/>
+                <field name="action_id"/>
+                <field name="meli_item_id"/>
+                <filter string="Fallidos" name="filter_failed" domain="[('status', '=', 'failed')]"/>
+                <filter string="En curso" name="filter_in_progress" domain="[('status', 'in', ('queued', 'processing'))]"/>
+                <filter string="Completados" name="filter_completed" domain="[('status', '=', 'completed')]"/>
+                <separator/>
+                <filter string="Fravega" name="filter_fravega" domain="[('marketplace', '=', 'fravega')]"/>
+                <filter string="OnCity" name="filter_oncity" domain="[('marketplace', '=', 'oncity')]"/>
+                <separator/>
+                <filter string="Pausas automáticas" name="filter_auto_pause" domain="[('source', '=', 'auto_pause_on_failure')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="groupby_status" context="{'group_by': 'status'}"/>
+                    <filter string="Marketplace" name="groupby_marketplace" context="{'group_by': 'marketplace'}"/>
+                    <filter string="Tipo de cambio" name="groupby_change_type" context="{'group_by': 'change_type'}"/>
+                    <filter string="Origen" name="groupby_source" context="{'group_by': 'source'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_soled_change_action" model="ir.actions.act_window">
+        <field name="name">Actualizador</field>
+        <field name="res_model">soled.marketplace.change.action</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_soled_change_action_tree"/>
+        <field name="search_view_id" ref="view_soled_change_action_search"/>
+        <field name="context">{'search_default_filter_in_progress': 0}</field>
+    </record>
+
+    <!-- Accion de detalle: se invoca desde el boton "Ver detalle" de la
+         lista y se abre como dialogo/modal (target=new), no como pagina
+         completa. -->
+    <record id="action_soled_change_action_detail" model="ir.actions.act_window">
+        <field name="name">Detalle del cambio</field>
+        <field name="res_model">soled.marketplace.change.action</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_soled_change_action_detail_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Accion manual "Sincronizar ahora", disponible desde el menu de
+         acciones (icono engranaje) de la vista lista, para no depender
+         del cron mientras se prueba. -->
+    <record id="ir_actions_server_sync_now" model="ir.actions.server">
+        <field name="name">Sincronizar ahora</field>
+        <field name="model_id" ref="model_soled_marketplace_change_action"/>
+        <field name="binding_model_id" ref="model_soled_marketplace_change_action"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">model.cron_sync_change_actions()</field>
+    </record>
+
+</odoo>

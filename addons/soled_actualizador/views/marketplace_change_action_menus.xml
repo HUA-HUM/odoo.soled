@@ -1,0 +1,26 @@
+<odoo>
+
+    <!--
+        OJO: esto crea un menu de nivel superior propio llamado
+        "Actualizador Soled" a proposito, para no arriesgarme a duplicar tu
+        menu "Retailer" existente (no tengo su ID tecnico).
+
+        Una vez instalado, si queres que quede colgando de tu "Retailer"
+        real, hay dos caminos:
+          1) Pasame el ID externo de tu menu "Retailer" (modo desarrollador
+             -> clic derecho sobre el menu -> "Editar Menu" te lo muestra) y
+             cambio el "parent" de menu_soled_actualizador_root abajo.
+          2) O simplemente arrastralo vos desde Ajustes > Tecnico > Interfaz
+             de Usuario > Menus, sin tocar codigo.
+    -->
+    <menuitem id="menu_soled_actualizador_root"
+              name="Actualizador Soled"
+              sequence="60"/>
+
+    <menuitem id="menu_soled_change_action"
+              name="Cambios a marketplaces"
+              parent="menu_soled_actualizador_root"
+              action="action_soled_change_action"
+              sequence="10"/>
+
+</odoo>
