@@ -141,28 +141,66 @@ class RetailerMarketplaceChange(models.Model):
         }
 
     @api.model
+    def _database_columns(self):
+        """Return real columns so a pending module upgrade cannot break the panel."""
+        self.env.cr.execute(
+            """
+                SELECT column_name
+                  FROM information_schema.columns
+                 WHERE table_schema = current_schema()
+                   AND table_name = %s
+            """,
+            [self._table],
+        )
+        return {row[0] for row in self.env.cr.fetchall()}
+
+    @api.model
+    def _persistable_values(self, values, columns=None):
+        columns = columns or self._database_columns()
+        return {key: value for key, value in values.items() if key in columns}
+
+    @api.model
+    def _item_for_panel(self, values, record_id):
+        return {
+            "id": record_id,
+            "action_id": values.get("action_id"),
+            "sku": values.get("sku"),
+            "marketplace": values.get("marketplace"),
+            "status": values.get("status"),
+            "change_type": values.get("change_type"),
+            "summary": values.get("summary"),
+            "error_message": values.get("error_message"),
+            "created_at": values.get("external_created_at"),
+            "updated_at": values.get("external_updated_at"),
+            "old_value": values.get("old_value_json"),
+            "new_value": values.get("new_value_json"),
+        }
+
+    @api.model
     def get_changes_page(self, limit=24, offset=0, sku=None, marketplace=None, status=None):
         payload = self._fetch_page(limit, offset, sku=sku, marketplace=marketplace, status=status)
         items = payload.get("items") or []
-        records = []
+        panel_items = []
+        columns = self._database_columns()
         for item in items:
             values = self._prepare_values(item)
             if not values["action_id"]:
                 continue
             existing = self.search([("action_id", "=", values["action_id"])], limit=1)
+            persistable_values = self._persistable_values(values, columns=columns)
             if existing:
-                existing.write(values)
+                existing.write(persistable_values)
                 record = existing
             else:
-                record = self.create(values)
-            records.append(record)
+                record = self.create(persistable_values)
+            panel_items.append(self._item_for_panel(values, record.id))
         pagination = payload.get("pagination") or {}
         return {
-            "items": [record._change_item() for record in records],
+            "items": panel_items,
             "pagination": {
                 "limit": int(pagination.get("limit") or limit),
                 "offset": int(pagination.get("offset") or offset),
-                "total": int(pagination.get("total") or len(records)),
+                "total": int(pagination.get("total") or len(panel_items)),
             },
         }
 
@@ -186,6 +224,7 @@ class RetailerMarketplaceChange(models.Model):
         limit = 100
         offset = 0
         synced_count = 0
+        columns = self._database_columns()
 
         while True:
             payload = self._fetch_page(limit, offset)
@@ -195,10 +234,11 @@ class RetailerMarketplaceChange(models.Model):
                 if not values["action_id"]:
                     continue
                 existing = self.search([("action_id", "=", values["action_id"])], limit=1)
+                persistable_values = self._persistable_values(values, columns=columns)
                 if existing:
-                    existing.write(values)
+                    existing.write(persistable_values)
                 else:
-                    self.create(values)
+                    self.create(persistable_values)
                 synced_count += 1
 
             pagination = payload.get("pagination") or {}

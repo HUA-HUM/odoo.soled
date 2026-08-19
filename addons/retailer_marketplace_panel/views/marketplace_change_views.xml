@@ -63,11 +63,17 @@
                         <field name="error_message" readonly="1" nolabel="1"/>
                     </group>
                     <notebook>
-                        <page string="Detalle técnico">
+                        <page string="Comparación">
                             <group>
-                                <field name="old_value_json" readonly="1" string="Valor anterior"/>
-                                <field name="new_value_json" readonly="1" string="Valor nuevo"/>
+                                <group string="Valor anterior">
+                                    <field name="old_value_json" readonly="1" nolabel="1"/>
+                                </group>
+                                <group string="Valor nuevo">
+                                    <field name="new_value_json" readonly="1" nolabel="1"/>
+                                </group>
                             </group>
+                        </page>
+                        <page string="Detalle técnico">
                             <group string="Payload crudo">
                                 <field name="payload_json" readonly="1" nolabel="1"/>
                                 <field name="detail_json" readonly="1" nolabel="1"/>
