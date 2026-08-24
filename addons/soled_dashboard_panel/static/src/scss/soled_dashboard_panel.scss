@@ -15,72 +15,9 @@
     display: none !important;
 }
 
-.o_web_client:has(.o_soled_home) .o_main_navbar {
+/* El navbar superior se reemplaza por el sidebar global + el boton de atras. */
+.o_main_navbar {
     display: none !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar {
-    align-items: center;
-    background: #17303f !important;
-    border: 0 !important;
-    box-shadow: 0 8px 24px rgba(23, 48, 63, 0.1);
-    justify-content: flex-end;
-    min-height: 54px !important;
-    padding: 0 16px !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_toggle,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_brand,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_sections {
-    display: none !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .dropdown-toggle {
-    align-items: center;
-    border-radius: 12px !important;
-    color: #f5fafb !important;
-    display: inline-flex;
-    font-weight: 800;
-    min-height: 38px;
-    padding: 0 13px !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry.active,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry[aria-current="page"],
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .show > .dropdown-toggle {
-    background: rgba(255, 255, 255, 0.1) !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry:hover,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .dropdown-toggle:hover {
-    background: rgba(255, 255, 255, 0.14) !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_systray {
-    align-items: center;
-    gap: 8px;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_systray > * {
-    margin: 0 !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .dropdown-toggle,
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_switch_company_menu .dropdown-toggle {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .dropdown-toggle {
-    padding-right: 14px !important;
-}
-
-.o_web_client:has(.o_soled_area_page) .o_main_navbar .o_user_menu .oe_topbar_name {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .o_web_client:has(.o_soled_area_page) .o_content,
@@ -379,15 +316,6 @@
 }
 
 @media (max-width: 640px) {
-    .o_web_client:has(.o_soled_area_page) .o_main_navbar {
-        min-height: 54px !important;
-        padding: 0 10px !important;
-    }
-
-    .o_web_client:has(.o_soled_area_page) .o_main_navbar .o_menu_brand,
-    .o_web_client:has(.o_soled_area_page) .o_main_navbar .o_nav_entry {
-        padding: 0 10px !important;
-    }
 
     .o_soled_home,
     .o_soled_area_page {
@@ -437,6 +365,48 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     top: 0;
     width: $soled-sidebar-width;
     z-index: 1100;
+}
+
+/* Boton de atras: reemplaza la navegacion que daba el navbar superior. */
+.o_soled_global_back {
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+    color: #334155;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 650;
+    gap: 7px;
+    left: calc(#{$soled-sidebar-width} + 16px);
+    max-width: 220px;
+    min-height: 36px;
+    padding: 0 15px 0 12px;
+    position: fixed;
+    top: 12px;
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+    z-index: 1090;
+}
+
+.o_soled_global_back:hover,
+.o_soled_global_back:focus {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    outline: 0;
+    transform: translateX(-2px);
+}
+
+.o_soled_global_back i {
+    font-size: 11px;
+}
+
+.o_soled_global_back span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .o_soled_sidebar_brand {
@@ -588,15 +558,61 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
 }
 
 .o_soled_sidebar_footer {
-    align-items: center;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     color: #64748b;
     display: flex;
     flex: 0 0 auto;
+    flex-direction: column;
     font-size: 9.5px;
     gap: 8px;
-    min-height: 48px;
-    padding: 11px clamp(14px, 1.2vw, 20px);
+    padding: 10px clamp(12px, 1.1vw, 16px) 11px;
+}
+
+/* Menu de usuario de Odoo (preferencias, cerrar sesion) reubicado aca. */
+.o_soled_sidebar_user .o_user_menu {
+    display: block !important;
+    padding: 0 !important;
+    width: 100%;
+}
+
+.o_soled_sidebar_user .dropdown-toggle {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.07);
+    border: 0;
+    border-radius: 9px;
+    color: #e5e7eb !important;
+    display: flex;
+    gap: 8px;
+    min-height: 40px;
+    padding: 5px 9px !important;
+    width: 100%;
+}
+
+.o_soled_sidebar_user .dropdown-toggle:hover,
+.o_soled_sidebar_user .show > .dropdown-toggle {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.o_soled_sidebar_user .o_user_avatar {
+    flex: 0 0 28px;
+    height: 28px !important;
+    padding: 0 !important;
+    width: 28px;
+}
+
+.o_soled_sidebar_user .oe_topbar_name {
+    display: block !important;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 !important;
+}
+
+.o_soled_sidebar_health {
+    align-items: center;
+    display: flex;
+    gap: 7px;
+    min-height: 16px;
+    padding: 0 2px;
 }
 
 .o_soled_sidebar_status {
@@ -625,8 +641,22 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     .o_soled_sidebar_brand > div,
     .o_soled_sidebar_copy,
     .o_soled_sidebar_section,
-    .o_soled_sidebar_footer > span:last-child {
+    .o_soled_sidebar_user .oe_topbar_name,
+    .o_soled_sidebar_health span:last-child {
+        display: none !important;
+    }
+
+    .o_soled_global_back {
+        left: 84px;
+    }
+
+    .o_soled_global_back span {
         display: none;
+    }
+
+    .o_soled_sidebar_user .dropdown-toggle {
+        justify-content: center;
+        padding: 5px !important;
     }
 
     .o_soled_sidebar_navigation {
@@ -649,7 +679,11 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     }
 
     .o_soled_sidebar_footer {
+        align-items: center;
+        padding: 10px 8px;
+    }
+
+    .o_soled_sidebar_health {
         justify-content: center;
-        padding: 10px;
     }
 }
