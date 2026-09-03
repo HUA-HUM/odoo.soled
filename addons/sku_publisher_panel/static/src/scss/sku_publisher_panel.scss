@@ -837,6 +837,151 @@
     white-space: pre-wrap;
 }
 
+/* Barra de filtros del listado de candidatos. */
+.o_publisher_candidates_toolbar {
+    flex-wrap: wrap;
+}
+
+.o_publisher_filters_bar {
+    align-items: flex-end;
+    background: var(--publisher-surface);
+    border: 1px solid var(--publisher-border);
+    border-radius: var(--publisher-radius-md);
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 14px 16px;
+}
+
+.o_publisher_filters_bar__label {
+    align-items: center;
+    color: var(--publisher-text-muted);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 800;
+    gap: 6px;
+    letter-spacing: 0.08em;
+    padding-bottom: 9px;
+    text-transform: uppercase;
+}
+
+.o_publisher_candidates_filters {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-width: 0;
+}
+
+.o_publisher_candidates_filters .o_publisher_candidates_filter {
+    flex: 1 1 156px;
+    gap: 6px;
+    min-width: 0;
+}
+
+.o_publisher_candidates_filters .o_publisher_candidates_filter label {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+}
+
+.o_publisher_candidates_filters .o_publisher_select {
+    width: 100%;
+}
+
+.o_publisher_candidates_filters .o_publisher_select select {
+    background: #ffffff;
+    max-width: 100%;
+    padding-right: 30px;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* Un select con filtro puesto se distingue del resto de un vistazo. */
+.o_publisher_candidates_filters .o_publisher_select.is-active select {
+    border-color: var(--publisher-coral);
+    box-shadow: 0 0 0 3px rgba(255, 91, 98, 0.14);
+    color: var(--publisher-ink);
+    font-weight: 700;
+}
+
+.o_publisher_filters_bar .o_publisher_filters_clear {
+    flex: 0 0 auto;
+    margin-bottom: 1px;
+}
+
+/* Resumen de lo aplicado: cada chip se quita con un click. */
+.o_publisher_active_chips {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.o_publisher_chip {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--publisher-border);
+    border-radius: 999px;
+    color: var(--publisher-text);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 11px;
+    gap: 7px;
+    padding: 6px 11px;
+    transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.o_publisher_chip:hover:not(:disabled) {
+    background: rgba(255, 91, 98, 0.07);
+    border-color: var(--publisher-coral);
+    color: var(--publisher-coral-dark);
+}
+
+.o_publisher_chip__label {
+    color: var(--publisher-text-muted);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.o_publisher_chip:hover:not(:disabled) .o_publisher_chip__label {
+    color: inherit;
+}
+
+.o_publisher_chip__value {
+    font-weight: 700;
+    max-width: 190px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_publisher_chip i {
+    font-size: 10px;
+    opacity: 0.55;
+}
+
+/* Agregados de la API: rango de precios y publicaciones del SKU. */
+.o_publisher_candidate_aggregate {
+    border-top: 1px dashed var(--publisher-border);
+    color: var(--publisher-text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px 14px;
+    margin-top: 10px;
+    padding-top: 9px;
+}
+
+.o_publisher_candidate_aggregate i {
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
 @media (max-width: 900px) {
     .o_publisher_candidates_header {
         align-items: flex-start;

@@ -102,23 +102,39 @@ class PublisherSku(models.Model):
     def _publication_status_base_url(self):
         return "https://internal.solediluminacion.com/internal/marketplace-publications/status-by-sku"
 
+    # Parametros que acepta /status-by-sku. El back los combina con AND y los
+    # que aceptan lista van separados por coma, sin espacios.
+    CANDIDATE_FILTER_PARAMS = (
+        "search",
+        "stock",
+        "active",
+        "status",
+        "publishedIn",
+        "notPublishedIn",
+        "publishedMatch",
+        "published",
+        "brand",
+        "category",
+        "listingType",
+        "sortBy",
+        "sortDir",
+    )
+
+    # El panel manda "all" para decir "sin filtro", pero en publishedMatch
+    # "all" es un valor real: exige estar publicado en TODOS los marketplaces
+    # pedidos, no en alguno. Ahi no se puede descartar.
+    CANDIDATE_FILTER_LITERAL_ALL = ("publishedMatch",)
+
     @api.model
-    def _fetch_publication_status(self, limit=100, offset=0, sku=None):
-        params = {
-            "marketplaces": "oncity,fravega",
-            "limit": limit,
-            "offset": offset,
-        }
-        if sku:
-            params["sku"] = sku
+    def _internal_get_json(self, url, params=None):
         try:
             response = requests.get(
-                self._publication_status_base_url(),
+                url,
                 headers={
                     "accept": "*/*",
                     "x-internal-api-key": "_internal",
                 },
-                params=params,
+                params=params or {},
                 timeout=60,
             )
             response.raise_for_status()
@@ -129,11 +145,55 @@ class PublisherSku(models.Model):
             raise UserError(_("La API de candidatos no devolvio JSON valido.")) from error
 
     @api.model
+    def _clean_candidate_filters(self, filters):
+        """Descarta claves desconocidas y los vacios, para no mandar ruido."""
+        params = {}
+        for key, value in (filters or {}).items():
+            if key not in self.CANDIDATE_FILTER_PARAMS:
+                continue
+            if isinstance(value, bool):
+                value = "true" if value else "false"
+            elif isinstance(value, (list, tuple)):
+                value = ",".join(
+                    str(part).strip() for part in value if str(part).strip()
+                )
+            value = str(value if value is not None else "").strip()
+            if not value:
+                continue
+            if value == "all" and key not in self.CANDIDATE_FILTER_LITERAL_ALL:
+                continue
+            params[key] = value
+        return params
+
+    @api.model
+    def _fetch_publication_status(self, limit=100, offset=0, sku=None, filters=None):
+        params = {
+            "marketplaces": "oncity,fravega",
+            "limit": limit,
+            "offset": offset,
+        }
+        if sku:
+            params["sku"] = sku
+        params.update(self._clean_candidate_filters(filters))
+        return self._internal_get_json(self._publication_status_base_url(), params)
+
+    @api.model
+    def get_candidate_filters(self):
+        """Combos para los selects: marcas, categorias, estados y stock."""
+        payload = self._internal_get_json(
+            "%s/filters" % self._publication_status_base_url()
+        )
+        return payload if isinstance(payload, dict) else {}
+
+    @api.model
     def _prepare_candidate_values_from_api(self, item):
         published_oncity = bool(item.get("oncity"))
         published_fravega = bool(item.get("fravega"))
         ml_status = item.get("status")
-        ml_stock = self._to_int(item.get("available_quantity"))
+        stock_value = item.get("stock")
+        if stock_value is None:
+            stock_value = item.get("available_quantity")
+        ml_stock = self._to_int(stock_value)
         status = self._compute_publish_status_from_api(
             item.get("sku"),
             ml_status,
@@ -142,22 +202,30 @@ class PublisherSku(models.Model):
             published_fravega,
         )
         ml_product = self.env["ml.product"].search([("sku", "=", item.get("sku"))], limit=1)
+
+        def prefer_api(key, ml_field):
+            """La API ya trae este dato; ml.product queda solo como respaldo."""
+            value = item.get(key)
+            if value not in (None, "", False):
+                return value
+            return getattr(ml_product, ml_field) if ml_product else False
+
         return {
             "sku": item.get("sku"),
             "title": item.get("title"),
-            "brand": ml_product.brand if ml_product else False,
-            "category_name": ml_product.category_name if ml_product else False,
+            "brand": prefer_api("brand", "brand"),
+            "category_name": prefer_api("category_name", "category_name"),
             "ml_product_id": ml_product.id if ml_product else False,
             "meli_item_id": item.get("meli_item_id"),
             "ml_status": ml_status,
             "ml_price": self._to_float(item.get("price")),
             "ml_stock": ml_stock,
-            "ml_permalink": ml_product.permalink if ml_product else False,
+            "ml_permalink": prefer_api("permalink", "permalink"),
             "seller_id": ml_product.seller_id if ml_product else False,
             "condition_type": ml_product.condition_type if ml_product else False,
-            "listing_type_id": ml_product.listing_type_id if ml_product else item.get("listing_type_id"),
+            "listing_type_id": prefer_api("listing_type_id", "listing_type_id"),
             "sold_quantity": ml_product.sold_quantity if ml_product else 0,
-            "category_id": ml_product.category_id if ml_product else False,
+            "category_id": prefer_api("category_id", "category_id"),
             "model": ml_product.model if ml_product else False,
             "gtin": ml_product.gtin if ml_product else False,
             "logistic_type": ml_product.logistic_type if ml_product else False,
@@ -176,43 +244,30 @@ class PublisherSku(models.Model):
         }
 
     @api.model
-    def get_candidates_page(self, limit=24, offset=0, sku=None, listing_type=None):
-        listing_type = listing_type if listing_type and listing_type != "all" else None
-        fetch_limit = limit
-        fetch_offset = offset
+    def get_candidates_page(self, limit=24, offset=0, sku=None, filters=None):
+        # El filtrado, el orden y el paginado los resuelve la API. Antes esto
+        # paginaba a mano para filtrar por tipo de publicacion en el cliente.
+        payload = self._fetch_publication_status(
+            limit=limit, offset=offset, sku=sku, filters=filters
+        )
+        items = payload.get("items") or []
+        pagination = payload.get("pagination") or {}
+        marketplaces = payload.get("marketplaces") or ["oncity", "fravega"]
+
         records = []
-        pagination = {}
-        payload = {}
+        for item in items:
+            values = self._prepare_candidate_values_from_api(item)
+            record = self._upsert_candidate(values)
+            records.append(self._candidate_card_payload(record, item, marketplaces))
 
-        while len(records) < limit:
-            payload = self._fetch_publication_status(limit=fetch_limit, offset=fetch_offset, sku=sku)
-            items = payload.get("items") or []
-            pagination = payload.get("pagination") or {}
-            for item in items:
-                values = self._prepare_candidate_values_from_api(item)
-                if listing_type and not self._matches_listing_type(values.get("listing_type_id"), listing_type):
-                    continue
-                record = self._upsert_candidate(values)
-                records.append(self._candidate_card_payload(record))
-                if len(records) >= limit:
-                    break
-            if not items or not listing_type:
-                break
-            total = int(pagination.get("total") or 0)
-            fetch_offset += fetch_limit
-            if fetch_offset >= total:
-                break
-
-        total_count = int((pagination or {}).get("total") or len(records))
-        if listing_type:
-            total_count = max(offset + len(records), total_count)
         return {
             "items": records,
-            "marketplaces": payload.get("marketplaces") or ["oncity", "fravega"],
+            "marketplaces": marketplaces,
+            "filters": payload.get("filters") or {},
             "pagination": {
-                "limit": int((pagination or {}).get("limit") or limit),
-                "offset": int(offset or 0),
-                "total": total_count,
+                "limit": self._to_int(pagination.get("limit")) or limit,
+                "offset": self._to_int(pagination.get("offset")),
+                "total": self._to_int(pagination.get("total")) or len(records),
             },
         }
 
@@ -225,18 +280,10 @@ class PublisherSku(models.Model):
         return self.create(values)
 
     @api.model
-    def _matches_listing_type(self, value, listing_type):
-        normalized = value or ""
-        if listing_type == "gold_special":
-            # Legacy candidates may still carry the old (incorrect) "gold_clasic"/
-            # "gold_classic" values that were written before this was fixed, so we
-            # keep matching them here to avoid hiding already-synced records.
-            return normalized in ("gold_special", "gold_clasic", "gold_classic")
-        return normalized == listing_type
-
-    @api.model
-    def _candidate_card_payload(self, record):
-        return {
+    def _candidate_card_payload(self, record, api_item=None, marketplaces=None):
+        api_item = api_item or {}
+        marketplaces = marketplaces or ["oncity", "fravega"]
+        payload = {
             "id": record.id,
             "sku": record.sku,
             "meli_item_id": record.meli_item_id,
@@ -266,6 +313,25 @@ class PublisherSku(models.Model):
             "updated_at": fields.Datetime.to_string(record.ml_updated_at) if record.ml_updated_at else False,
             "payload_json": record.payload_json,
         }
+        # Agregados que la API calcula sobre todas las publicaciones del SKU.
+        payload.update({
+            "listing_type": api_item.get("listing_type"),
+            "price_min": api_item.get("price_min"),
+            "price_max": api_item.get("price_max"),
+            "publications": api_item.get("publications"),
+            "active_publications": api_item.get("active_publications"),
+            "classic_publications": api_item.get("classic_publications"),
+            "premium_publications": api_item.get("premium_publications"),
+            "in_stock": api_item.get("in_stock"),
+            "is_active": api_item.get("is_active"),
+            "api_updated_at": api_item.get("updated_at"),
+        })
+        # Las columnas de marketplace son dinamicas: se arman con la lista
+        # que devuelve la respuesta, no hardcodeadas.
+        payload["marketplaces"] = {
+            name: bool(api_item.get(name)) for name in marketplaces
+        }
+        return payload
 
     @api.model
     def publish_skus(self, skus, marketplaces):

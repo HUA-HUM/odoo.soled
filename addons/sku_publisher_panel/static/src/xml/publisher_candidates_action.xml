@@ -25,14 +25,14 @@
             <section class="o_publisher_candidates_toolbar">
                 <div class="o_publisher_candidates_toolbar_group">
                     <form t-on-submit="searchSku" class="o_publisher_candidates_search">
-                        <label><i class="fa fa-search" aria-hidden="true"/> Buscar SKU</label>
+                        <label><i class="fa fa-search" aria-hidden="true"/> Buscar</label>
                         <div class="o_publisher_search_input">
                             <i class="fa fa-search o_publisher_search_icon" aria-hidden="true"/>
-                            <input type="text" t-model="state.sku" placeholder="Ej: RMS-2M-NEG" t-att-disabled="state.loading || state.publishing"/>
+                            <input type="text" t-model="state.search" placeholder="SKU, titulo o MLA" t-att-disabled="state.loading || state.publishing"/>
                             <button
                                 type="button"
                                 class="o_publisher_search_clear"
-                                t-if="state.sku"
+                                t-if="state.search"
                                 t-on-click="clearSearch"
                                 t-att-disabled="state.loading || state.publishing"
                                 aria-label="Limpiar busqueda"
@@ -43,26 +43,6 @@
                             <button type="submit" class="btn btn-primary" t-att-disabled="state.loading || state.publishing">Buscar</button>
                         </div>
                     </form>
-                    <div class="o_publisher_candidates_filter">
-                        <label><i class="fa fa-tag" aria-hidden="true"/> Tipo de publicacion</label>
-                        <div class="o_publisher_select" t-attf-class="#{state.listingType !== 'all' ? 'is-active' : ''}">
-                            <select t-model="state.listingType" t-on-change="changeListingType" t-att-disabled="state.loading || state.publishing">
-                                <option value="all">Todos</option>
-                                <option value="gold_pro">Gold Pro</option>
-                                <option value="gold_special">Gold Special</option>
-                            </select>
-                            <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        class="o_publisher_filters_clear"
-                        t-if="hasActiveFilters"
-                        t-on-click="resetFilters"
-                        t-att-disabled="state.loading || state.publishing"
-                    >
-                        <i class="fa fa-undo" aria-hidden="true"/> Limpiar filtros
-                    </button>
                 </div>
                 <div class="o_publisher_candidates_toolbar_group is-actions">
                     <div class="o_publisher_candidates_bulk">
@@ -86,6 +66,137 @@
                             </button>
                         </div>
                     </div>
+                </div>
+                <div class="o_publisher_filters_bar">
+                    <span class="o_publisher_filters_bar__label"><i class="fa fa-sliders" aria-hidden="true"/> Filtros</span>
+                    <div class="o_publisher_candidates_filters">
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-tag" aria-hidden="true"/> Tipo</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.listingType !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.listingType" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Todos</option>
+                                    <option t-foreach="state.options.listingTypes" t-as="option" t-key="option.value" t-att-value="option.value">
+                                        <t t-esc="option.label"/> (<t t-esc="option.total"/>)
+                                    </option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-bookmark" aria-hidden="true"/> Marca</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.brand !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.brand" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Todas</option>
+                                    <option t-foreach="state.options.brands" t-as="option" t-key="option.value" t-att-value="option.value">
+                                        <t t-esc="option.label"/> (<t t-esc="option.total"/>)
+                                    </option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-sitemap" aria-hidden="true"/> Categoria</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.category !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.category" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Todas</option>
+                                    <option t-foreach="state.options.categories" t-as="option" t-key="option.value" t-att-value="option.value">
+                                        <t t-esc="option.label"/> (<t t-esc="option.total"/>)
+                                    </option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-cubes" aria-hidden="true"/> Stock</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.stock !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.stock" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Todos</option>
+                                    <option t-foreach="state.options.stock" t-as="option" t-key="option.value" t-att-value="option.value">
+                                        <t t-esc="option.label"/> (<t t-esc="option.total"/>)
+                                    </option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-signal" aria-hidden="true"/> Estado ML</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.status !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.status" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Todos</option>
+                                    <option t-foreach="state.options.statuses" t-as="option" t-key="option.value" t-att-value="option.value">
+                                        <t t-esc="option.label"/> (<t t-esc="option.total"/>)
+                                    </option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-check-circle" aria-hidden="true"/> Publicado en</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.publishedIn !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.publishedIn" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Cualquiera</option>
+                                    <option t-foreach="state.marketplaces" t-as="marketplace" t-key="marketplace" t-att-value="marketplace" t-esc="marketplaceLabel(marketplace)"/>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-ban" aria-hidden="true"/> Sin publicar en</label>
+                            <div t-attf-class="o_publisher_select #{state.filters.notPublishedIn !== 'all' ? 'is-active' : ''}">
+                                <select t-model="state.filters.notPublishedIn" t-on-change="changeFilter" t-att-disabled="state.loading || state.publishing">
+                                    <option value="all">Cualquiera</option>
+                                    <option t-foreach="state.marketplaces" t-as="marketplace" t-key="marketplace" t-att-value="marketplace" t-esc="marketplaceLabel(marketplace)"/>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+
+                        <div class="o_publisher_candidates_filter">
+                            <label><i class="fa fa-sort" aria-hidden="true"/> Orden</label>
+                            <div class="o_publisher_select">
+                                <select t-att-value="sortValue" t-on-change="changeSort" t-att-disabled="state.loading || state.publishing">
+                                    <option value="updated_at:desc">Mas recientes</option>
+                                    <option value="updated_at:asc">Mas antiguos</option>
+                                    <option value="price:asc">Precio: menor a mayor</option>
+                                    <option value="price:desc">Precio: mayor a menor</option>
+                                    <option value="stock:desc">Mas stock</option>
+                                    <option value="stock:asc">Menos stock</option>
+                                    <option value="title:asc">Titulo A-Z</option>
+                                    <option value="sku:asc">SKU A-Z</option>
+                                </select>
+                                <i class="fa fa-chevron-down o_publisher_select_caret" aria-hidden="true"/>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="o_publisher_filters_clear"
+                        t-if="hasActiveFilters"
+                        t-on-click="resetFilters"
+                        t-att-disabled="state.loading || state.publishing"
+                    >
+                        <i class="fa fa-undo" aria-hidden="true"/> Limpiar
+                    </button>
+                </div>
+                <div class="o_publisher_active_chips" t-if="activeFilterChips.length">
+                    <button
+                        type="button"
+                        class="o_publisher_chip"
+                        t-foreach="activeFilterChips" t-as="chip" t-key="chip.key"
+                        t-on-click="() => this.clearFilter(chip.key)"
+                        t-att-disabled="state.loading || state.publishing"
+                        t-attf-title="Quitar filtro {{chip.label}}"
+                    >
+                        <span class="o_publisher_chip__label" t-esc="chip.label"/>
+                        <span class="o_publisher_chip__value" t-esc="chip.value"/>
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </button>
                 </div>
             </section>
 
@@ -124,13 +235,22 @@
                             <span>Stock <t t-esc="item.stock"/></span>
                             <span>Vendidos <t t-esc="item.sold_quantity || 0"/></span>
                         </div>
+                        <div class="o_publisher_candidate_aggregate" t-if="item.publications">
+                            <span t-if="formatPriceRange(item)" title="Rango de precios entre todas las publicaciones del SKU">
+                                <i class="fa fa-arrows-h" aria-hidden="true"/> <t t-esc="formatPriceRange(item)"/>
+                            </span>
+                            <span title="Publicaciones del SKU en Mercado Libre">
+                                <i class="fa fa-clone" aria-hidden="true"/> <t t-esc="item.publications"/> publicaciones<t t-if="item.premium_publications"> (<t t-esc="item.premium_publications"/> con cuotas)</t>
+                            </span>
+                        </div>
                         <div class="o_publisher_candidate_summary">
                             <span t-if="item.brand"><strong>Marca</strong><t t-esc="item.brand"/></span>
                             <span t-if="item.category_name"><strong>Categoria</strong><t t-esc="item.category_name"/></span>
                         </div>
                         <div class="o_publisher_candidate_marketplaces">
-                            <span t-attf-class="#{item.oncity ? 'is-published' : 'is-pending'}">OnCity</span>
-                            <span t-attf-class="#{item.fravega ? 'is-published' : 'is-pending'}">Fravega</span>
+                            <span t-foreach="state.marketplaces" t-as="marketplace" t-key="marketplace"
+                                  t-attf-class="#{isPublishedIn(item, marketplace) ? 'is-published' : 'is-pending'}"
+                                  t-esc="marketplaceLabel(marketplace)"/>
                         </div>
                         <div class="o_publisher_candidate_actions">
                             <button type="button" class="btn btn-secondary" t-on-click="() => this.openDetail(item.sku)">
@@ -185,8 +305,9 @@
                                     <span>Vendidos <t t-esc="detailItem.sold_quantity || 0"/></span>
                                 </div>
                                 <div class="o_publisher_candidate_marketplaces">
-                                    <span t-attf-class="#{detailItem.oncity ? 'is-published' : 'is-pending'}">OnCity</span>
-                                    <span t-attf-class="#{detailItem.fravega ? 'is-published' : 'is-pending'}">Fravega</span>
+                                    <span t-foreach="state.marketplaces" t-as="marketplace" t-key="marketplace"
+                                          t-attf-class="#{isPublishedIn(detailItem, marketplace) ? 'is-published' : 'is-pending'}"
+                                          t-esc="marketplaceLabel(marketplace)"/>
                                 </div>
                             </div>
                         </div>
