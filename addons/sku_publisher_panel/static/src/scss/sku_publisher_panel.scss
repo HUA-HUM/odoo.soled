@@ -26,6 +26,14 @@
     padding: 0;
 }
 
+/* La accion cliente no vive dentro de un sheet de formulario, asi que el
+   scroll lo tiene que aportar esta capa; si no, el contenido se corta. */
+.o_publisher_dashboard_page {
+    background: var(--publisher-surface);
+    height: 100vh;
+    overflow-y: auto;
+}
+
 .o_publisher_dashboard {
     margin: 0 auto;
     max-width: 1320px;
@@ -399,8 +407,8 @@
        the actual scrolling region. With height:auto the box simply grows to
        fit its content and overflow-y:auto never triggers, so long candidate
        lists get clipped by the surrounding action container instead of
-       scrolling. */
-    height: calc(100vh - 56px);
+       scrolling. Ocupa 100vh porque el navbar superior esta oculto. */
+    height: 100vh;
     overflow-y: auto;
     padding: 20px 24px 28px;
     position: relative;
@@ -843,72 +851,98 @@
 }
 
 .o_publisher_filters_bar {
-    align-items: flex-end;
-    background: var(--publisher-surface);
+    background: #ffffff;
     border: 1px solid var(--publisher-border);
     border-radius: var(--publisher-radius-md);
     display: flex;
     flex: 1 1 100%;
-    flex-wrap: wrap;
-    gap: 14px;
-    padding: 14px 16px;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 20px 20px;
+}
+
+.o_publisher_filters_bar__head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    min-height: 22px;
 }
 
 .o_publisher_filters_bar__label {
     align-items: center;
     color: var(--publisher-text-muted);
     display: inline-flex;
-    flex: 0 0 auto;
     font-size: 10px;
     font-weight: 800;
-    gap: 6px;
-    letter-spacing: 0.08em;
-    padding-bottom: 9px;
+    gap: 7px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
+/* Grilla en vez de flex-wrap: columnas parejas y aire real entre controles. */
 .o_publisher_candidates_filters {
-    display: flex;
-    flex: 1 1 auto;
-    flex-wrap: wrap;
-    gap: 12px;
-    min-width: 0;
+    display: grid;
+    gap: 16px 20px;
+    grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
 }
 
 .o_publisher_candidates_filters .o_publisher_candidates_filter {
-    flex: 1 1 156px;
-    gap: 6px;
+    gap: 7px;
     min-width: 0;
 }
 
 .o_publisher_candidates_filters .o_publisher_candidates_filter label {
+    color: var(--publisher-text-muted);
     font-size: 9px;
-    letter-spacing: 0.06em;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.o_publisher_candidates_filters .o_publisher_candidates_filter label i {
+    opacity: 0.55;
 }
 
 .o_publisher_candidates_filters .o_publisher_select {
     width: 100%;
 }
 
+/* Rectangulo suave en vez de pildora: con textos largos y ocho controles
+   juntos, la pildora se lee desprolija. */
 .o_publisher_candidates_filters .o_publisher_select select {
     background: #ffffff;
-    max-width: 100%;
-    padding-right: 30px;
+    border-radius: var(--publisher-radius-sm);
+    font-size: 12.5px;
+    font-weight: 600;
+    min-height: 38px;
+    min-width: 0;
+    padding: 8px 32px 8px 12px;
     text-overflow: ellipsis;
     width: 100%;
 }
 
-/* Un select con filtro puesto se distingue del resto de un vistazo. */
+.o_publisher_candidates_filters .o_publisher_select select:hover {
+    border-color: #d5dce5;
+}
+
+/* Un select con filtro puesto se distingue de un vistazo. */
 .o_publisher_candidates_filters .o_publisher_select.is-active select {
     border-color: var(--publisher-coral);
-    box-shadow: 0 0 0 3px rgba(255, 91, 98, 0.14);
+    box-shadow: inset 2px 0 0 var(--publisher-coral);
     color: var(--publisher-ink);
     font-weight: 700;
 }
 
-.o_publisher_filters_bar .o_publisher_filters_clear {
-    flex: 0 0 auto;
-    margin-bottom: 1px;
+.o_publisher_filters_clear {
+    background: transparent;
+    border: 0;
+    color: var(--publisher-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+}
+
+.o_publisher_filters_clear:hover:not(:disabled) {
+    color: var(--publisher-coral-dark);
 }
 
 /* Resumen de lo aplicado: cada chip se quita con un click. */
@@ -929,12 +963,12 @@
     display: inline-flex;
     font-size: 11px;
     gap: 7px;
-    padding: 6px 11px;
+    padding: 6px 12px;
     transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
 }
 
 .o_publisher_chip:hover:not(:disabled) {
-    background: rgba(255, 91, 98, 0.07);
+    background: rgba(255, 91, 98, 0.06);
     border-color: var(--publisher-coral);
     color: var(--publisher-coral-dark);
 }
@@ -943,7 +977,7 @@
     color: var(--publisher-text-muted);
     font-size: 9px;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
@@ -961,7 +995,7 @@
 
 .o_publisher_chip i {
     font-size: 10px;
-    opacity: 0.55;
+    opacity: 0.5;
 }
 
 /* Agregados de la API: rango de precios y publicaciones del SKU. */

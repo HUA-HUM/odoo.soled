@@ -68,7 +68,18 @@
                     </div>
                 </div>
                 <div class="o_publisher_filters_bar">
+                    <div class="o_publisher_filters_bar__head">
                     <span class="o_publisher_filters_bar__label"><i class="fa fa-sliders" aria-hidden="true"/> Filtros</span>
+                        <button
+                            type="button"
+                            class="o_publisher_filters_clear"
+                            t-if="hasActiveFilters"
+                            t-on-click="resetFilters"
+                            t-att-disabled="state.loading || state.publishing"
+                        >
+                            <i class="fa fa-undo" aria-hidden="true"/> Limpiar
+                        </button>
+                    </div>
                     <div class="o_publisher_candidates_filters">
                         <div class="o_publisher_candidates_filter">
                             <label><i class="fa fa-tag" aria-hidden="true"/> Tipo</label>
@@ -174,15 +185,6 @@
                             </div>
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        class="o_publisher_filters_clear"
-                        t-if="hasActiveFilters"
-                        t-on-click="resetFilters"
-                        t-att-disabled="state.loading || state.publishing"
-                    >
-                        <i class="fa fa-undo" aria-hidden="true"/> Limpiar
-                    </button>
                 </div>
                 <div class="o_publisher_active_chips" t-if="activeFilterChips.length">
                     <button

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="sku_publisher_panel.DashboardAction" owl="1">
+        <div class="o_publisher_dashboard_page">
         <div class="o_publisher_dashboard">
             <section class="o_publisher_hero">
                 <div>
@@ -106,6 +107,7 @@
                     </div>
                 </section>
             </t>
+        </div>
         </div>
     </t>
 </templates>
