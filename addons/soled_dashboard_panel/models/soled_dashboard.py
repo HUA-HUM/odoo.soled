@@ -52,7 +52,7 @@ class SoledDashboard(models.Model):
         return self._open_action("retailer_marketplace_panel.action_retailer_dashboard")
 
     def action_open_publisher(self):
-        return self._open_action("sku_publisher_panel.action_publisher_dashboard")
+        return self._open_action("sku_publisher_panel.action_publisher_dashboard_panel")
 
     def action_open_coresa(self):
         return self._open_action("coresa_panel.action_coresa_dashboard")

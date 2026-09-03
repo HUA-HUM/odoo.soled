@@ -1,61 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_publisher_dashboard_form" model="ir.ui.view">
-        <field name="name">publisher.dashboard.form</field>
-        <field name="model">publisher.dashboard</field>
-        <field name="arch" type="xml">
-            <form string="Publicador" create="false" edit="false">
-                <sheet class="o_publisher_dashboard_sheet">
-                    <div class="o_publisher_dashboard">
-                        <section class="o_publisher_hero">
-                            <div>
-                                <span class="o_publisher_eyebrow">Publicador SOLED</span>
-                                <h1>Publicar SKUs de MercadoLibre</h1>
-                                <p>Selecciona SKUs, envia un job a products.api y segui cada run por marketplace hasta completar o reintentar errores.</p>
-                            </div>
-                            <div class="o_publisher_actions">
-                                <button name="action_refresh_candidates" type="object" class="btn btn-primary o_publisher_refresh_button">
-                                    <i class="fa fa-refresh"/>
-                                    Actualizar candidatos
-                                </button>
-                                <button name="action_sync_recent_jobs" type="object" class="btn btn-secondary o_publisher_refresh_button">
-                                    <i class="fa fa-tasks"/>
-                                    Sincronizar procesos
-                                </button>
-                                <button name="action_sync_runs" type="object" class="btn btn-secondary o_publisher_refresh_button">
-                                    <i class="fa fa-list"/>
-                                    Sincronizar runs
-                                </button>
-                            </div>
-                        </section>
-                        <section class="o_publisher_kpis">
-                            <button name="action_open_candidates" type="object" class="o_publisher_kpi o_publisher_kpi_candidates">
-                                <span>Candidatos</span>
-                                <strong><field name="candidate_count"/></strong>
-                                <small>SKUs de MercadoLibre listos para publicar.</small>
-                            </button>
-                            <button name="action_open_jobs" type="object" class="o_publisher_kpi o_publisher_kpi_jobs">
-                                <span>Procesos</span>
-                                <strong><field name="job_count"/></strong>
-                                <small>Procesos creados en products.api.</small>
-                            </button>
-                            <button name="action_open_runs" type="object" class="o_publisher_kpi o_publisher_kpi_runs">
-                                <span>Runs</span>
-                                <strong><field name="run_count"/></strong>
-                                <small>SKUs publicandose por marketplace.</small>
-                            </button>
-                        </section>
-                    </div>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_publisher_dashboard" model="ir.actions.act_window">
+    <!-- Accion cliente: los numeros se leen de las APIs al entrar, en vez de
+         salir de las tablas locales que solo se llenan al sincronizar a mano.
+         Lleva un id nuevo porque Odoo no deja reusar un external id entre
+         modelos distintos (antes era ir.actions.act_window). -->
+    <record id="action_publisher_dashboard_panel" model="ir.actions.client">
         <field name="name">Dashboard</field>
-        <field name="res_model">publisher.dashboard</field>
-        <field name="view_mode">form</field>
-        <field name="target">current</field>
-        <field name="context">{}</field>
+        <field name="tag">sku_publisher_panel.dashboard_action</field>
     </record>
 </odoo>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="sku_publisher_panel.DashboardAction" owl="1">
+        <div class="o_publisher_dashboard">
+            <section class="o_publisher_hero">
+                <div>
+                    <span class="o_publisher_eyebrow">Publicador SOLED</span>
+                    <h1>Publicar SKUs de MercadoLibre</h1>
+                    <p>Selecciona SKUs, envia un job a products.api y segui cada run por marketplace hasta completar o reintentar errores.</p>
+                </div>
+                <div class="o_publisher_actions">
+                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                            t-on-click="() => this.sync('candidates')" t-att-disabled="state.syncing">
+                        <i t-attf-class="fa #{state.syncing === 'candidates' ? 'fa-spinner fa-spin' : 'fa-refresh'}"/>
+                        Sincronizar candidatos
+                    </button>
+                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                            t-on-click="() => this.sync('jobs')" t-att-disabled="state.syncing">
+                        <i t-attf-class="fa #{state.syncing === 'jobs' ? 'fa-spinner fa-spin' : 'fa-tasks'}"/>
+                        Sincronizar procesos
+                    </button>
+                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                            t-on-click="() => this.sync('runs')" t-att-disabled="state.syncing">
+                        <i t-attf-class="fa #{state.syncing === 'runs' ? 'fa-spinner fa-spin' : 'fa-list'}"/>
+                        Sincronizar runs
+                    </button>
+                </div>
+            </section>
+
+            <section t-if="state.loading" class="o_publisher_dashboard_loading">
+                <span class="o_publisher_spinner"/>
+                <strong>Cargando resumen...</strong>
+            </section>
+
+            <t t-else="">
+                <section class="o_publisher_kpis">
+                    <button type="button" class="o_publisher_kpi o_publisher_kpi_candidates" t-on-click="openCandidates">
+                        <span>Candidatos</span>
+                        <strong t-if="!state.candidates.error" t-esc="formatNumber(state.candidates.total)"/>
+                        <strong t-else="" class="o_publisher_kpi_error"><i class="fa fa-exclamation-triangle"/></strong>
+                        <small t-if="state.candidates.error" t-esc="state.candidates.error"/>
+                        <small t-else="">SKUs de MercadoLibre listos para publicar.</small>
+                        <div class="o_publisher_kpi_breakdown" t-if="candidateBreakdown.length">
+                            <span t-foreach="candidateBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
+                                <t t-esc="row.label"/>
+                                <strong t-esc="formatNumber(row.value)"/>
+                            </span>
+                        </div>
+                    </button>
+
+                    <button type="button" class="o_publisher_kpi o_publisher_kpi_jobs" t-on-click="openJobs">
+                        <span>Procesos</span>
+                        <strong t-if="!state.jobs.error" t-esc="formatNumber(state.jobs.total)"/>
+                        <strong t-else="" class="o_publisher_kpi_error"><i class="fa fa-exclamation-triangle"/></strong>
+                        <small t-if="state.jobs.error" t-esc="state.jobs.error"/>
+                        <small t-else="">Procesos creados en products.api.</small>
+                        <div class="o_publisher_kpi_breakdown" t-if="jobBreakdown.length">
+                            <span t-foreach="jobBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
+                                <t t-esc="row.label"/>
+                                <strong t-esc="formatNumber(row.value)"/>
+                            </span>
+                        </div>
+                    </button>
+
+                    <button type="button" class="o_publisher_kpi o_publisher_kpi_runs" t-on-click="openRuns">
+                        <span>Items publicados</span>
+                        <strong t-esc="formatNumber((state.jobs.counters || {}).items)"/>
+                        <small>SKUs enviados a publicar por marketplace.</small>
+                        <div class="o_publisher_kpi_breakdown" t-if="itemBreakdown.length">
+                            <span t-foreach="itemBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
+                                <t t-esc="row.label"/>
+                                <strong t-esc="formatNumber(row.value)"/>
+                            </span>
+                        </div>
+                    </button>
+                </section>
+
+                <section class="o_publisher_recent" t-if="(state.jobs.recent || []).length">
+                    <header class="o_publisher_recent__head">
+                        <h2>Ultimos procesos</h2>
+                        <button type="button" class="btn btn-secondary" t-on-click="openJobs">Ver todos</button>
+                    </header>
+                    <div class="o_publisher_recent__table">
+                        <article t-foreach="state.jobs.recent" t-as="job" t-key="job.job_id" class="o_publisher_recent_row">
+                            <div class="o_publisher_recent_row__main">
+                                <strong t-esc="shortJobId(job.job_id)"/>
+                                <small>
+                                    <t t-if="job.requested_by"><t t-esc="job.requested_by"/> · </t>
+                                    <t t-esc="formatDateTime(job.created_at)"/>
+                                </small>
+                            </div>
+                            <div class="o_publisher_recent_row__markets">
+                                <span t-foreach="job.marketplaces" t-as="marketplace" t-key="marketplace" t-esc="marketplaceLabel(marketplace)"/>
+                            </div>
+                            <div class="o_publisher_recent_row__progress">
+                                <div class="o_publisher_progress">
+                                    <span t-attf-style="width: #{jobProgress(job)}%"/>
+                                </div>
+                                <small>
+                                    <t t-esc="formatNumber(job.done)"/> / <t t-esc="formatNumber(job.total)"/>
+                                    <t t-if="job.error"> · <t t-esc="formatNumber(job.error)"/> con error</t>
+                                </small>
+                            </div>
+                            <span t-attf-class="o_publisher_status_badge #{statusTone(job.status)}" t-esc="statusLabel(job.status)"/>
+                        </article>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+</templates>

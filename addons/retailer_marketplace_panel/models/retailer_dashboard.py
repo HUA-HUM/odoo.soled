@@ -26,7 +26,7 @@ class RetailerDashboard(models.Model):
         return self._open_action("retailer_marketplace_panel.action_retailer_marketplace")
 
     def action_open_publisher(self):
-        return self._open_action("sku_publisher_panel.action_publisher_dashboard")
+        return self._open_action("sku_publisher_panel.action_publisher_dashboard_panel")
 
     def action_open_updater(self):
         return self._open_action("retailer_marketplace_panel.action_marketplace_change_cards")

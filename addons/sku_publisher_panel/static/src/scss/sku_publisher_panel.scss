@@ -1347,3 +1347,176 @@
         grid-template-columns: 1fr;
     }
 }
+/* Dashboard del publicador: resumen en vivo. */
+.o_publisher_dashboard_loading {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--publisher-border);
+    border-radius: var(--publisher-radius-md);
+    color: var(--publisher-text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    min-height: 220px;
+    padding: 32px;
+}
+
+/* Las metricas chicas que acompanan cada numero grande. Hay que reponer los
+   estilos porque ".o_publisher_kpi span" pinta todos los span de la card. */
+.o_publisher_kpi_breakdown {
+    border-top: 1px dashed var(--publisher-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+.o_publisher_kpi_breakdown span {
+    align-items: center;
+    background: var(--publisher-surface);
+    border-radius: 999px;
+    color: var(--publisher-text-muted);
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 6px;
+    letter-spacing: 0;
+    padding: 5px 10px;
+    text-transform: none;
+}
+
+.o_publisher_kpi_breakdown span strong {
+    color: var(--publisher-ink);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0;
+}
+
+.o_publisher_kpi_breakdown span.is-warning {
+    background: rgba(255, 91, 98, 0.09);
+    color: var(--publisher-coral-dark);
+}
+
+.o_publisher_kpi_breakdown span.is-warning strong {
+    color: var(--publisher-coral-dark);
+}
+
+.o_publisher_kpi_error {
+    color: var(--publisher-coral);
+}
+
+/* Ultimos procesos. */
+.o_publisher_recent {
+    background: #ffffff;
+    border: 1px solid var(--publisher-border);
+    border-radius: var(--publisher-radius-md);
+    box-shadow: var(--publisher-shadow-sm);
+    margin-top: 20px;
+    padding: 20px;
+}
+
+.o_publisher_recent__head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.o_publisher_recent__head h2 {
+    color: var(--publisher-ink);
+    font-size: 16px;
+    font-weight: 850;
+    margin: 0;
+}
+
+.o_publisher_recent_row {
+    align-items: center;
+    border-top: 1px solid var(--publisher-border);
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.9fr) minmax(0, 1.2fr) auto;
+    padding: 12px 0;
+}
+
+.o_publisher_recent_row:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.o_publisher_recent_row__main {
+    min-width: 0;
+}
+
+.o_publisher_recent_row__main strong {
+    color: var(--publisher-ink);
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_publisher_recent_row__main small,
+.o_publisher_recent_row__progress small {
+    color: var(--publisher-text-muted);
+    display: block;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.o_publisher_recent_row__markets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.o_publisher_recent_row__markets span {
+    background: var(--publisher-surface);
+    border-radius: 999px;
+    color: var(--publisher-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 9px;
+}
+
+.o_publisher_progress {
+    background: var(--publisher-surface);
+    border-radius: 999px;
+    height: 6px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.o_publisher_progress span {
+    background: var(--publisher-teal);
+    border-radius: 999px;
+    display: block;
+    height: 100%;
+    transition: width 200ms ease;
+}
+
+.o_publisher_status_badge {
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 750;
+    padding: 5px 11px;
+    white-space: nowrap;
+}
+
+.o_publisher_status_badge.is-green { background: #ebf9f3; color: #08734b; }
+.o_publisher_status_badge.is-amber { background: #fff6e8; color: #98590c; }
+.o_publisher_status_badge.is-red { background: #fff1f2; color: #b4232d; }
+.o_publisher_status_badge.is-blue { background: #eff5ff; color: #285ea8; }
+.o_publisher_status_badge.is-gray { background: var(--publisher-surface); color: var(--publisher-text-muted); }
+
+@media (max-width: 900px) {
+    .o_publisher_recent_row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}

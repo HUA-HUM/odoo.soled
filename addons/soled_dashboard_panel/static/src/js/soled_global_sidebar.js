@@ -40,7 +40,7 @@ class SoledGlobalSidebar extends Component {
                 label: "Publicador",
                 description: "Publicación de SKU",
                 icon: "fa-upload",
-                action: "sku_publisher_panel.action_publisher_dashboard",
+                action: "sku_publisher_panel.action_publisher_dashboard_panel",
             },
             {
                 key: "updater",
