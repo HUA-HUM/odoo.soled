@@ -301,6 +301,137 @@ class RetailerMarketplaceChange(models.Model):
             },
         }
 
+    # ------------------------------------------------------------------
+    # Ejecuciones de procesos
+    # ------------------------------------------------------------------
+    @api.model
+    def _process_runs_base_url(self):
+        return "https://internal.solediluminacion.com/internal/process-runs"
+
+    @api.model
+    def _products_api_base_url(self):
+        return "https://api.products.solediluminacion.com"
+
+    @api.model
+    def _process_runs_request(self, url, params=None):
+        try:
+            response = requests.get(
+                url,
+                headers=self._api_headers(),
+                params=params or {},
+                timeout=60,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as error:
+            raise UserError(_("Error consultando ejecuciones: %s") % error) from error
+        except ValueError as error:
+            raise UserError(_("El servicio de ejecuciones no devolvió JSON válido.")) from error
+
+    @api.model
+    def get_process_runs_page(self, limit=24, offset=0, process_name=None, status=None, trigger_type=None):
+        params = {"limit": limit, "offset": offset}
+        if process_name:
+            params["processName"] = process_name
+        if status:
+            params["status"] = status
+        if trigger_type:
+            params["triggerType"] = trigger_type
+        payload = self._process_runs_request(self._process_runs_base_url(), params)
+        payload = payload if isinstance(payload, dict) else {}
+        pagination = payload.get("pagination")
+        pagination = pagination if isinstance(pagination, dict) else {}
+        return {
+            "items": payload.get("items") or [],
+            "pagination": {
+                "limit": pagination.get("limit") or limit,
+                "offset": pagination.get("offset") or 0,
+                "total": pagination.get("total") or 0,
+            },
+        }
+
+    @api.model
+    def get_process_runs_analytics(self, process_name=None, date_from=None, date_to=None):
+        params = {}
+        if process_name:
+            params["processName"] = process_name
+        if date_from:
+            params["from"] = date_from
+        if date_to:
+            params["to"] = date_to
+        return self._process_runs_request(
+            "%s/analytics" % self._process_runs_base_url(), params
+        )
+
+    @api.model
+    def _run_products_api_process(self, path, payload=None):
+        """Dispara un proceso pesado en products.api.
+
+        Recorren todo el catalogo publicado, por eso el timeout es alto: el
+        front deshabilita el boton mientras tanto.
+        """
+        try:
+            response = requests.post(
+                "%s%s" % (self._products_api_base_url(), path),
+                json=payload if payload is not None else {},
+                timeout=180,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as error:
+            raise UserError(_("Error ejecutando el proceso: %s") % error) from error
+        except ValueError as error:
+            raise UserError(_("El proceso no devolvió JSON válido.")) from error
+
+    @api.model
+    def action_run_meli_reconciliation(self):
+        summary = self._run_products_api_process("/publisher/meli-reconciliation/run")
+        summary = summary if isinstance(summary, dict) else {}
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Reconciliación MELI"),
+                "message": _("Publicaciones revisadas: %(checked)s | Correcciones: %(fixed)s")
+                % {
+                    "checked": summary.get("publicationsChecked", 0),
+                    "fixed": summary.get("correctionsQueued", 0),
+                },
+                "type": "success",
+                "sticky": True,
+            },
+        }
+
+    @api.model
+    def action_run_catalog_sync(self):
+        summary = self._run_products_api_process("/publisher/marketplace-publications/sync")
+        summary = summary if isinstance(summary, dict) else {}
+        marketplaces = summary.get("marketplaces")
+        marketplaces = marketplaces if isinstance(marketplaces, list) else []
+        synced = sum(
+            self._as_run_count(entry.get("productsSynced"))
+            for entry in marketplaces
+            if isinstance(entry, dict)
+        )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Sync de catálogo"),
+                "message": _("Productos sincronizados: %s") % synced,
+                "type": "success",
+                "sticky": True,
+            },
+        }
+
+    @api.model
+    def _as_run_count(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+
     def action_fetch_detail(self):
         self.ensure_one()
         try:

@@ -58,6 +58,14 @@
                                 <strong>Actualizador</strong>
                                 <span>SKUs modificados y sus acciones de cambio por marketplace.</span>
                             </button>
+
+                            <button name="action_open_bulk_actions" type="object" class="o_retailer_dashboard_card">
+                                <div class="o_retailer_dashboard_icon o_retailer_dashboard_icon_font">
+                                    <i class="fa fa-bolt" title="Acciones masivas"/>
+                                </div>
+                                <strong>Acciones masivas</strong>
+                                <span>Procesos sobre todo el catálogo y su historial de ejecuciones.</span>
+                            </button>
                         </section>
                     </div>
                 </sheet>

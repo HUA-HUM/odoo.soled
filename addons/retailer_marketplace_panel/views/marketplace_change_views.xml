@@ -115,4 +115,9 @@
         <field name="name">Actualizador</field>
         <field name="tag">retailer_marketplace_panel.changes_action</field>
     </record>
+
+    <record id="action_retailer_bulk_actions" model="ir.actions.client">
+        <field name="name">Acciones masivas</field>
+        <field name="tag">retailer_marketplace_panel.bulk_actions_action</field>
+    </record>
 </odoo>

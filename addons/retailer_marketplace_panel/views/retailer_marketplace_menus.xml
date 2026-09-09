@@ -11,4 +11,5 @@
     <menuitem id="menu_retailer_fravega_catalog" name="Catálogo" parent="menu_retailer_fravega" action="action_fravega_catalog_cards" sequence="10"/>
     <menuitem id="menu_retailer_fravega_orders" name="Órdenes" parent="menu_retailer_fravega" action="action_fravega_order" sequence="20"/>
     <menuitem id="menu_retailer_updater" name="Actualizador" parent="menu_retailer_root" action="action_marketplace_change_cards" sequence="20"/>
+    <menuitem id="menu_retailer_bulk_actions" name="Acciones masivas" parent="menu_retailer_root" action="action_retailer_bulk_actions" sequence="30"/>
 </odoo>

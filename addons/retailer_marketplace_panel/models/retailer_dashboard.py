@@ -30,3 +30,6 @@ class RetailerDashboard(models.Model):
 
     def action_open_updater(self):
         return self._open_action("retailer_marketplace_panel.action_marketplace_change_cards")
+
+    def action_open_bulk_actions(self):
+        return self._open_action("retailer_marketplace_panel.action_retailer_bulk_actions")
