@@ -13,7 +13,6 @@ class RetailerBulkActionsAction extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.state = useState({
-            activeTab: "runs",
             runs: [],
             runsLimit: 20,
             runsOffset: 0,
@@ -25,10 +24,6 @@ class RetailerBulkActionsAction extends Component {
             runningSync: false,
         });
         onWillStart(() => this.loadProcessRuns(0));
-    }
-
-    selectTab(tab) {
-        this.state.activeTab = tab;
     }
 
     get runsHasPrevious() {
@@ -165,17 +160,52 @@ class RetailerBulkActionsAction extends Component {
         );
     }
 
-    // El summary llega como objeto libre: lo mostramos legible en vez de JSON
-    // crudo, y caemos al error cuando la corrida fallo sin dejar resumen.
+    // El summary llega como objeto libre y varia por proceso: el sync anida
+    // {marketplaces: [...]} y la reconciliacion trae contadores planos. Sin
+    // aplanar el array, las corridas de sync mostraban "—".
     runSummaryText(run) {
         const summary = run && run.summary;
         if (!summary || typeof summary !== "object") {
             return (run && run.errorMessage) || "—";
         }
-        const parts = Object.entries(summary)
-            .filter(([, value]) => value !== null && value !== undefined && typeof value !== "object")
-            .map(([key, value]) => `${key}: ${value}`);
+        const parts = [];
+        for (const [key, value] of Object.entries(summary)) {
+            if (value === null || value === undefined) {
+                continue;
+            }
+            if (Array.isArray(value)) {
+                const nested = value
+                    .filter((entry) => entry && typeof entry === "object")
+                    .map((entry) => {
+                        const name = entry.marketplace || entry.name || "";
+                        const count = entry.productsSynced ?? entry.total;
+                        return name && count !== undefined ? `${name} ${count}` : name;
+                    })
+                    .filter(Boolean);
+                if (nested.length) {
+                    parts.push(nested.join(" · "));
+                }
+                continue;
+            }
+            if (typeof value === "object") {
+                continue;
+            }
+            parts.push(`${this.summaryLabel(key)} ${value}`);
+        }
         return parts.length ? parts.join(" · ") : (run && run.errorMessage) || "—";
+    }
+
+    summaryLabel(key) {
+        return (
+            {
+                publicationsChecked: "Revisadas",
+                meliItemsChecked: "Items MELI",
+                correctionsQueued: "Correcciones",
+                meliLookupErrors: "Errores",
+                productsSynced: "Sincronizados",
+                productsFound: "Encontrados",
+            }[key] || key
+        );
     }
 
     formatDate(value) {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="retailer_marketplace_panel.BulkActionsAction" owl="1">
-        <div class="o_retailer_catalog_page o_retailer_changes_page">
+        <div class="o_retailer_catalog_page o_retailer_bulk_page">
             <div t-if="isBusy" class="o_retailer_catalog_loading_overlay">
                 <div class="o_retailer_catalog_loading_box">
                     <span class="o_retailer_spinner"/>
@@ -11,121 +11,106 @@
                 </div>
             </div>
 
-            <section class="o_retailer_changes_header">
-                <div>
+            <section class="o_retailer_bulk_header">
+                <div class="o_retailer_bulk_header__intro">
                     <span class="o_retailer_changes_eyebrow">Retailers</span>
                     <h1>Acciones masivas</h1>
-                    <p>Ejecutá procesos sobre todo el catálogo y seguí el historial de cada corrida.</p>
+                    <p>Procesos sobre todo el catálogo publicado y el historial de cada corrida.</p>
+                </div>
+                <div class="o_retailer_bulk_header__actions">
+                    <button type="button" class="o_retailer_bulk_action is-primary" t-on-click="runReconciliationNow" t-att-disabled="isBusy">
+                        <i t-attf-class="fa #{state.runningReconciliation ? 'fa-spinner fa-spin' : 'fa-refresh'}"/>
+                        <span>
+                            <strong>Reconciliar con MELI</strong>
+                            <small>Pausa lo que ya no está activo</small>
+                        </span>
+                    </button>
+                    <button type="button" class="o_retailer_bulk_action" t-on-click="runCatalogSyncNow" t-att-disabled="isBusy">
+                        <i t-attf-class="fa #{state.runningSync ? 'fa-spinner fa-spin' : 'fa-cloud-download'}"/>
+                        <span>
+                            <strong>Sincronizar catálogo</strong>
+                            <small>Trae OnCity y Frávega</small>
+                        </span>
+                    </button>
                 </div>
             </section>
 
-            <nav class="o_retailer_changes_tabs" aria-label="Secciones de Acciones masivas">
-                <button type="button" t-attf-class="o_retailer_changes_tab #{state.activeTab === 'runs' ? 'is-active' : ''}" t-on-click="() => this.selectTab('runs')">
-                    <i class="fa fa-play-circle"/>Ejecuciones
-                </button>
-            </nav>
+            <section t-if="state.runsError" class="o_retailer_changes_error" role="alert">
+                <div><i class="fa fa-exclamation-circle"/><span t-esc="state.runsError"/></div>
+            </section>
 
-            <div t-if="state.activeTab === 'runs'" class="o_retailer_runs_content">
-                <section class="o_retailer_runs_actions">
-                    <div>
-                        <h3>Procesos manuales</h3>
-                        <p>Corren sobre todo el catálogo publicado, pueden tardar varios minutos.</p>
+            <section class="o_retailer_runs_card">
+                <header class="o_retailer_runs_card__head">
+                    <div class="o_retailer_runs_card__title">
+                        <h2>Ejecuciones</h2>
+                        <span t-if="state.runsTotal" class="o_retailer_runs_count" t-esc="state.runsTotal"/>
                     </div>
-                    <div class="o_retailer_runs_actions__buttons">
-                        <button type="button" class="btn btn-primary" t-on-click="runReconciliationNow" t-att-disabled="isBusy">
-                            <i t-attf-class="fa #{state.runningReconciliation ? 'fa-spinner fa-spin' : 'fa-refresh'} me-1"/>
-                            <t t-if="state.runningReconciliation">Ejecutando...</t>
-                            <t t-else="">Ejecutar reconciliación</t>
+                    <form class="o_retailer_runs_inline_filters" t-on-submit="applyRunsFilters">
+                        <input type="text" placeholder="Proceso" t-model="state.runsFilters.processName" t-att-disabled="state.runsLoading"/>
+                        <select t-model="state.runsFilters.status" t-on-change="applyRunsFilters" t-att-disabled="state.runsLoading">
+                            <option value="">Todo estado</option>
+                            <option value="running">Corriendo</option>
+                            <option value="completed">Completado</option>
+                            <option value="failed">Con error</option>
+                        </select>
+                        <select t-model="state.runsFilters.triggerType" t-on-change="applyRunsFilters" t-att-disabled="state.runsLoading">
+                            <option value="">Todo disparo</option>
+                            <option value="cron">Automático</option>
+                            <option value="manual">Manual</option>
+                            <option value="api">API</option>
+                        </select>
+                        <button type="button" t-if="hasRunsFilters" class="o_retailer_runs_clear" t-on-click="resetRunsFilters" t-att-disabled="state.runsLoading" title="Limpiar filtros">
+                            <i class="fa fa-times"/>
                         </button>
-                        <button type="button" class="btn btn-secondary" t-on-click="runCatalogSyncNow" t-att-disabled="isBusy">
-                            <i t-attf-class="fa #{state.runningSync ? 'fa-spinner fa-spin' : 'fa-cloud-download'} me-1"/>
-                            <t t-if="state.runningSync">Sincronizando...</t>
-                            <t t-else="">Sincronizar catálogo</t>
-                        </button>
-                    </div>
-                </section>
-
-                <section class="o_retailer_runs_filters">
-                    <form t-on-submit="applyRunsFilters">
-                        <label class="o_retailer_filter_field">
-                            <span>Proceso</span>
-                            <input type="text" placeholder="Todos" t-model="state.runsFilters.processName" t-att-disabled="state.runsLoading"/>
-                        </label>
-                        <label class="o_retailer_filter_field">
-                            <span>Estado</span>
-                            <select t-model="state.runsFilters.status" t-att-disabled="state.runsLoading">
-                                <option value="">Todos</option>
-                                <option value="running">Corriendo</option>
-                                <option value="completed">Completado</option>
-                                <option value="failed">Con error</option>
-                            </select>
-                        </label>
-                        <label class="o_retailer_filter_field">
-                            <span>Disparo</span>
-                            <select t-model="state.runsFilters.triggerType" t-att-disabled="state.runsLoading">
-                                <option value="">Todos</option>
-                                <option value="cron">Automático</option>
-                                <option value="manual">Manual</option>
-                                <option value="api">API</option>
-                            </select>
-                        </label>
-                        <div class="o_retailer_runs_filters__actions">
-                            <button type="submit" class="btn btn-primary" t-att-disabled="state.runsLoading">Filtrar</button>
-                            <button type="button" class="btn btn-secondary" t-if="hasRunsFilters" t-on-click="resetRunsFilters" t-att-disabled="state.runsLoading">Limpiar</button>
-                        </div>
                     </form>
-                </section>
+                </header>
 
-                <section t-if="state.runsError" class="o_retailer_changes_error" role="alert">
-                    <div><i class="fa fa-exclamation-circle"/><span t-esc="state.runsError"/></div>
-                </section>
-
-                <section t-if="state.runsLoading" class="o_retailer_runs_loading">
-                    <span class="o_retailer_spinner"/><strong>Cargando ejecuciones...</strong>
-                </section>
+                <div t-if="state.runsLoading" class="o_retailer_runs_placeholder">
+                    <span class="o_retailer_spinner"/>
+                </div>
 
                 <t t-else="">
-                    <section t-if="state.runs.length" class="o_retailer_runs_panel">
-                        <div class="o_retailer_table_wrap">
-                            <table class="o_retailer_runs_table">
-                                <thead>
-                                    <tr>
-                                        <th>Proceso</th>
-                                        <th>Disparo</th>
-                                        <th>Estado</th>
-                                        <th>Inicio</th>
-                                        <th>Duración</th>
-                                        <th>Resumen</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr t-foreach="state.runs" t-as="run" t-key="run.id">
-                                        <td><strong t-esc="processLabel(run.processName)"/></td>
-                                        <td t-esc="triggerLabel(run.triggerType)"/>
-                                        <td><span t-attf-class="o_retailer_change_status #{statusClass(run.status)}" t-esc="statusLabel(run.status)"/></td>
-                                        <td t-esc="formatDate(run.startedAt)"/>
-                                        <td t-esc="formatDuration(run.durationMs)"/>
-                                        <td class="o_retailer_runs_summary" t-att-title="runSummaryText(run)" t-esc="runSummaryText(run)"/>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
+                    <div t-if="state.runs.length" class="o_retailer_table_wrap">
+                        <table class="o_retailer_runs_table">
+                            <thead>
+                                <tr>
+                                    <th>Proceso</th>
+                                    <th>Disparo</th>
+                                    <th>Estado</th>
+                                    <th>Inicio</th>
+                                    <th class="is-numeric">Duración</th>
+                                    <th>Resumen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.runs" t-as="run" t-key="run.id">
+                                    <td><strong t-esc="processLabel(run.processName)"/></td>
+                                    <td class="is-muted" t-esc="triggerLabel(run.triggerType)"/>
+                                    <td><span t-attf-class="o_retailer_runs_status #{statusClass(run.status)}" t-esc="statusLabel(run.status)"/></td>
+                                    <td class="is-muted" t-esc="formatDate(run.startedAt)"/>
+                                    <td class="is-numeric" t-esc="formatDuration(run.durationMs)"/>
+                                    <td class="o_retailer_runs_summary" t-att-title="runSummaryText(run)" t-esc="runSummaryText(run)"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <section t-if="state.runs.length" class="o_retailer_catalog_pager">
-                        <button type="button" class="btn btn-secondary" t-att-disabled="!runsHasPrevious" t-on-click="previousRunsPage">Anterior</button>
-                        <span><t t-esc="state.runsOffset + 1"/> - <t t-esc="Math.min(state.runsOffset + state.runsLimit, state.runsTotal)"/> de <t t-esc="state.runsTotal"/></span>
-                        <button type="button" class="btn btn-secondary" t-att-disabled="!runsHasNext" t-on-click="nextRunsPage">Siguiente</button>
-                    </section>
-
-                    <section t-if="!state.runs.length" class="o_retailer_runs_empty">
+                    <div t-else="" class="o_retailer_runs_placeholder is-empty">
                         <i class="fa fa-inbox"/>
                         <strong>No hay ejecuciones para mostrar.</strong>
                         <small t-if="hasRunsFilters">Probá quitando los filtros.</small>
                         <small t-else="">Cuando corra un proceso, automático o manual, va a aparecer acá.</small>
-                    </section>
+                    </div>
+
+                    <footer t-if="state.runs.length &amp;&amp; state.runsTotal > state.runsLimit" class="o_retailer_runs_card__foot">
+                        <span><t t-esc="state.runsOffset + 1"/>–<t t-esc="Math.min(state.runsOffset + state.runsLimit, state.runsTotal)"/> de <t t-esc="state.runsTotal"/></span>
+                        <div>
+                            <button type="button" t-att-disabled="!runsHasPrevious" t-on-click="previousRunsPage"><i class="fa fa-chevron-left"/></button>
+                            <button type="button" t-att-disabled="!runsHasNext" t-on-click="nextRunsPage"><i class="fa fa-chevron-right"/></button>
+                        </div>
+                    </footer>
                 </t>
-            </div>
+            </section>
         </div>
     </t>
 </templates>
