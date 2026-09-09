@@ -2,14 +2,14 @@
 <templates xml:space="preserve">
     <t t-name="soled_dashboard_panel.GlobalSidebar" owl="1">
         <div class="o_soled_shell">
-            <button t-if="previousModule" class="o_soled_global_back" type="button"
-                    t-attf-title="Volver a {{previousModule.label}}"
+            <button t-if="previousItem" class="o_soled_global_back" type="button"
+                    t-attf-title="Volver a {{previousItem.label}}"
                     t-on-click="goBack">
                 <i class="fa fa-arrow-left"/>
-                <span t-esc="previousModule.label"/>
+                <span t-esc="previousItem.label"/>
             </button>
 
-            <aside class="o_soled_global_sidebar" aria-label="Accesos rápidos a módulos">
+            <aside class="o_soled_global_sidebar" aria-label="Navegación del panel">
                 <header class="o_soled_sidebar_brand">
                     <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
                     <div>
@@ -19,29 +19,39 @@
                 </header>
 
                 <nav class="o_soled_sidebar_navigation">
-                    <span class="o_soled_sidebar_section">Módulos</span>
-                    <button t-foreach="operationalModules" t-as="module" t-key="module.key" type="button"
-                            t-att-title="module.label"
-                            t-attf-class="o_soled_sidebar_link #{state.activeKey === module.key ? 'is-active' : ''}"
-                            t-on-click="() => this.openModule(module)">
-                        <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{module.icon}"/></span>
-                        <span class="o_soled_sidebar_copy">
-                            <strong t-esc="module.label"/>
-                            <small t-esc="module.description"/>
-                        </span>
-                    </button>
+                    <t t-foreach="state.sections" t-as="section" t-key="section.key">
+                        <span t-attf-class="o_soled_sidebar_section #{section_index > 0 ? 'o_soled_sidebar_section_split' : ''}" t-esc="section.label"/>
 
-                    <span class="o_soled_sidebar_section o_soled_sidebar_system_title">Sistema</span>
-                    <button t-foreach="systemModules" t-as="module" t-key="module.key" type="button"
-                            t-att-title="module.label"
-                            t-attf-class="o_soled_sidebar_link #{state.activeKey === module.key ? 'is-active' : ''}"
-                            t-on-click="() => this.openModule(module)">
-                        <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{module.icon}"/></span>
-                        <span class="o_soled_sidebar_copy">
-                            <strong t-esc="module.label"/>
-                            <small t-esc="module.description"/>
-                        </span>
-                    </button>
+                        <div t-foreach="section.items" t-as="item" t-key="item.key" class="o_soled_sidebar_group">
+                            <div t-attf-class="o_soled_sidebar_link #{state.activeKey === item.key ? 'is-active' : ''} #{state.activeKey === item.key &amp;&amp; !state.activeChildKey ? 'is-current' : ''}">
+                                <button type="button" class="o_soled_sidebar_link_main"
+                                        t-att-title="item.label"
+                                        t-on-click="() => this.openItem(item)">
+                                    <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{item.icon}"/></span>
+                                    <span class="o_soled_sidebar_copy">
+                                        <strong t-esc="item.label"/>
+                                        <small t-esc="item.description"/>
+                                    </span>
+                                </button>
+                                <button t-if="hasChildren(item)" type="button" class="o_soled_sidebar_toggle"
+                                        t-attf-title="#{isExpanded(item) ? 'Contraer' : 'Desplegar'} {{item.label}}"
+                                        t-att-aria-expanded="isExpanded(item) ? 'true' : 'false'"
+                                        t-on-click="(ev) => this.toggle(item, ev)">
+                                    <i t-attf-class="fa #{isExpanded(item) ? 'fa-chevron-up' : 'fa-chevron-down'}"/>
+                                </button>
+                            </div>
+
+                            <div t-if="hasChildren(item) &amp;&amp; isExpanded(item)" class="o_soled_sidebar_children">
+                                <button t-foreach="item.children" t-as="child" t-key="child.key" type="button"
+                                        t-attf-class="o_soled_sidebar_child #{state.activeChildKey === child.key ? 'is-current' : ''}"
+                                        t-att-title="child.label"
+                                        t-on-click="() => this.openItem(item, child)">
+                                    <span class="o_soled_sidebar_child_dot"/>
+                                    <span t-esc="child.label"/>
+                                </button>
+                            </div>
+                        </div>
+                    </t>
                 </nav>
 
                 <footer class="o_soled_sidebar_footer">

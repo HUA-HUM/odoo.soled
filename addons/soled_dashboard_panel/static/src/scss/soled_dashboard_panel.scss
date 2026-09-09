@@ -57,134 +57,154 @@
     padding: 46px 24px 64px;
 }
 
+/* Selector de area: sin el cartel oscuro, el titulo va sobre el fondo. */
 .o_soled_home {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    max-width: 960px;
     min-height: 100vh;
 }
 
-.o_soled_home_hero {
-    align-items: center;
-    background: #17303f;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 18px;
-    box-shadow: 0 22px 50px rgba(23, 48, 63, 0.12);
-    display: flex;
-    gap: 22px;
-    margin-bottom: 20px;
-    min-height: 138px;
-    padding: 26px 32px;
+.o_soled_home_intro {
+    margin-bottom: 28px;
 }
 
-.o_soled_home_hero img {
-    background: rgba(0, 0, 0, 0.12);
-    border-radius: 12px;
-    max-height: 76px;
-    max-width: 180px;
-    object-fit: contain;
-    padding: 14px 18px;
-}
-
-.o_soled_home_hero span,
-.o_soled_area_header span {
-    color: #ffb173;
+.o_soled_home_eyebrow {
+    color: #94a3b8;
     display: block;
-    font-size: 12px;
-    font-weight: 850;
-    letter-spacing: 0;
-    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
-.o_soled_home_hero h1,
-.o_soled_area_header h1 {
-    color: #ffffff;
-    font-size: 36px;
-    font-weight: 850;
-    margin: 0;
+.o_soled_home_intro h1 {
+    color: #17303f;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 10px 0 0;
+}
+
+.o_soled_home_intro p {
+    color: #7a8798;
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 10px 0 0;
+    max-width: 58ch;
 }
 
 .o_soled_area_grid {
     display: grid;
-    gap: 18px;
+    gap: 14px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Las tarjetas explican que hay adentro en vez de ser solo un rotulo grande. */
 .o_soled_area_card {
-    align-items: center;
+    align-items: flex-start;
     background: #ffffff;
-    border: 1px solid #d9e1e5;
-    border-radius: 18px;
-    box-shadow: 0 16px 36px rgba(23, 48, 63, 0.07);
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
     color: #17303f;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    justify-content: center;
-    min-height: 176px;
+    gap: 0;
+    justify-content: flex-start;
+    min-height: 0;
     padding: 22px;
-    text-align: center;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    position: relative;
+    text-align: left;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
     width: 100%;
 }
 
 .o_soled_area_icon {
     align-items: center;
     background: #f4f7f8;
-    border: 1px solid #d9e1e5;
-    border-radius: 18px;
+    border: 0;
+    border-radius: 11px;
     color: #17303f;
     display: flex;
-    font-size: 30px;
-    height: 74px;
+    font-size: 17px;
+    height: 42px;
     justify-content: center;
-    width: 74px;
+    margin-bottom: 16px;
+    width: 42px;
+}
+
+.o_soled_area_name {
+    display: block;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.o_soled_area_card small {
+    color: #7a8798;
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.45;
+    margin-top: 6px;
+}
+
+/* La flecha aparece al pasar el mouse: indica destino sin sumar ruido. */
+.o_soled_area_go {
+    color: #cbd5e1;
+    font-size: 12px;
+    opacity: 0;
+    position: absolute;
+    right: 20px;
+    top: 24px;
+    transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
 .o_soled_area_card:hover,
 .o_soled_area_card:focus,
 .o_soled_module_card:hover,
 .o_soled_module_card:focus {
-    border-color: #f65359;
-    box-shadow: 0 18px 36px rgba(246, 83, 89, 0.13);
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 26px rgba(23, 48, 63, 0.08);
+    outline: none;
     transform: translateY(-2px);
 }
 
-.o_soled_area_card span {
-    font-size: 26px;
-    font-weight: 850;
+.o_soled_area_card:hover .o_soled_area_go,
+.o_soled_area_card:focus .o_soled_area_go {
+    opacity: 1;
+    transform: translateX(3px);
 }
 
-.o_soled_area_admin {
-    border-top: 4px solid #ffb173;
+/* El color identifica el area sin pintarle un borde grueso arriba. */
+.o_soled_area_commercial .o_soled_area_icon {
+    background: #fff0f1;
+    color: #f65359;
+}
+
+.o_soled_area_commercial:hover,
+.o_soled_area_commercial:focus {
+    border-color: #ffc8cb;
 }
 
 .o_soled_area_admin .o_soled_area_icon {
     background: #fff3e8;
-    border-color: #ffd4af;
     color: #9f4d05;
 }
 
-.o_soled_area_commercial {
-    border-top: 4px solid #f65359;
-}
-
-.o_soled_area_commercial .o_soled_area_icon {
-    background: #fff0f1;
-    border-color: #ffc8cb;
-    color: #f65359;
-}
-
-.o_soled_area_config {
-    border-top: 4px solid #17303f;
+.o_soled_area_admin:hover,
+.o_soled_area_admin:focus {
+    border-color: #ffd4af;
 }
 
 .o_soled_area_config .o_soled_area_icon {
     background: #edf4f7;
-    border-color: #cbd8df;
     color: #17303f;
+}
+
+.o_soled_area_config:hover,
+.o_soled_area_config:focus {
+    border-color: #cbd8df;
 }
 
 .o_soled_area_header {
@@ -322,19 +342,18 @@
         padding: 24px 14px 42px;
     }
 
-    .o_soled_home_hero,
     .o_soled_area_header {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .o_soled_home_hero h1,
+    .o_soled_home_intro h1,
     .o_soled_area_header h1 {
-        font-size: 28px;
+        font-size: 26px;
     }
 
-    .o_soled_area_card {
-        min-height: 156px;
+    .o_soled_area_grid {
+        grid-template-columns: 1fr;
     }
 
     .o_soled_module_grid {
@@ -468,42 +487,104 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     display: block;
     font-size: 9px;
     font-weight: 750;
-    letter-spacing: 0.1em;
-    padding: 0 9px 6px;
+    letter-spacing: 0.12em;
+    padding: 0 9px 8px;
     text-transform: uppercase;
 }
 
-.o_soled_sidebar_system_title {
+.o_soled_sidebar_section_split {
     border-top: 1px solid rgba(255, 255, 255, 0.07);
-    margin-top: 8px;
-    padding-top: 13px;
+    margin-top: 10px;
+    padding-top: 14px;
 }
 
+.o_soled_sidebar_group {
+    margin-bottom: 2px;
+}
+
+/* El link es un contenedor: adentro van el destino y el desplegable, que son
+   dos acciones distintas y no deben pisarse. */
 .o_soled_sidebar_link {
-    align-items: center;
-    background: transparent;
-    border: 0;
+    align-items: stretch;
     border-radius: 10px;
-    color: #cbd5e1;
     display: flex;
-    gap: 10px;
-    min-height: 50px;
-    min-width: 0;
-    padding: 7px 9px;
-    text-align: left;
-    transition: background 140ms ease, color 140ms ease;
-    width: 100%;
+    overflow: hidden;
+    position: relative;
+    transition: background 140ms ease;
 }
 
-.o_soled_sidebar_link:hover,
-.o_soled_sidebar_link:focus {
-    background: rgba(255, 255, 255, 0.07);
-    color: #ffffff;
-    outline: 0;
+.o_soled_sidebar_link:hover {
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .o_soled_sidebar_link.is-active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Barra a la izquierda: marca la seccion en la que estas parado, aunque
+   estes viendo una subseccion. */
+.o_soled_sidebar_link.is-active::before {
+    background: #f65359;
+    border-radius: 0 3px 3px 0;
+    bottom: 8px;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 8px;
+    width: 3px;
+}
+
+.o_soled_sidebar_link_main {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #cbd5e1;
+    display: flex;
+    flex: 1 1 auto;
+    gap: 10px;
+    min-height: 48px;
+    min-width: 0;
+    padding: 7px 9px;
+    text-align: left;
+}
+
+.o_soled_sidebar_link.is-active .o_soled_sidebar_link_main {
+    color: #ffffff;
+}
+
+/* La pagina exacta va en blanco pleno; la seccion contenedora, apenas marcada. */
+.o_soled_sidebar_link.is-current {
     background: #ffffff;
+}
+
+.o_soled_sidebar_link.is-current .o_soled_sidebar_link_main {
+    color: #111827;
+}
+
+.o_soled_sidebar_link.is-current::before {
+    display: none;
+}
+
+.o_soled_sidebar_toggle {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #64748b;
+    display: flex;
+    flex: 0 0 30px;
+    font-size: 9px;
+    justify-content: center;
+}
+
+.o_soled_sidebar_toggle:hover {
+    color: #ffffff;
+}
+
+.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle {
+    color: #94a3b8;
+}
+
+.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle:hover {
     color: #111827;
 }
 
@@ -512,14 +593,14 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     background: rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     display: inline-flex;
-    flex: 0 0 34px;
-    font-size: 13px;
-    height: 34px;
+    flex: 0 0 32px;
+    font-size: 12px;
+    height: 32px;
     justify-content: center;
-    width: 34px;
+    width: 32px;
 }
 
-.o_soled_sidebar_link.is-active .o_soled_sidebar_icon {
+.o_soled_sidebar_link.is-current .o_soled_sidebar_icon {
     background: #f1f5f9;
 }
 
@@ -553,8 +634,65 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
     color: #94a3b8;
 }
 
-.o_soled_sidebar_link.is-active small {
+.o_soled_sidebar_link.is-current small {
     color: #64748b;
+}
+
+/* Subsecciones: guia vertical para que se lean como hijas de su modulo. */
+.o_soled_sidebar_children {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    margin: 3px 0 6px 25px;
+    padding-left: 9px;
+}
+
+.o_soled_sidebar_child {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    color: #94a3b8;
+    display: flex;
+    font-size: 11.5px;
+    font-weight: 550;
+    gap: 8px;
+    min-height: 30px;
+    min-width: 0;
+    padding: 4px 9px;
+    text-align: left;
+    transition: background 130ms ease, color 130ms ease;
+}
+
+.o_soled_sidebar_child span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_soled_sidebar_child:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e5e7eb;
+}
+
+.o_soled_sidebar_child_dot {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    flex: 0 0 4px;
+    height: 4px;
+    transition: background 130ms ease, transform 130ms ease;
+    width: 4px;
+}
+
+.o_soled_sidebar_child.is-current {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.o_soled_sidebar_child.is-current .o_soled_sidebar_child_dot {
+    background: #f65359;
+    transform: scale(1.5);
 }
 
 .o_soled_sidebar_footer {
@@ -664,15 +802,16 @@ $soled-sidebar-width: clamp(210px, 13.5vw, 272px);
         padding: 12px 8px;
     }
 
-    .o_soled_sidebar_system_title {
-        display: block;
-        height: 1px;
-        margin: 8px 0;
-        padding: 0;
-        width: 36px;
+    .o_soled_sidebar_toggle,
+    .o_soled_sidebar_children {
+        display: none !important;
     }
 
-    .o_soled_sidebar_link {
+    .o_soled_sidebar_group {
+        width: 100%;
+    }
+
+    .o_soled_sidebar_link_main {
         justify-content: center;
         min-height: 44px;
         padding: 6px;

@@ -23,26 +23,30 @@
             <form string="Panel SOLED" create="false" edit="false">
                 <sheet class="o_soled_dashboard_sheet">
                     <div class="o_soled_home">
-                        <div class="o_soled_home_hero">
-                            <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                            <div>
-                                <span>Panel SOLED</span>
-                                <h1>Elegir area de trabajo</h1>
-                            </div>
+                        <div class="o_soled_home_intro">
+                            <span class="o_soled_home_eyebrow">Panel SOLED</span>
+                            <h1>Elegí tu área de trabajo</h1>
+                            <p>Cada área agrupa los módulos que vas a usar. Podés cambiar de área cuando quieras desde el menú lateral.</p>
                         </div>
 
                         <div class="o_soled_area_grid">
-                            <button name="action_open_administration" type="object" class="o_soled_area_card o_soled_area_admin">
-                                <i class="fa fa-building-o o_soled_area_icon"></i>
-                                <span>Administracion</span>
-                            </button>
                             <button name="action_open_commercial" type="object" class="o_soled_area_card o_soled_area_commercial">
                                 <i class="fa fa-line-chart o_soled_area_icon"></i>
-                                <span>Comercial</span>
+                                <span class="o_soled_area_name">Comercial</span>
+                                <small>MercadoLibre, Retailers y Coresa.</small>
+                                <i class="fa fa-arrow-right o_soled_area_go"></i>
+                            </button>
+                            <button name="action_open_administration" type="object" class="o_soled_area_card o_soled_area_admin">
+                                <i class="fa fa-building-o o_soled_area_icon"></i>
+                                <span class="o_soled_area_name">Administración</span>
+                                <small>Procesos internos de la operación.</small>
+                                <i class="fa fa-arrow-right o_soled_area_go"></i>
                             </button>
                             <button name="action_open_configurations" type="object" class="o_soled_area_card o_soled_area_config">
                                 <i class="fa fa-cog o_soled_area_icon"></i>
-                                <span>Configuraciones</span>
+                                <span class="o_soled_area_name">Configuraciones</span>
+                                <small>Usuarios, accesos y ajustes del panel.</small>
+                                <i class="fa fa-arrow-right o_soled_area_go"></i>
                             </button>
                         </div>
                     </div>
