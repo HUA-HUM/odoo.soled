@@ -225,17 +225,17 @@
                     <div class="o_publisher_candidate_body">
                         <div class="o_publisher_candidate_top">
                             <strong t-esc="item.sku"/>
-                            <span t-esc="item.status"/>
+                            <span t-attf-class="o_publisher_candidate_state #{statusTone(item.status)}" t-esc="statusLabel(item.status)"/>
                         </div>
                         <div class="o_publisher_candidate_badges">
-                            <span t-if="item.listing_type_id" t-esc="item.listing_type_id"/>
-                            <span t-if="item.logistic_type" t-esc="item.logistic_type"/>
+                            <span t-if="listingLabel(item)" t-esc="listingLabel(item)"/>
+                            <span t-if="item.logistic_type" t-esc="logisticLabel(item.logistic_type)"/>
                         </div>
                         <div class="o_publisher_candidate_title" t-esc="item.title"/>
                         <div class="o_publisher_candidate_meta">
-                            <span>$ <t t-esc="item.price"/></span>
-                            <span>Stock <t t-esc="item.stock"/></span>
-                            <span>Vendidos <t t-esc="item.sold_quantity || 0"/></span>
+                            <span class="is-price" t-esc="formatMoney(item.price)"/>
+                            <span>Stock <strong t-esc="formatUnits(item.stock)"/></span>
+                            <span t-if="item.sold_quantity">Vendidos <strong t-esc="formatUnits(item.sold_quantity)"/></span>
                         </div>
                         <div class="o_publisher_candidate_aggregate" t-if="item.publications">
                             <span t-if="formatPriceRange(item)" title="Rango de precios entre todas las publicaciones del SKU">

@@ -38,6 +38,7 @@ class PublisherDashboardAction extends Component {
         this.notification = useService("notification");
         this.state = useState({
             activeTab: "candidates",
+            syncProgress: null,
             loading: true,
             syncing: "",
             candidates: {},
@@ -147,6 +148,64 @@ class PublisherDashboardAction extends Component {
         ].filter((row) => Number.isFinite(Number(row.value)));
     }
 
+    get syncPercent() {
+        const progress = this.state.syncProgress;
+        if (!progress || !progress.total) {
+            return 0;
+        }
+        return Math.min(100, Math.round((progress.processed / progress.total) * 100));
+    }
+
+    // El refresh se encadena por tandas para poder informar avance; en un solo
+    // paso eran ~1.400 upserts sin ninguna senal de vida.
+    async syncCandidates() {
+        this.state.syncing = "candidates";
+        this.state.syncProgress = { processed: 0, total: 0 };
+        try {
+            const run = await this.orm.call("publisher.sku", "refresh_candidates_start", []);
+            const batchSize = run.batchSize || 100;
+            this.state.syncProgress.total = run.total || 0;
+
+            let offset = 0;
+            let created = 0;
+            let updated = 0;
+            // Tope defensivo: sin el, un "done" que nunca llega cuelga la pestana.
+            for (let guard = 0; guard < 500; guard++) {
+                const batch = await this.orm.call("publisher.sku", "refresh_candidates_batch", [], {
+                    offset,
+                    limit: batchSize,
+                });
+                created += batch.created || 0;
+                updated += batch.updated || 0;
+                this.state.syncProgress.processed = batch.processed || 0;
+                if (batch.total) {
+                    this.state.syncProgress.total = batch.total;
+                }
+                if (batch.done) {
+                    break;
+                }
+                offset += batchSize;
+            }
+
+            const finish = await this.orm.call("publisher.sku", "refresh_candidates_finish", [], {
+                started_at: run.startedAt,
+            });
+            this.notification.add(
+                `Candidatos sincronizados: ${created} nuevos, ${updated} actualizados, ${finish.removed || 0} eliminados.`,
+                { type: "success" }
+            );
+            await this.loadOverview();
+        } catch (error) {
+            this.notification.add(
+                error?.data?.message || "No se pudo sincronizar los candidatos.",
+                { type: "danger" }
+            );
+        } finally {
+            this.state.syncing = "";
+            this.state.syncProgress = null;
+        }
+    }
+
     statusLabel(status) {
         return JOB_STATUS_LABELS[status] || this.titleize(status);
     }
@@ -220,6 +279,9 @@ class PublisherDashboardAction extends Component {
         const target = targets[key];
         if (!target || this.state.syncing) {
             return;
+        }
+        if (key === "candidates") {
+            return this.syncCandidates();
         }
         this.state.syncing = key;
         try {

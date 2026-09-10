@@ -795,6 +795,33 @@
     white-space: pre-wrap;
 }
 
+/* Estado del SKU: pill traducida en vez del codigo crudo de MELI. */
+.o_publisher_candidate_state {
+    border-radius: 999px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+}
+
+.o_publisher_candidate_state.is-green { background: #ebf9f3; color: #08734b; }
+.o_publisher_candidate_state.is-amber { background: #fff6e8; color: #98590c; }
+.o_publisher_candidate_state.is-blue { background: #eff5ff; color: #285ea8; }
+.o_publisher_candidate_state.is-gray { background: var(--publisher-surface); color: var(--publisher-text-muted); }
+
+.o_publisher_candidate_meta span.is-price {
+    color: var(--publisher-ink);
+    flex: 1 1 auto;
+    font-size: 14px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_publisher_candidate_meta strong {
+    color: var(--publisher-ink);
+    font-variant-numeric: tabular-nums;
+}
+
 /* Barra de filtros del listado de candidatos. */
 .o_publisher_candidates_toolbar {
     flex-wrap: wrap;
@@ -1410,6 +1437,40 @@
     font-size: 13px;
     gap: 10px;
     padding: 14px 18px;
+}
+
+.o_publisher_sync_progress {
+    background: #ffffff;
+    border: 1px solid var(--publisher-border);
+    border-radius: var(--publisher-radius-md);
+    margin-bottom: 14px;
+    padding: 16px 18px;
+}
+
+.o_publisher_sync_progress__head {
+    align-items: baseline;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.o_publisher_sync_progress__head strong {
+    color: var(--publisher-ink);
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.o_publisher_sync_progress__head span {
+    color: var(--publisher-text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_publisher_sync_progress small {
+    color: var(--publisher-text-muted);
+    display: block;
+    font-size: 11px;
+    margin-top: 8px;
 }
 
 /* Paneles de cada pestana. */

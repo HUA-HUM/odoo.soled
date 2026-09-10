@@ -57,45 +57,112 @@ class PublisherSku(models.Model):
         ("sku_unique", "unique(sku)", "El SKU ya existe en el publicador."),
     ]
 
+    # ------------------------------------------------------------------
+    # Sincronizacion del espejo local
+    # ------------------------------------------------------------------
+    REFRESH_BATCH_SIZE = 100
+
+    @api.model
+    def refresh_candidates_start(self):
+        """Abre una corrida y devuelve cuanto hay que recorrer.
+
+        El front encadena las tandas para mostrar avance real; antes esto era
+        un solo loop de 15 paginas y ~1.400 upserts en una transaccion, que
+        dejaba la pantalla sin saber si seguia viva.
+        """
+        self._check_refresh_access()
+        payload = self._fetch_publication_status(limit=1, offset=0)
+        pagination = payload.get("pagination") or {}
+        return {
+            "total": self._to_int(pagination.get("total")),
+            "batchSize": self.REFRESH_BATCH_SIZE,
+            "startedAt": fields.Datetime.to_string(fields.Datetime.now()),
+        }
+
+    @api.model
+    def refresh_candidates_batch(self, offset=0, limit=None):
+        """Procesa una tanda. Cada una va en su propia transaccion."""
+        self._check_refresh_access()
+        limit = self._to_int(limit) or self.REFRESH_BATCH_SIZE
+        offset = max(self._to_int(offset), 0)
+        payload = self._fetch_publication_status(limit=limit, offset=offset)
+        items = payload.get("items") or []
+        pagination = payload.get("pagination") or {}
+
+        created = 0
+        updated = 0
+        for item in items:
+            sku = (item.get("sku") or "").strip()
+            if not sku:
+                continue
+            values = self._prepare_candidate_values_from_api(item)
+            existing = self.search([("sku", "=", sku)], limit=1)
+            if existing:
+                existing.write(values)
+                updated += 1
+            else:
+                self.create(values)
+                created += 1
+
+        total = self._to_int(pagination.get("total"))
+        processed = offset + len(items)
+        return {
+            "created": created,
+            "updated": updated,
+            "processed": processed,
+            "total": total,
+            "done": not items or processed >= total,
+        }
+
+    @api.model
+    def refresh_candidates_finish(self, started_at=None):
+        """Borra lo que la API dejo de devolver en esta corrida.
+
+        Se apoya en last_checked_at, que cada tanda pisa: lo que quedo con una
+        marca anterior al inicio ya no vino en el listado.
+        """
+        self._check_refresh_access()
+        if not started_at:
+            return {"removed": 0}
+        stale = self.search([("last_checked_at", "<", started_at)])
+        removed = len(stale)
+        if removed:
+            stale.unlink()
+        return {"removed": removed}
+
+    @api.model
+    def _check_refresh_access(self):
+        """El borrado de obsoletos necesita unlink; avisamos antes de empezar
+        en vez de fallar al final y perder toda la corrida."""
+        if not self.check_access_rights("unlink", raise_exception=False):
+            raise UserError(
+                _(
+                    "Tu usuario no puede borrar candidatos, así que la "
+                    "sincronización no puede limpiar los que ya no existen. "
+                    "Pedile a un administrador que actualice los permisos del "
+                    "modelo publisher.sku."
+                )
+            )
+
     @api.model
     def action_refresh_candidates(self):
-        limit = 100
+        """Corrida completa en un solo paso (se mantiene para la accion de servidor)."""
+        run = self.refresh_candidates_start()
         offset = 0
-        total = 1
-        seen_skus = set()
-        created_count = 0
-        updated_count = 0
-
-        while offset < total:
-            payload = self._fetch_publication_status(limit=limit, offset=offset)
-            items = payload.get("items") or []
-            pagination = payload.get("pagination") or {}
-            total = int(pagination.get("total") or len(items) or 0)
-
-            for item in items:
-                sku = (item.get("sku") or "").strip()
-                if not sku:
-                    continue
-                seen_skus.add(sku)
-                values = self._prepare_candidate_values_from_api(item)
-                existing = self.search([("sku", "=", sku)], limit=1)
-                if existing:
-                    existing.write(values)
-                    updated_count += 1
-                else:
-                    self.create(values)
-                    created_count += 1
-
-            if not items:
+        created = 0
+        updated = 0
+        while True:
+            batch = self.refresh_candidates_batch(offset=offset, limit=run["batchSize"])
+            created += batch["created"]
+            updated += batch["updated"]
+            if batch["done"]:
                 break
-            offset += limit
-
-        if seen_skus:
-            self.search([("sku", "not in", list(seen_skus))]).unlink()
+            offset += run["batchSize"]
+        removed = self.refresh_candidates_finish(run["startedAt"])["removed"]
 
         message = _(
-            "Candidatos actualizados. Creados: %(created)s. Actualizados: %(updated)s."
-        ) % {"created": created_count, "updated": updated_count}
+            "Candidatos actualizados. Creados: %(created)s. Actualizados: %(updated)s. Eliminados: %(removed)s."
+        ) % {"created": created, "updated": updated, "removed": removed}
         return self._notification(message, "success")
 
     @api.model

@@ -26,6 +26,40 @@ const FILTER_META = {
     notPublishedIn: { label: "Sin publicar en", marketplace: true },
 };
 
+// Codigos crudos de MELI: en la card se leian tal cual (gold_pro, xd_drop_off).
+const STATUS_LABELS = {
+    active: "Activo",
+    paused: "Pausado",
+    closed: "Cerrado",
+    inactive: "Inactivo",
+    under_review: "En revisión",
+};
+
+const STATUS_TONES = {
+    active: "is-green",
+    paused: "is-amber",
+    closed: "is-gray",
+    inactive: "is-gray",
+    under_review: "is-blue",
+};
+
+const LISTING_LABELS = {
+    clasica: "Clásica",
+    cuotas: "Cuotas",
+    gratuita: "Gratuita",
+    gold_special: "Clásica",
+    gold_pro: "Cuotas",
+    free: "Gratuita",
+};
+
+const LOGISTIC_LABELS = {
+    xd_drop_off: "Cross docking",
+    fulfillment: "Full",
+    self_service: "Flex",
+    drop_off: "Despacho en sucursal",
+    cross_docking: "Cross docking",
+};
+
 const MARKETPLACE_LABELS = {
     oncity: "OnCity",
     fravega: "Fravega",
@@ -228,6 +262,25 @@ class PublisherCandidatesAction extends Component {
         return MARKETPLACE_LABELS[name] || this.titleize(name);
     }
 
+    statusLabel(status) {
+        const key = String(status || "").toLowerCase();
+        return STATUS_LABELS[key] || this.titleize(status) || "Sin estado";
+    }
+
+    statusTone(status) {
+        return STATUS_TONES[String(status || "").toLowerCase()] || "is-gray";
+    }
+
+    listingLabel(item) {
+        const key = String(item.listing_type || item.listing_type_id || "").toLowerCase();
+        return LISTING_LABELS[key] || this.titleize(key);
+    }
+
+    logisticLabel(value) {
+        const key = String(value || "").toLowerCase();
+        return LOGISTIC_LABELS[key] || this.titleize(key);
+    }
+
     titleize(value) {
         const text = String(value || "").replace(/[_-]+/g, " ").trim();
         return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
@@ -244,6 +297,10 @@ class PublisherCandidatesAction extends Component {
             return "";
         }
         return `${this.formatMoney(min)} - ${this.formatMoney(max)}`;
+    }
+
+    formatUnits(value) {
+        return new Intl.NumberFormat("es-AR").format(Number(value) || 0);
     }
 
     formatMoney(value) {

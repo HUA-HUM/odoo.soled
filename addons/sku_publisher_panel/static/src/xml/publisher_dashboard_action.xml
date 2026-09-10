@@ -28,6 +28,18 @@
                 </div>
             </section>
 
+            <section t-if="state.syncProgress" class="o_publisher_sync_progress" role="status">
+                <div class="o_publisher_sync_progress__head">
+                    <strong>Sincronizando candidatos</strong>
+                    <span>
+                        <t t-esc="formatNumber(state.syncProgress.processed)"/>
+                        <t t-if="state.syncProgress.total"> de <t t-esc="formatNumber(state.syncProgress.total)"/></t>
+                    </span>
+                </div>
+                <div class="o_publisher_bar"><span t-attf-style="width: #{syncPercent}%"/></div>
+                <small>Se procesa de a 100. Podés seguir mirando la pantalla mientras corre.</small>
+            </section>
+
             <section t-if="state.loading" class="o_publisher_dashboard_loading">
                 <span class="o_publisher_spinner"/>
                 <strong>Cargando resumen...</strong>
