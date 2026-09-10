@@ -35,6 +35,107 @@
                 </div>
             </section>
 
+            <nav class="o_retailer_bulk_tabs" aria-label="Secciones de Acciones masivas">
+                <button type="button" t-attf-class="o_retailer_bulk_tab #{state.activeTab === 'runs' ? 'is-active' : ''}" t-on-click="() => this.selectTab('runs')">
+                    <i class="fa fa-history"/>Ejecuciones
+                </button>
+                <button type="button" t-attf-class="o_retailer_bulk_tab #{state.activeTab === 'catalog' ? 'is-active' : ''}" t-on-click="() => this.selectTab('catalog')">
+                    <i class="fa fa-refresh"/>Actualizaciones de catálogo
+                </button>
+            </nav>
+
+            <t t-if="state.activeTab === 'catalog'">
+                <section class="o_retailer_sku_card">
+                    <header>
+                        <h2>Actualizar un SKU</h2>
+                        <p>Consulta el estado real en MercadoLibre y encola la actualización en los marketplaces donde el SKU ya esté publicado.</p>
+                    </header>
+
+                    <form class="o_retailer_sku_form" t-on-submit="syncSku">
+                        <label class="o_retailer_sku_field">
+                            <span>SKU</span>
+                            <input type="text" placeholder="Ej: JDXU1307" t-model="state.catalogForm.sku" t-att-disabled="state.catalogRunning"/>
+                        </label>
+
+                        <div class="o_retailer_sku_field">
+                            <span>Marketplaces</span>
+                            <div class="o_retailer_sku_options">
+                                <button t-foreach="catalogMarketplaces" t-as="option" t-key="option.key" type="button"
+                                        t-attf-class="o_retailer_sku_option #{state.catalogForm.marketplaces[option.key] ? 'is-on' : ''}"
+                                        t-att-disabled="state.catalogRunning"
+                                        t-on-click="() => this.toggleCatalogOption('marketplaces', option.key)">
+                                    <i t-attf-class="fa #{state.catalogForm.marketplaces[option.key] ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                                    <t t-esc="option.label"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="o_retailer_sku_field">
+                            <span>Campos</span>
+                            <div class="o_retailer_sku_options">
+                                <button t-foreach="catalogFields" t-as="option" t-key="option.key" type="button"
+                                        t-attf-class="o_retailer_sku_option #{state.catalogForm.fields[option.key] ? 'is-on' : ''}"
+                                        t-att-disabled="state.catalogRunning"
+                                        t-on-click="() => this.toggleCatalogOption('fields', option.key)">
+                                    <i t-attf-class="fa #{state.catalogForm.fields[option.key] ? 'fa-check-square-o' : 'fa-square-o'}"/>
+                                    <t t-esc="option.label"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="o_retailer_sku_submit" t-att-disabled="!canSyncSku">
+                            <i t-attf-class="fa #{state.catalogRunning ? 'fa-spinner fa-spin' : 'fa-paper-plane-o'}"/>
+                            <t t-if="state.catalogRunning">Encolando...</t>
+                            <t t-else="">Encolar actualización</t>
+                        </button>
+                    </form>
+                </section>
+
+                <section t-if="state.catalogError" class="o_retailer_changes_error" role="alert">
+                    <div><i class="fa fa-exclamation-circle"/><span t-esc="state.catalogError"/></div>
+                </section>
+
+                <section t-if="state.catalogResult" class="o_retailer_sku_result">
+                    <header>
+                        <h2>Resultado</h2>
+                        <span class="o_retailer_sku_queued">
+                            <t t-esc="state.catalogResult.actionsQueued"/>
+                            <t t-if="state.catalogResult.actionsQueued === 1"> acción encolada</t>
+                            <t t-else=""> acciones encoladas</t>
+                        </span>
+                    </header>
+
+                    <dl class="o_retailer_sku_facts">
+                        <div><dt>SKU</dt><dd t-esc="state.catalogResult.sku || '—'"/></div>
+                        <div><dt>Item MELI</dt><dd t-esc="state.catalogResult.meliItemId || '—'"/></div>
+                        <div><dt>Estado en MELI</dt><dd t-esc="state.catalogResult.meliStatus || '—'"/></div>
+                        <div><dt>Fulfillment</dt><dd t-esc="state.catalogResult.isFulfillment ? 'Sí' : 'No'"/></div>
+                    </dl>
+
+                    <div class="o_retailer_sku_lists">
+                        <div>
+                            <span class="o_retailer_sku_list_title">Encolado en</span>
+                            <div t-if="state.catalogResult.marketplacesQueued.length" class="o_retailer_sku_chips">
+                                <span t-foreach="state.catalogResult.marketplacesQueued" t-as="marketplace" t-key="marketplace"
+                                      class="is-queued" t-esc="marketplaceLabel(marketplace)"/>
+                            </div>
+                            <p t-else="" class="o_retailer_sku_muted">Ningún marketplace.</p>
+                        </div>
+
+                        <div t-if="state.catalogResult.skipped.length">
+                            <span class="o_retailer_sku_list_title">Omitidos</span>
+                            <ul class="o_retailer_sku_skipped">
+                                <li t-foreach="state.catalogResult.skipped" t-as="entry" t-key="entry.marketplace">
+                                    <strong t-esc="marketplaceLabel(entry.marketplace)"/>
+                                    <small t-esc="entry.reason || 'Sin detalle'"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </t>
+
+            <t t-if="state.activeTab === 'runs'">
             <section t-if="state.runsError" class="o_retailer_changes_error" role="alert">
                 <div><i class="fa fa-exclamation-circle"/><span t-esc="state.runsError"/></div>
             </section>
@@ -111,6 +212,7 @@
                     </footer>
                 </t>
             </section>
+            </t>
         </div>
     </t>
 </templates>

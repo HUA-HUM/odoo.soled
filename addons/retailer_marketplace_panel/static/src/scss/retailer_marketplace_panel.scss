@@ -2446,6 +2446,10 @@
 
 .o_retailer_runs_inline_filters input,
 .o_retailer_runs_inline_filters select {
+    /* Sin ancho fijo cada control tomaba el ancho del contenedor y los tres
+       terminaban apilados en vertical. */
+    flex: 0 0 auto;
+    width: 148px;
     background: #f8fafc;
     border: 1px solid #e8edf2;
     border-radius: 9px;
@@ -2453,10 +2457,6 @@
     font-size: 12px;
     min-height: 34px;
     padding: 6px 11px;
-}
-
-.o_retailer_runs_inline_filters input {
-    max-width: 150px;
 }
 
 .o_retailer_runs_inline_filters input:focus,
@@ -2642,4 +2642,283 @@
     .o_retailer_runs_summary {
         max-width: 160px;
     }
+}
+
+/* Pestanas de Acciones masivas. */
+.o_retailer_bulk_tabs {
+    border-bottom: 1px solid #e8edf2;
+    display: flex;
+    gap: 4px;
+}
+
+.o_retailer_bulk_tab {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    color: #8695a8;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 650;
+    gap: 8px;
+    margin-bottom: -1px;
+    padding: 10px 14px;
+    transition: color 140ms ease, border-color 140ms ease;
+}
+
+.o_retailer_bulk_tab i {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.o_retailer_bulk_tab:hover {
+    color: var(--retailer-ink);
+}
+
+.o_retailer_bulk_tab.is-active {
+    border-bottom-color: #f65359;
+    color: var(--retailer-ink);
+}
+
+.o_retailer_bulk_tab.is-active i {
+    color: #f65359;
+    opacity: 1;
+}
+
+/* Actualizacion de un SKU puntual. */
+.o_retailer_sku_card,
+.o_retailer_sku_result {
+    background: #ffffff;
+    border: 1px solid #e8edf2;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.o_retailer_sku_card > header h2,
+.o_retailer_sku_result > header h2 {
+    color: var(--retailer-ink);
+    font-size: 15px;
+    font-weight: 750;
+    margin: 0;
+}
+
+.o_retailer_sku_card > header p {
+    color: #8695a8;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 6px 0 0;
+    max-width: 68ch;
+}
+
+.o_retailer_sku_form {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 18px;
+}
+
+.o_retailer_sku_field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.o_retailer_sku_field > span {
+    color: #8695a8;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.o_retailer_sku_field input {
+    background: #f8fafc;
+    border: 1px solid #e8edf2;
+    border-radius: 10px;
+    color: var(--retailer-ink);
+    font-size: 13px;
+    font-weight: 650;
+    min-height: 38px;
+    padding: 7px 13px;
+    width: 200px;
+}
+
+.o_retailer_sku_field input:focus {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    outline: 0;
+}
+
+.o_retailer_sku_options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+/* Los toggles muestran el estado con el check, no solo con el color. */
+.o_retailer_sku_option {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e8edf2;
+    border-radius: 999px;
+    color: #8695a8;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 650;
+    gap: 7px;
+    min-height: 38px;
+    padding: 7px 14px;
+    transition: border-color 130ms ease, color 130ms ease, background 130ms ease;
+}
+
+.o_retailer_sku_option:hover:not(:disabled) {
+    border-color: #cbd5e1;
+}
+
+.o_retailer_sku_option.is-on {
+    background: rgba(20, 184, 166, 0.08);
+    border-color: rgba(20, 184, 166, 0.42);
+    color: #0f8a7c;
+}
+
+.o_retailer_sku_submit {
+    align-items: center;
+    background: var(--retailer-ink);
+    border: 1px solid var(--retailer-ink);
+    border-radius: 10px;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 18px;
+}
+
+.o_retailer_sku_submit:disabled {
+    cursor: default;
+    opacity: 0.45;
+}
+
+.o_retailer_sku_result {
+    margin-top: 14px;
+}
+
+.o_retailer_sku_result > header {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.o_retailer_sku_queued {
+    background: rgba(20, 184, 166, 0.1);
+    border-radius: 999px;
+    color: #0f8a7c;
+    font-size: 12px;
+    font-weight: 750;
+    padding: 5px 12px;
+}
+
+.o_retailer_sku_facts {
+    display: grid;
+    gap: 9px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin: 16px 0 0;
+}
+
+.o_retailer_sku_facts div {
+    background: #f8fafc;
+    border-radius: 10px;
+    min-width: 0;
+    padding: 10px 12px;
+}
+
+.o_retailer_sku_facts dt {
+    color: #8695a8;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.o_retailer_sku_facts dd {
+    color: var(--retailer-ink);
+    font-size: 12.5px;
+    font-weight: 700;
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.o_retailer_sku_lists {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 18px;
+}
+
+.o_retailer_sku_list_title {
+    color: #8695a8;
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.o_retailer_sku_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.o_retailer_sku_chips span {
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+}
+
+.o_retailer_sku_chips span.is-queued {
+    background: rgba(20, 184, 166, 0.1);
+    color: #0f8a7c;
+}
+
+.o_retailer_sku_skipped {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.o_retailer_sku_skipped li {
+    background: #fff8f8;
+    border-radius: 10px;
+    padding: 9px 12px;
+}
+
+.o_retailer_sku_skipped strong {
+    color: #c4444b;
+    display: block;
+    font-size: 12.5px;
+}
+
+.o_retailer_sku_skipped small {
+    color: #8695a8;
+    display: block;
+    font-size: 11.5px;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+}
+
+.o_retailer_sku_muted {
+    color: #8695a8;
+    font-size: 12.5px;
+    margin: 0;
 }

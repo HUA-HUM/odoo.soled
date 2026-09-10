@@ -1,4 +1,6 @@
 import json
+import re
+from urllib.parse import quote
 
 import requests
 
@@ -400,6 +402,64 @@ class RetailerMarketplaceChange(models.Model):
                 "type": "success",
                 "sticky": True,
             },
+        }
+
+    SKU_SYNC_MARKETPLACES = ("oncity", "fravega")
+    SKU_SYNC_FIELDS = ("price", "stock", "status")
+
+    @api.model
+    def sync_publication_sku(self, sku, marketplaces=None, field_names=None):
+        """Fuerza precio/stock/status de un SKU puntual en los marketplaces.
+
+        Omitir marketplaces o campos equivale a mandarlos todos, asi que solo
+        viajan en el body cuando el usuario recorta la seleccion.
+        """
+        sku = (sku or "").strip()
+        if not sku:
+            raise UserError(_("Ingresá un SKU."))
+        if not re.fullmatch(r"[A-Za-z0-9._-]+", sku):
+            raise UserError(_("El SKU tiene caracteres no válidos."))
+
+        payload = {}
+        selected = [item for item in (marketplaces or []) if item in self.SKU_SYNC_MARKETPLACES]
+        if selected and len(selected) < len(self.SKU_SYNC_MARKETPLACES):
+            payload["marketplaces"] = selected
+        chosen = [item for item in (field_names or []) if item in self.SKU_SYNC_FIELDS]
+        if chosen and len(chosen) < len(self.SKU_SYNC_FIELDS):
+            payload["fields"] = chosen
+
+        summary = self._run_products_api_process(
+            "/publisher/marketplace-publications/%s/sync" % quote(sku, safe=""),
+            payload,
+        )
+        return self._normalize_sku_sync_summary(summary)
+
+    @api.model
+    def _normalize_sku_sync_summary(self, summary):
+        summary = summary if isinstance(summary, dict) else {}
+        skipped = []
+        for entry in summary.get("skippedMarketplaces") or []:
+            # La API los devuelve como {marketplace, reason}; toleramos strings
+            # por si alguna version manda solo el nombre.
+            if isinstance(entry, dict):
+                skipped.append(
+                    {
+                        "marketplace": entry.get("marketplace") or "",
+                        "reason": entry.get("reason") or "",
+                    }
+                )
+            elif entry:
+                skipped.append({"marketplace": str(entry), "reason": ""})
+        return {
+            "sku": summary.get("sku") or "",
+            "meliItemId": summary.get("meliItemId") or "",
+            "meliStatus": summary.get("meliStatus") or "",
+            "isFulfillment": bool(summary.get("isFulfillment")),
+            "actionsQueued": self._as_run_count(summary.get("actionsQueued")),
+            "marketplacesQueued": [
+                str(item) for item in (summary.get("marketplacesQueued") or []) if item
+            ],
+            "skipped": skipped,
         }
 
     @api.model

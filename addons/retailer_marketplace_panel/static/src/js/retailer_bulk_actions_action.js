@@ -13,6 +13,15 @@ class RetailerBulkActionsAction extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.state = useState({
+            activeTab: "runs",
+            catalogForm: {
+                sku: "",
+                marketplaces: { oncity: true, fravega: true },
+                fields: { price: true, stock: true, status: true },
+            },
+            catalogRunning: false,
+            catalogResult: null,
+            catalogError: "",
             runs: [],
             runsLimit: 20,
             runsOffset: 0,
@@ -24,6 +33,81 @@ class RetailerBulkActionsAction extends Component {
             runningSync: false,
         });
         onWillStart(() => this.loadProcessRuns(0));
+    }
+
+    selectTab(tab) {
+        this.state.activeTab = tab;
+    }
+
+    // ------------------------------------------------------------------
+    // Actualizacion de un SKU puntual
+    // ------------------------------------------------------------------
+    get catalogMarketplaces() {
+        return [
+            { key: "oncity", label: "OnCity" },
+            { key: "fravega", label: "Frávega" },
+        ];
+    }
+
+    get catalogFields() {
+        return [
+            { key: "price", label: "Precio" },
+            { key: "stock", label: "Stock" },
+            { key: "status", label: "Estado" },
+        ];
+    }
+
+    toggleCatalogOption(group, key) {
+        const bag = this.state.catalogForm[group];
+        bag[key] = !bag[key];
+    }
+
+    selectedKeys(group) {
+        return Object.entries(this.state.catalogForm[group])
+            .filter((entry) => entry[1])
+            .map((entry) => entry[0]);
+    }
+
+    get canSyncSku() {
+        return Boolean(
+            String(this.state.catalogForm.sku || "").trim() &&
+                this.selectedKeys("marketplaces").length &&
+                this.selectedKeys("fields").length &&
+                !this.state.catalogRunning
+        );
+    }
+
+    async syncSku(ev) {
+        if (ev) {
+            ev.preventDefault();
+        }
+        if (!this.canSyncSku) {
+            return;
+        }
+        this.state.catalogRunning = true;
+        this.state.catalogError = "";
+        this.state.catalogResult = null;
+        try {
+            this.state.catalogResult = await this.orm.call(MODEL, "sync_publication_sku", [], {
+                sku: String(this.state.catalogForm.sku).trim(),
+                marketplaces: this.selectedKeys("marketplaces"),
+                field_names: this.selectedKeys("fields"),
+            });
+            this.notification.add(
+                `Actualización encolada para ${this.state.catalogResult.sku || "el SKU"}.`,
+                { type: "success" }
+            );
+        } catch (error) {
+            this.state.catalogError =
+                error?.data?.message || "No se pudo encolar la actualización del SKU.";
+            this.notification.add(this.state.catalogError, { type: "danger" });
+        } finally {
+            this.state.catalogRunning = false;
+        }
+    }
+
+    marketplaceLabel(name) {
+        return { oncity: "OnCity", fravega: "Frávega", megatone: "Megatone" }[name] || name || "—";
     }
 
     get runsHasPrevious() {
