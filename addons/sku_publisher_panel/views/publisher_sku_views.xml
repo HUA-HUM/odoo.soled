@@ -4,7 +4,7 @@
         <field name="name">publisher.sku.kanban</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <kanban string="Candidatos" class="o_publisher_candidate_kanban" create="false" quick_create="false" sample="0">
+            <kanban string="Candidatos" class="o_publisher_candidate_kanban" create="false" quick_create="false" delete="false" sample="0">
                 <field name="sku"/>
                 <field name="title"/>
                 <field name="thumbnail"/>
@@ -62,7 +62,7 @@
         <field name="name">publisher.sku.tree</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <tree string="Candidatos para publicar" create="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
+            <tree string="Candidatos para publicar" create="false" delete="false" decoration-success="ready_to_publish == True" decoration-danger="publish_status == 'no_stock'" decoration-muted="publish_status in ('already_published', 'inactive')">
                 <field name="ready_to_publish" invisible="1"/>
                 <button name="action_open_ml_product" string="ML" type="object" icon="fa-external-link"/>
                 <field name="sku"/>
@@ -85,7 +85,7 @@
         <field name="name">publisher.sku.form</field>
         <field name="model">publisher.sku</field>
         <field name="arch" type="xml">
-            <form string="SKU publicador" create="false">
+            <form string="SKU publicador" create="false" delete="false">
                 <header>
                     <button name="action_publish_oncity" string="Publicar OnCity" type="object" class="btn-primary" invisible="not ready_to_publish"/>
                     <button name="action_publish_fravega" string="Publicar Fravega" type="object" invisible="not ready_to_publish"/>
