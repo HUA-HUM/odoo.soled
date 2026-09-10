@@ -7,23 +7,23 @@
                 <div>
                     <span class="o_publisher_eyebrow">Publicador SOLED</span>
                     <h1>Publicar SKUs de MercadoLibre</h1>
-                    <p>Selecciona SKUs, envia un job a products.api y segui cada run por marketplace hasta completar o reintentar errores.</p>
+                    <p>Enviá SKUs a products.api y seguí cada run por marketplace.</p>
                 </div>
                 <div class="o_publisher_actions">
-                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                    <button type="button" class="o_publisher_sync_button"
                             t-on-click="() => this.sync('candidates')" t-att-disabled="state.syncing">
                         <i t-attf-class="fa #{state.syncing === 'candidates' ? 'fa-spinner fa-spin' : 'fa-refresh'}"/>
-                        Sincronizar candidatos
+                        Candidatos
                     </button>
-                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                    <button type="button" class="o_publisher_sync_button"
                             t-on-click="() => this.sync('jobs')" t-att-disabled="state.syncing">
                         <i t-attf-class="fa #{state.syncing === 'jobs' ? 'fa-spinner fa-spin' : 'fa-tasks'}"/>
-                        Sincronizar procesos
+                        Procesos
                     </button>
-                    <button type="button" class="btn btn-secondary o_publisher_refresh_button"
+                    <button type="button" class="o_publisher_sync_button"
                             t-on-click="() => this.sync('runs')" t-att-disabled="state.syncing">
                         <i t-attf-class="fa #{state.syncing === 'runs' ? 'fa-spinner fa-spin' : 'fa-list'}"/>
-                        Sincronizar runs
+                        Runs
                     </button>
                 </div>
             </section>
@@ -34,78 +34,119 @@
             </section>
 
             <t t-else="">
-                <section class="o_publisher_kpis">
-                    <button type="button" class="o_publisher_kpi o_publisher_kpi_candidates" t-on-click="openCandidates">
-                        <span>Candidatos</span>
-                        <strong t-if="!state.candidates.error" t-esc="formatNumber(state.candidates.total)"/>
-                        <strong t-else="" class="o_publisher_kpi_error"><i class="fa fa-exclamation-triangle"/></strong>
-                        <small t-if="state.candidates.error" t-esc="state.candidates.error"/>
-                        <small t-else="">SKUs de MercadoLibre listos para publicar.</small>
-                        <div class="o_publisher_kpi_breakdown" t-if="candidateBreakdown.length">
-                            <span t-foreach="candidateBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
-                                <t t-esc="row.label"/>
-                                <strong t-esc="formatNumber(row.value)"/>
-                            </span>
-                        </div>
+                <nav class="o_publisher_tabs" aria-label="Secciones del publicador">
+                    <button t-foreach="tabs" t-as="tab" t-key="tab.key" type="button"
+                            t-attf-class="o_publisher_tab #{state.activeTab === tab.key ? 'is-active' : ''}"
+                            t-on-click="() => this.selectTab(tab.key)">
+                        <span class="o_publisher_tab__label" t-esc="tab.label"/>
+                        <strong t-if="!tab.error" class="o_publisher_tab__value" t-esc="formatNumber(tab.value)"/>
+                        <strong t-else="" class="o_publisher_tab__value is-error"><i class="fa fa-exclamation-triangle"/></strong>
                     </button>
+                </nav>
 
-                    <button type="button" class="o_publisher_kpi o_publisher_kpi_jobs" t-on-click="openJobs">
-                        <span>Procesos</span>
-                        <strong t-if="!state.jobs.error" t-esc="formatNumber(state.jobs.total)"/>
-                        <strong t-else="" class="o_publisher_kpi_error"><i class="fa fa-exclamation-triangle"/></strong>
-                        <small t-if="state.jobs.error" t-esc="state.jobs.error"/>
-                        <small t-else="">Procesos creados en products.api.</small>
-                        <div class="o_publisher_kpi_breakdown" t-if="jobBreakdown.length">
-                            <span t-foreach="jobBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
-                                <t t-esc="row.label"/>
-                                <strong t-esc="formatNumber(row.value)"/>
-                            </span>
-                        </div>
-                    </button>
-
-                    <button type="button" class="o_publisher_kpi o_publisher_kpi_runs" t-on-click="openRuns">
-                        <span>Items publicados</span>
-                        <strong t-esc="formatNumber((state.jobs.counters || {}).items)"/>
-                        <small>SKUs enviados a publicar por marketplace.</small>
-                        <div class="o_publisher_kpi_breakdown" t-if="itemBreakdown.length">
-                            <span t-foreach="itemBreakdown" t-as="row" t-key="row.label" t-attf-class="#{row.tone || ''}">
-                                <t t-esc="row.label"/>
-                                <strong t-esc="formatNumber(row.value)"/>
-                            </span>
-                        </div>
-                    </button>
+                <section t-if="activeTabError" class="o_publisher_tab_error" role="alert">
+                    <i class="fa fa-exclamation-circle"/><span t-esc="activeTabError"/>
                 </section>
 
-                <section class="o_publisher_recent" t-if="(state.jobs.recent || []).length">
-                    <header class="o_publisher_recent__head">
-                        <h2>Ultimos procesos</h2>
-                        <button type="button" class="btn btn-secondary" t-on-click="openJobs">Ver todos</button>
-                    </header>
-                    <div class="o_publisher_recent__table">
-                        <article t-foreach="state.jobs.recent" t-as="job" t-key="job.job_id" class="o_publisher_recent_row">
-                            <div class="o_publisher_recent_row__main">
-                                <strong t-esc="shortJobId(job.job_id)"/>
-                                <small>
-                                    <t t-if="job.requested_by"><t t-esc="job.requested_by"/> · </t>
-                                    <t t-esc="formatDateTime(job.created_at)"/>
-                                </small>
-                            </div>
-                            <div class="o_publisher_recent_row__markets">
-                                <span t-foreach="job.marketplaces" t-as="marketplace" t-key="marketplace" t-esc="marketplaceLabel(marketplace)"/>
-                            </div>
-                            <div class="o_publisher_recent_row__progress">
-                                <div class="o_publisher_progress">
-                                    <span t-attf-style="width: #{jobProgress(job)}%"/>
-                                </div>
-                                <small>
-                                    <t t-esc="formatNumber(job.done)"/> / <t t-esc="formatNumber(job.total)"/>
-                                    <t t-if="job.error"> · <t t-esc="formatNumber(job.error)"/> con error</t>
-                                </small>
-                            </div>
-                            <span t-attf-class="o_publisher_status_badge #{statusTone(job.status)}" t-esc="statusLabel(job.status)"/>
+                <t t-else="">
+                    <section t-if="state.activeTab === 'candidates'" class="o_publisher_panel_grid">
+                        <article class="o_publisher_panel">
+                            <header><h2>Estado del catálogo</h2></header>
+                            <ul class="o_publisher_stat_list">
+                                <li t-foreach="candidateStats" t-as="row" t-key="row.label">
+                                    <span t-esc="row.label"/>
+                                    <strong t-esc="formatNumber(row.value)"/>
+                                </li>
+                            </ul>
+                            <button type="button" class="o_publisher_panel_cta" t-on-click="openCandidates">
+                                Ver candidatos <i class="fa fa-arrow-right"/>
+                            </button>
                         </article>
-                    </div>
-                </section>
+
+                        <article class="o_publisher_panel" t-if="candidatePending.length">
+                            <header>
+                                <h2>Pendientes de publicar</h2>
+                                <small>Sobre <t t-esc="formatNumber(state.candidates.total)"/> candidatos</small>
+                            </header>
+                            <ul class="o_publisher_bar_list">
+                                <li t-foreach="candidatePending" t-as="row" t-key="row.label">
+                                    <div class="o_publisher_bar_head">
+                                        <span t-esc="row.label"/>
+                                        <strong><t t-esc="formatNumber(row.value)"/> <small t-esc="row.share + '%'"/></strong>
+                                    </div>
+                                    <div class="o_publisher_bar"><span t-attf-style="width: #{row.share}%"/></div>
+                                </li>
+                            </ul>
+                        </article>
+                    </section>
+
+                    <section t-if="state.activeTab === 'jobs'" class="o_publisher_panel_stack">
+                        <article class="o_publisher_panel" t-if="jobBreakdown.length">
+                            <header><h2>Procesos por estado</h2></header>
+                            <ul class="o_publisher_bar_list">
+                                <li t-foreach="jobBreakdown" t-as="row" t-key="row.label">
+                                    <div class="o_publisher_bar_head">
+                                        <span t-esc="row.label"/>
+                                        <strong><t t-esc="formatNumber(row.value)"/> <small t-esc="row.share + '%'"/></strong>
+                                    </div>
+                                    <div class="o_publisher_bar"><span t-attf-class="#{row.tone}" t-attf-style="width: #{row.share}%"/></div>
+                                </li>
+                            </ul>
+                        </article>
+
+                        <article class="o_publisher_panel" t-if="(state.jobs.recent || []).length">
+                            <header>
+                                <h2>Últimos procesos</h2>
+                                <button type="button" class="o_publisher_panel_link" t-on-click="openJobs">Ver todos</button>
+                            </header>
+                            <div class="o_publisher_recent__table">
+                                <article t-foreach="state.jobs.recent" t-as="job" t-key="job.job_id" class="o_publisher_recent_row">
+                                    <div class="o_publisher_recent_row__main">
+                                        <strong t-esc="shortJobId(job.job_id)"/>
+                                        <small>
+                                            <t t-if="job.requested_by"><t t-esc="job.requested_by"/> · </t>
+                                            <t t-esc="formatDateTime(job.created_at)"/>
+                                        </small>
+                                    </div>
+                                    <div class="o_publisher_recent_row__markets">
+                                        <span t-foreach="job.marketplaces" t-as="marketplace" t-key="marketplace" t-esc="marketplaceLabel(marketplace)"/>
+                                    </div>
+                                    <div class="o_publisher_recent_row__progress">
+                                        <div class="o_publisher_progress">
+                                            <span t-attf-style="width: #{jobProgress(job)}%"/>
+                                        </div>
+                                        <small>
+                                            <t t-esc="formatNumber(job.done)"/> / <t t-esc="formatNumber(job.total)"/>
+                                            <t t-if="job.error"> · <t t-esc="formatNumber(job.error)"/> con error</t>
+                                        </small>
+                                    </div>
+                                    <span t-attf-class="o_publisher_status_badge #{statusTone(job.status)}" t-esc="statusLabel(job.status)"/>
+                                </article>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section t-if="state.activeTab === 'items'" class="o_publisher_panel_stack">
+                        <article class="o_publisher_panel">
+                            <header>
+                                <h2>Ítems por resultado</h2>
+                                <small>Sobre <t t-esc="formatNumber((state.jobs.counters || {}).items)"/> enviados</small>
+                            </header>
+                            <ul class="o_publisher_bar_list">
+                                <li t-foreach="itemBreakdown" t-as="row" t-key="row.label">
+                                    <div class="o_publisher_bar_head">
+                                        <span t-esc="row.label"/>
+                                        <strong><t t-esc="formatNumber(row.value)"/> <small t-esc="row.share + '%'"/></strong>
+                                    </div>
+                                    <div class="o_publisher_bar"><span t-attf-class="#{row.tone}" t-attf-style="width: #{row.share}%"/></div>
+                                </li>
+                            </ul>
+                            <button type="button" class="o_publisher_panel_cta" t-on-click="openRuns">
+                                Ver runs <i class="fa fa-arrow-right"/>
+                            </button>
+                        </article>
+                    </section>
+                </t>
             </t>
         </div>
         </div>

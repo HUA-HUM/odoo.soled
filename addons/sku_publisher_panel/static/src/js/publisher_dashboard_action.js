@@ -37,6 +37,7 @@ class PublisherDashboardAction extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
         this.state = useState({
+            activeTab: "candidates",
             loading: true,
             syncing: "",
             candidates: {},
@@ -64,45 +65,85 @@ class PublisherDashboardAction extends Component {
         }
     }
 
-    // Metricas que acompanan a cada numero grande.
-    get candidateBreakdown() {
-        const candidates = this.state.candidates;
-        if (candidates.error) {
-            return [];
+    selectTab(tab) {
+        this.state.activeTab = tab;
+    }
+
+    get tabs() {
+        const candidates = this.state.candidates || {};
+        const jobs = this.state.jobs || {};
+        const counters = jobs.counters || {};
+        return [
+            {
+                key: "candidates",
+                label: "Candidatos",
+                value: candidates.total,
+                error: Boolean(candidates.error),
+            },
+            { key: "jobs", label: "Procesos", value: jobs.total, error: Boolean(jobs.error) },
+            {
+                key: "items",
+                label: "Ítems publicados",
+                value: counters.items,
+                error: Boolean(jobs.error),
+            },
+        ];
+    }
+
+    get activeTabError() {
+        const tab = this.tabs.find((entry) => entry.key === this.state.activeTab);
+        if (!tab || !tab.error) {
+            return "";
         }
-        const rows = [
+        return this.state.activeTab === "candidates"
+            ? this.state.candidates.error
+            : this.state.jobs.error;
+    }
+
+    // Estado del catalogo, sin lo pendiente de publicar.
+    get candidateStats() {
+        const candidates = this.state.candidates || {};
+        return [
             { label: "Con stock", value: candidates.in_stock },
             { label: "Activos en ML", value: candidates.active },
             { label: "Con cuotas", value: candidates.premium },
-        ];
-        for (const pending of candidates.pending || []) {
-            rows.push({
-                label: `Sin publicar en ${this.marketplaceLabel(pending.marketplace)}`,
-                value: pending.total,
-                tone: "is-warning",
-            });
-        }
-        return rows.filter((row) => Number.isFinite(Number(row.value)));
+        ].filter((row) => Number.isFinite(Number(row.value)));
+    }
+
+    // Lo accionable: cuanto falta publicar en cada marketplace.
+    get candidatePending() {
+        const candidates = this.state.candidates || {};
+        const total = Number(candidates.total) || 0;
+        return (candidates.pending || []).map((pending) => ({
+            label: this.marketplaceLabel(pending.marketplace),
+            value: pending.total,
+            share: total ? Math.round(((Number(pending.total) || 0) / total) * 100) : 0,
+            total,
+        }));
     }
 
     get jobBreakdown() {
         const byStatus = (this.state.jobs || {}).by_status || {};
+        const total = Object.values(byStatus).reduce((sum, value) => sum + (Number(value) || 0), 0);
         return Object.entries(byStatus)
             .sort((a, b) => b[1] - a[1])
             .map(([status, value]) => ({
                 label: this.statusLabel(status),
                 value,
-                tone: JOB_STATUS_TONE[status] === "is-red" ? "is-warning" : "",
+                tone: this.statusTone(status),
+                share: total ? Math.round(((Number(value) || 0) / total) * 100) : 0,
             }));
     }
 
     get itemBreakdown() {
         const counters = (this.state.jobs || {}).counters || {};
+        const total = Number(counters.items) || 0;
+        const share = (value) => (total ? Math.round(((Number(value) || 0) / total) * 100) : 0);
         return [
-            { label: "Publicados", value: counters.done },
-            { label: "Con error", value: counters.error, tone: counters.error ? "is-warning" : "" },
-            { label: "En cola", value: counters.queued },
-            { label: "Omitidos", value: counters.skipped },
+            { label: "Publicados", value: counters.done, tone: "is-green", share: share(counters.done) },
+            { label: "Con error", value: counters.error, tone: "is-red", share: share(counters.error) },
+            { label: "En cola", value: counters.queued, tone: "is-blue", share: share(counters.queued) },
+            { label: "Omitidos", value: counters.skipped, tone: "is-gray", share: share(counters.skipped) },
         ].filter((row) => Number.isFinite(Number(row.value)));
     }
 
