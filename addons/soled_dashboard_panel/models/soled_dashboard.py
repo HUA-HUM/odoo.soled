@@ -133,7 +133,7 @@ class SoledDashboard(models.Model):
                         {
                             "key": "coresa_publications",
                             "label": "Publicaciones",
-                            "action": "coresa_meli_publisher.action_coresa_publication",
+                            "action": "coresa_meli_publisher.action_coresa_publications_panel",
                         },
                     ],
                 },

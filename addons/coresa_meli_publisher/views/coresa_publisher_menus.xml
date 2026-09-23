@@ -5,5 +5,5 @@
     <menuitem id="menu_coresa_publisher_wizard" name="Publicar SKU" parent="menu_coresa_publisher"
               action="action_coresa_publication_wizard" sequence="10"/>
     <menuitem id="menu_coresa_publisher_list" name="Publicaciones" parent="menu_coresa_publisher"
-              action="action_coresa_publication" sequence="20"/>
+              action="action_coresa_publications_panel" sequence="20"/>
 </odoo>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_meli_publisher.PublicationsAction" owl="1">
+        <div class="o_coresa_page">
+            <section class="o_coresa_header">
+                <div>
+                    <span class="o_coresa_eyebrow">Coresa</span>
+                    <h1>Publicaciones</h1>
+                    <p>Borradores y publicaciones del catálogo Coresa en MercadoLibre.</p>
+                </div>
+                <button type="button" class="o_coresa_primary" t-on-click="newPublication">
+                    <i class="fa fa-plus"/> Publicar un SKU
+                </button>
+            </section>
+
+            <nav class="o_coresa_counters" aria-label="Filtrar por estado">
+                <button type="button" t-attf-class="o_coresa_counter #{!state.filters.status ? 'is-active' : ''}"
+                        t-on-click="() => this.selectStatus('')">
+                    <span class="o_coresa_counter__label">Todas</span>
+                    <strong t-esc="formatUnits(totalAll)"/>
+                </button>
+                <button t-foreach="statuses" t-as="status" t-key="status.key" type="button"
+                        t-attf-class="o_coresa_counter #{status.tone} #{state.filters.status === status.key ? 'is-active' : ''}"
+                        t-on-click="() => this.selectStatus(status.key)">
+                    <span class="o_coresa_counter__label" t-esc="status.label"/>
+                    <strong t-esc="formatUnits(counterFor(status.key))"/>
+                </button>
+            </nav>
+
+            <section class="o_coresa_card">
+                <header class="o_coresa_card__head">
+                    <form class="o_coresa_filters" t-on-submit="applyFilters">
+                        <label>
+                            <span>SKU</span>
+                            <input type="text" placeholder="Ej: AEB 35 SC/1" t-model="state.filters.sku" t-att-disabled="state.loading"/>
+                        </label>
+                        <label>
+                            <span>Desde</span>
+                            <input type="date" t-model="state.filters.from" t-att-disabled="state.loading"/>
+                        </label>
+                        <label>
+                            <span>Hasta</span>
+                            <input type="date" t-model="state.filters.to" t-att-disabled="state.loading"/>
+                        </label>
+                        <button type="submit" class="o_coresa_filter_apply" t-att-disabled="state.loading">Filtrar</button>
+                        <button type="button" class="o_coresa_filter_clear" t-if="hasFilters" t-on-click="resetFilters" t-att-disabled="state.loading">Limpiar</button>
+                    </form>
+                    <span class="o_coresa_range" t-esc="rangeLabel"/>
+                </header>
+
+                <div t-if="state.error" class="o_coresa_state is-error" role="alert">
+                    <i class="fa fa-exclamation-circle"/>
+                    <strong t-esc="state.error"/>
+                </div>
+
+                <div t-elif="state.loading" class="o_coresa_state">
+                    <i class="fa fa-spinner fa-spin"/>
+                    <strong>Cargando publicaciones...</strong>
+                </div>
+
+                <t t-else="">
+                    <div t-if="state.items.length" class="o_coresa_table_wrap">
+                        <table class="o_coresa_table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Título</th>
+                                    <th>Estado</th>
+                                    <th class="is-numeric">Precio</th>
+                                    <th class="is-numeric">Stock</th>
+                                    <th>MercadoLibre</th>
+                                    <th>Creada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.items" t-as="item" t-key="item.id"
+                                    class="o_coresa_row" t-on-click="() => this.openPublication(item)">
+                                    <td><strong t-esc="item.sku"/></td>
+                                    <td class="o_coresa_title" t-att-title="item.title" t-esc="item.title || '—'"/>
+                                    <td><span t-attf-class="o_coresa_chip #{statusTone(item.status)}" t-esc="statusLabel(item.status)"/></td>
+                                    <td class="is-numeric" t-esc="formatMoney(item.price)"/>
+                                    <td class="is-numeric" t-esc="formatUnits(item.availableQuantity)"/>
+                                    <td class="o_coresa_links">
+                                        <button t-if="item.classicItemId" type="button" class="o_coresa_link"
+                                                t-att-title="item.classicItemId"
+                                                t-on-click="(ev) => this.openMeli(item.classicItemId, ev)">Clásica</button>
+                                        <button t-if="item.premiumItemId" type="button" class="o_coresa_link"
+                                                t-att-title="item.premiumItemId"
+                                                t-on-click="(ev) => this.openMeli(item.premiumItemId, ev)">Premium</button>
+                                        <span t-if="!item.classicItemId &amp;&amp; !item.premiumItemId" class="o_coresa_muted">—</span>
+                                    </td>
+                                    <td class="o_coresa_muted" t-esc="formatDate(item.createdAt)"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div t-else="" class="o_coresa_state is-empty">
+                        <i class="fa fa-inbox"/>
+                        <strong>No hay publicaciones para mostrar.</strong>
+                        <small t-if="hasFilters">Probá quitando los filtros.</small>
+                        <small t-else="">Empezá con "Publicar un SKU".</small>
+                    </div>
+
+                    <footer t-if="state.total > state.limit" class="o_coresa_card__foot">
+                        <span t-esc="rangeLabel"/>
+                        <div>
+                            <button type="button" t-att-disabled="!hasPrevious" t-on-click="previousPage"><i class="fa fa-chevron-left"/></button>
+                            <button type="button" t-att-disabled="!hasNext" t-on-click="nextPage"><i class="fa fa-chevron-right"/></button>
+                        </div>
+                    </footer>
+                </t>
+            </section>
+        </div>
+    </t>
+</templates>

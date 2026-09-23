@@ -217,12 +217,17 @@ class CoresaPublication(models.Model):
         draft = draft if isinstance(draft, dict) else {}
         pictures = draft.get("pictures")
         pictures = pictures if isinstance(pictures, list) else []
-        missing = payload.get("missingRequiredAttributes")
-        missing = [str(item) for item in missing if item] if isinstance(missing, list) else []
+        raw_missing = payload.get("missingRequiredAttributes")
+        has_missing = isinstance(raw_missing, list)
+        missing = [str(item) for item in raw_missing if item] if has_missing else []
 
-        return {
+        # El detalle usa "id" y no manda sugerencias ni faltantes; el preview
+        # usa "publicationId" y los manda. Sirve para las dos formas.
+        values = {
             "sku": payload.get("sku") or sku,
-            "publication_id": self._as_int(payload.get("publicationId")),
+            "publication_id": self._as_int(
+                payload.get("publicationId") or payload.get("id")
+            ),
             "state": payload.get("status") or "draft",
             "family_name": draft.get("title") or "",
             "description": draft.get("description") or "",
@@ -231,7 +236,7 @@ class CoresaPublication(models.Model):
             "price": self._as_float(draft.get("price")),
             "available_quantity": self._as_int(draft.get("available_quantity")),
             "picture_url": pictures[0] if pictures else "",
-            "missing_attributes": ", ".join(missing),
+            "missing_attributes": ", ".join(missing) if has_missing else "",
             "validation_message": self._validation_text(payload.get("validation")),
             "error_message": "",
             "raw_draft_json": json.dumps(payload, ensure_ascii=False, indent=2, default=str),
@@ -240,13 +245,15 @@ class CoresaPublication(models.Model):
             ),
             "ai_model": payload.get("aiModel") or "",
             "ai_generated_at": payload.get("aiGeneratedAt") or "",
-            "category_suggestion_ids": [(5, 0, 0)] + [
-                (0, 0, values) for values in self._category_values(payload)
-            ],
             "attribute_ids": [(5, 0, 0)] + [
-                (0, 0, values) for values in self._attribute_values(draft, missing)
+                (0, 0, entry) for entry in self._attribute_values(draft, missing)
             ],
         }
+        if isinstance(payload.get("categorySuggestions"), list):
+            values["category_suggestion_ids"] = [(5, 0, 0)] + [
+                (0, 0, entry) for entry in self._category_values(payload)
+            ]
+        return values
 
     @api.model
     def _category_values(self, payload):
@@ -332,6 +339,134 @@ class CoresaPublication(models.Model):
             if detail:
                 lines.append("%s: %s" % (label, detail))
         return "\n".join(lines)
+
+    # ------------------------------------------------------------------
+    # Lectura del panel (los cuatro GET de coresa-api)
+    # ------------------------------------------------------------------
+    LIST_STATUSES = ("draft", "ready", "publishing", "published", "partial", "failed", "discarded")
+    LIST_FILTERS = ("sku", "status", "categoryId", "from", "to")
+
+    @api.model
+    def _api_get(self, path, params=None):
+        url = "%s%s" % (self._api_base_url(), path)
+        api_key = self._api_key()
+        if not api_key:
+            raise UserError(
+                _(
+                    "Falta configurar la clave de coresa-api en el parámetro "
+                    "coresa_meli_publisher.api_key."
+                )
+            )
+        try:
+            response = requests.get(
+                url,
+                params=params or {},
+                headers={"x-internal-api-key": api_key},
+                timeout=self.API_TIMEOUT,
+            )
+        except requests.RequestException as error:
+            raise UserError(_("No se pudo conectar con coresa-api: %s") % error) from error
+        try:
+            data = response.json()
+        except ValueError:
+            data = {}
+        if response.status_code >= 400:
+            raise UserError(self._api_error_message(response.status_code, data))
+        return data
+
+    @api.model
+    def get_publications_page(self, limit=25, offset=0, filters=None):
+        params = {"limit": limit, "offset": offset}
+        for key, value in (filters or {}).items():
+            if key in self.LIST_FILTERS and str(value or "").strip():
+                params[key] = str(value).strip()
+        payload = self._api_get("/coresa/publications", params)
+        payload = payload if isinstance(payload, dict) else {}
+        pagination = payload.get("pagination") or {}
+        return {
+            "items": [
+                self._row_payload(item)
+                for item in (payload.get("items") or [])
+                if isinstance(item, dict)
+            ],
+            "pagination": {
+                "limit": self._as_int(pagination.get("limit")) or limit,
+                "offset": self._as_int(pagination.get("offset")),
+                "total": self._as_int(pagination.get("total")),
+            },
+        }
+
+    @api.model
+    def _row_payload(self, item):
+        return {
+            "id": self._as_int(item.get("id")),
+            "sku": item.get("sku") or "",
+            "status": item.get("status") or "",
+            "title": item.get("title") or "",
+            "categoryId": item.get("categoryId") or "",
+            "price": self._as_float(item.get("price")),
+            "availableQuantity": self._as_int(item.get("availableQuantity")),
+            "classicItemId": item.get("classicItemId") or "",
+            "premiumItemId": item.get("premiumItemId") or "",
+            "permalink": item.get("permalink") or "",
+            "errorMessage": item.get("errorMessage") or "",
+            "requestedBy": item.get("requestedBy") or "",
+            "publishedAt": item.get("publishedAt") or "",
+            "createdAt": item.get("createdAt") or "",
+        }
+
+    @api.model
+    def get_publication_counters(self):
+        """Un total por estado. No hay endpoint de conteo: se pide el listado
+        con limit=1 por estado y se lee pagination.total, como indica el
+        instructivo."""
+        counters = {}
+        for status in self.LIST_STATUSES:
+            try:
+                payload = self._api_get(
+                    "/coresa/publications", {"status": status, "limit": 1}
+                )
+                counters[status] = self._as_int(
+                    (payload.get("pagination") or {}).get("total")
+                )
+            except UserError:
+                counters[status] = 0
+        return counters
+
+    @api.model
+    def get_publication_history(self, sku):
+        sku = str(sku or "").strip()
+        if not sku:
+            return []
+        payload = self._api_get(
+            "/coresa/publications/by-sku/%s/history" % quote(sku, safe="")
+        )
+        return [
+            self._row_payload(item) for item in (payload or []) if isinstance(item, dict)
+        ]
+
+    @api.model
+    def open_publication(self, publication_id):
+        """Trae el detalle y abre el editor sobre el espejo local."""
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        payload = self._api_get("/coresa/publications/%s" % publication_id)
+        payload = payload if isinstance(payload, dict) else {}
+        values = self._values_from_preview(payload.get("sku") or "", payload)
+        record = self.search([("publication_id", "=", publication_id)], limit=1)
+        if record:
+            record.write(values)
+        else:
+            record = self.create(values)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Borrador de publicación"),
+            "res_model": "coresa.publication",
+            "res_id": record.id,
+            "view_mode": "form",
+            "target": "current",
+        }
 
     # ------------------------------------------------------------------
     # Acciones del formulario
