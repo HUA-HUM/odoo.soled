@@ -20,11 +20,12 @@
                 <sheet>
                     <field name="can_publish" invisible="1"/>
 
-                    <div class="alert alert-danger" role="alert"
+                    <div class="alert alert-warning" role="alert"
                          attrs="{'invisible': [('missing_attributes', '=', False)]}">
-                        <strong>Faltan atributos obligatorios: </strong>
+                        <strong>Atributos sin completar: </strong>
                         <field name="missing_attributes" readonly="1" nolabel="1" class="oe_inline"/>
-                        <div>MercadoLibre va a rechazar la publicación hasta que estén completos.</div>
+                        <div>MercadoLibre los pide para esta categoría. Si el estado es
+                        "Listo para publicar" los marcó como recomendados y se puede publicar igual.</div>
                     </div>
 
                     <div class="alert alert-warning" role="alert"
@@ -53,6 +54,8 @@
                             <field name="sku"/>
                             <field name="category_id_ml"/>
                             <field name="category_name" attrs="{'invisible': [('category_name', '=', False)]}"/>
+                            <field name="ai_model" attrs="{'invisible': [('ai_model', '=', False)]}"/>
+                            <field name="ai_generated_at" attrs="{'invisible': [('ai_generated_at', '=', False)]}"/>
                             <field name="family_name"/>
                         </group>
                         <group string="Precio y stock">
@@ -83,6 +86,25 @@
                                     <field name="allowed_values"/>
                                 </tree>
                             </field>
+                        </page>
+                        <page string="Categorias sugeridas"
+                              attrs="{'invisible': [('category_suggestion_ids', '=', [])]}">
+                            <div class="alert alert-info" role="alert">
+                                Cambiar de categoría rehace el borrador: cada categoría tiene
+                                sus propios atributos obligatorios.
+                            </div>
+                            <field name="category_suggestion_ids">
+                                <tree create="false" delete="false">
+                                    <field name="category_id_ml"/>
+                                    <field name="name"/>
+                                    <field name="domain_name"/>
+                                    <button name="action_use_category" type="object"
+                                            string="Usar esta categoria" icon="fa-refresh"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Datos de Coresa" attrs="{'invisible': [('coresa_snapshot_json', '=', False)]}">
+                            <field name="coresa_snapshot_json" widget="ace" options="{'mode': 'json'}" nolabel="1"/>
                         </page>
                         <page string="Resultado" attrs="{'invisible': [('state', 'not in', ('published', 'partial'))]}">
                             <group>

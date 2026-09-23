@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_coresa_publication_user,coresa.publication user,model_coresa_publication,base.group_user,1,1,1,1
 access_coresa_publication_attribute_user,coresa.publication.attribute user,model_coresa_publication_attribute,base.group_user,1,1,1,1
 access_coresa_publication_wizard_user,coresa.publication.wizard user,model_coresa_publication_wizard,base.group_user,1,1,1,1
+access_coresa_publication_category_user,coresa.publication.category user,model_coresa_publication_category,base.group_user,1,1,1,1

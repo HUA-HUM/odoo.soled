@@ -21,6 +21,7 @@ class CoresaPublication(models.Model):
     STATE_SELECTION = [
         ("draft", "Borrador"),
         ("ready", "Listo para publicar"),
+        ("publishing", "Publicando"),
         ("published", "Publicado"),
         ("partial", "Publicado parcialmente"),
         ("failed", "Con error"),
@@ -55,6 +56,12 @@ class CoresaPublication(models.Model):
     permalink = fields.Char(string="Link", readonly=True)
     error_message = fields.Text(string="Error", readonly=True)
     raw_draft_json = fields.Text(string="Borrador completo", readonly=True)
+    coresa_snapshot_json = fields.Text(string="Datos crudos de Coresa", readonly=True)
+    ai_model = fields.Char(string="Modelo de IA", readonly=True)
+    ai_generated_at = fields.Char(string="Generado el", readonly=True)
+    category_suggestion_ids = fields.One2many(
+        "coresa.publication.category", "publication_ref", string="Categorias sugeridas"
+    )
 
     can_publish = fields.Boolean(compute="_compute_can_publish")
     blocking_reason = fields.Char(compute="_compute_can_publish")
@@ -65,7 +72,7 @@ class CoresaPublication(models.Model):
             parts = [part for part in (publication.sku, publication.family_name) if part]
             publication.name = " — ".join(parts) or publication.sku or "Publicacion"
 
-    @api.depends("missing_attributes", "publication_id", "state")
+    @api.depends("publication_id", "state")
     def _compute_can_publish(self):
         for publication in self:
             reason = ""
@@ -73,16 +80,20 @@ class CoresaPublication(models.Model):
                 reason = _("La publicación ya está completa.")
             elif publication.state == "discarded":
                 reason = _("La publicación fue descartada.")
+            elif publication.state == "publishing":
+                reason = _("Se está publicando en este momento.")
             elif not publication.publication_id:
-                # El preview devuelve publicationId null mientras internal-api
-                # no tenga la tabla de publicaciones.
                 reason = _(
                     "coresa-api no registró esta publicación todavía, así que no "
-                    "hay identificador para publicar. Revisá que internal-api "
-                    "tenga habilitado el registro de publicaciones."
+                    "hay identificador para publicar."
                 )
-            elif publication.missing_attributes:
-                reason = _("Faltan atributos obligatorios: %s") % publication.missing_attributes
+            elif publication.state == "draft":
+                # MercadoLibre rechaza el borrador: el detalle esta en
+                # validation_message.
+                reason = _(
+                    "MercadoLibre todavía rechaza el borrador. Corregí lo que "
+                    "aparece abajo y volvé a armarlo."
+                )
             publication.blocking_reason = reason
             publication.can_publish = not reason
 
@@ -185,16 +196,19 @@ class CoresaPublication(models.Model):
         return self.env.user.email or self.env.user.login or ""
 
     @api.model
-    def preview_sku(self, sku):
-        """Arma el borrador y devuelve los valores listos para crear/escribir."""
+    def preview_sku(self, sku, category_id=None):
+        """Arma el borrador y devuelve los valores listos para crear/escribir.
+
+        category_id rehace el borrador con otra de las categorias sugeridas:
+        cada categoria tiene sus propios atributos obligatorios.
+        """
         sku = str(sku or "").strip()
         if not sku:
             raise UserError(_("Ingresá un SKU."))
-        payload = self._api_request(
-            "POST",
-            "/coresa/publications/preview",
-            {"sku": sku, "requestedBy": self._requested_by()},
-        )
+        body = {"sku": sku, "requestedBy": self._requested_by()}
+        if category_id:
+            body["categoryId"] = category_id
+        payload = self._api_request("POST", "/coresa/publications/preview", body)
         return self._values_from_preview(sku, payload)
 
     @api.model
@@ -221,10 +235,33 @@ class CoresaPublication(models.Model):
             "validation_message": self._validation_text(payload.get("validation")),
             "error_message": "",
             "raw_draft_json": json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+            "coresa_snapshot_json": json.dumps(
+                payload.get("coresaSnapshot") or {}, ensure_ascii=False, indent=2, default=str
+            ),
+            "ai_model": payload.get("aiModel") or "",
+            "ai_generated_at": payload.get("aiGeneratedAt") or "",
+            "category_suggestion_ids": [(5, 0, 0)] + [
+                (0, 0, values) for values in self._category_values(payload)
+            ],
             "attribute_ids": [(5, 0, 0)] + [
                 (0, 0, values) for values in self._attribute_values(draft, missing)
             ],
         }
+
+    @api.model
+    def _category_values(self, payload):
+        values = []
+        for suggestion in payload.get("categorySuggestions") or []:
+            if not isinstance(suggestion, dict) or not suggestion.get("category_id"):
+                continue
+            values.append(
+                {
+                    "category_id_ml": suggestion.get("category_id"),
+                    "name": suggestion.get("category_name") or "",
+                    "domain_name": suggestion.get("domain_name") or "",
+                }
+            )
+        return values
 
     @api.model
     def _category_name(self, payload):
@@ -301,7 +338,7 @@ class CoresaPublication(models.Model):
     # ------------------------------------------------------------------
     def action_rebuild_draft(self):
         self.ensure_one()
-        self.write(self.preview_sku(self.sku))
+        self.write(self.preview_sku(self.sku, self.category_id_ml))
         return True
 
     def action_discard(self):
@@ -318,17 +355,32 @@ class CoresaPublication(models.Model):
             for line in self.attribute_ids
             if line.attribute_id_ml and line.value
         ]
-        draft = {
-            "title": self.family_name or "",
-            "description": self.description or "",
-            "category_id": self.category_id_ml or "",
-            "price": self.price,
-            "available_quantity": self.available_quantity,
-            "attributes": attributes,
-        }
+        draft = dict(self._stored_draft())
+        draft.update(
+            {
+                "title": self.family_name or "",
+                "description": self.description or "",
+                "category_id": self.category_id_ml or "",
+                "price": self.price,
+                "available_quantity": self.available_quantity,
+                # El array de atributos se reemplaza entero, no se mergea:
+                # van todos los del borrador con los cambios aplicados.
+                "attributes": attributes,
+            }
+        )
         if self.picture_url:
             draft["pictures"] = [self.picture_url]
         return {"draft": draft, "requestedBy": self._requested_by()}
+
+    def _stored_draft(self):
+        """El borrador tal como vino, para no perder sale_terms ni shipping."""
+        self.ensure_one()
+        try:
+            payload = json.loads(self.raw_draft_json or "{}")
+        except ValueError:
+            return {}
+        draft = payload.get("draft")
+        return draft if isinstance(draft, dict) else {}
 
     def action_publish(self):
         self.ensure_one()
@@ -409,3 +461,24 @@ class CoresaPublicationAttribute(models.Model):
     def _compute_missing(self):
         for line in self:
             line.missing = line.required and not line.value
+
+
+class CoresaPublicationCategory(models.Model):
+    _name = "coresa.publication.category"
+    _description = "Categoria sugerida por MercadoLibre"
+
+    publication_ref = fields.Many2one(
+        "coresa.publication", string="Publicacion", required=True, ondelete="cascade", index=True
+    )
+    category_id_ml = fields.Char(string="Categoria", readonly=True)
+    name = fields.Char(string="Nombre", readonly=True)
+    domain_name = fields.Char(string="Dominio", readonly=True)
+
+    def action_use_category(self):
+        """Rehace el borrador con esta categoria."""
+        self.ensure_one()
+        publication = self.publication_ref
+        publication.write(
+            publication.preview_sku(publication.sku, self.category_id_ml)
+        )
+        return True
