@@ -124,6 +124,18 @@ class SoledDashboard(models.Model):
                     "description": "Operaciones Coresa",
                     "icon": "fa-cube",
                     "action": "coresa_panel.action_coresa_dashboard",
+                    "children": [
+                        {
+                            "key": "coresa_publish",
+                            "label": "Publicar SKU",
+                            "action": "coresa_meli_publisher.action_coresa_publication_wizard",
+                        },
+                        {
+                            "key": "coresa_publications",
+                            "label": "Publicaciones",
+                            "action": "coresa_meli_publisher.action_coresa_publication",
+                        },
+                    ],
                 },
             ],
         },
