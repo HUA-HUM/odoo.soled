@@ -321,3 +321,115 @@
     .o_coresa_header { align-items: stretch; flex-direction: column; }
     .o_coresa_title { max-width: 180px; }
 }
+
+/* Editor del borrador: dos columnas, contexto a la derecha. */
+.o_coresa_form .o_form_sheet {
+    max-width: 1180px;
+}
+
+.o_coresa_alerts .alert {
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding: 12px 16px;
+}
+
+.o_coresa_alerts .alert strong i {
+    margin-right: 6px;
+}
+
+.o_coresa_alert_hint {
+    color: inherit;
+    font-size: 12px;
+    margin-top: 4px;
+    opacity: 0.8;
+}
+
+.o_coresa_title_block {
+    border-bottom: 1px solid #eef2f6;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    width: 100%;
+}
+
+.o_coresa_sku {
+    color: #94a3b8;
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.o_coresa_title_block h1 {
+    margin: 6px 0 0;
+}
+
+.o_coresa_title_block h1 input {
+    font-size: 22px !important;
+    font-weight: 750 !important;
+}
+
+.o_coresa_title_meta {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 6px;
+}
+
+.o_coresa_editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.o_coresa_editor__main {
+    flex: 1 1 520px;
+    min-width: 0;
+}
+
+.o_coresa_editor__aside {
+    display: flex;
+    flex: 0 1 300px;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.o_coresa_aside_card {
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.o_coresa_aside_title {
+    color: #94a3b8;
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.o_coresa_aside_card img {
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+.o_coresa_aside_card .o_group {
+    margin: 0;
+}
+
+.o_coresa_aside_hint {
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+
+/* La descripcion venia en una columna angosta, una palabra por linea. */
+.o_coresa_editor__main .o_field_text textarea {
+    min-height: 220px;
+    width: 100%;
+}

@@ -63,6 +63,13 @@ class CoresaPublication(models.Model):
         "coresa.publication.category", "publication_ref", string="Categorias sugeridas"
     )
 
+    has_missing = fields.Boolean(compute="_compute_flags")
+    has_validation = fields.Boolean(compute="_compute_flags")
+    has_error = fields.Boolean(compute="_compute_flags")
+    has_picture = fields.Boolean(compute="_compute_flags")
+    has_result = fields.Boolean(compute="_compute_flags")
+    title_length = fields.Integer(compute="_compute_flags")
+
     can_publish = fields.Boolean(compute="_compute_can_publish")
     blocking_reason = fields.Char(compute="_compute_can_publish")
 
@@ -71,6 +78,22 @@ class CoresaPublication(models.Model):
         for publication in self:
             parts = [part for part in (publication.sku, publication.family_name) if part]
             publication.name = " — ".join(parts) or publication.sku or "Publicacion"
+
+    @api.depends(
+        "missing_attributes", "validation_message", "error_message",
+        "picture_url", "classic_item_id", "premium_item_id", "family_name",
+    )
+    def _compute_flags(self):
+        for publication in self:
+            publication.has_missing = bool(publication.missing_attributes)
+            publication.has_validation = bool(publication.validation_message)
+            publication.has_error = bool(publication.error_message)
+            publication.has_picture = bool(publication.picture_url)
+            publication.has_result = bool(
+                publication.classic_item_id or publication.premium_item_id
+            )
+            # ML corta el titulo a los 60 caracteres.
+            publication.title_length = len(publication.family_name or "")
 
     @api.depends("publication_id", "state")
     def _compute_can_publish(self):

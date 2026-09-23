@@ -4,120 +4,134 @@
         <field name="name">coresa.publication.form</field>
         <field name="model">coresa.publication</field>
         <field name="arch" type="xml">
-            <form string="Publicacion Coresa" create="false">
+            <form string="Publicacion Coresa" create="false" class="o_coresa_form">
                 <header>
-                    <!-- Odoo 16 no permite deshabilitar un boton de header por
-                         condicion: se oculta y el motivo queda en el aviso. -->
                     <button name="action_publish" type="object" string="Publicar en MercadoLibre"
                             class="btn-primary"
                             attrs="{'invisible': ['|', ('can_publish', '=', False), ('state', 'in', ('published', 'discarded'))]}"/>
                     <button name="action_rebuild_draft" type="object" string="Volver a armar borrador"
-                            attrs="{'invisible': [('state', 'not in', ('draft', 'failed'))]}"/>
+                            attrs="{'invisible': [('state', 'in', ('published', 'discarded', 'publishing'))]}"/>
                     <button name="action_discard" type="object" string="Descartar"
                             attrs="{'invisible': [('state', 'in', ('published', 'discarded'))]}"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,published"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,ready,published"/>
                 </header>
                 <sheet>
                     <field name="can_publish" invisible="1"/>
+                    <field name="has_missing" invisible="1"/>
+                    <field name="has_validation" invisible="1"/>
+                    <field name="has_error" invisible="1"/>
+                    <field name="has_picture" invisible="1"/>
+                    <field name="has_result" invisible="1"/>
 
-                    <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible': [('missing_attributes', '=', False)]}">
-                        <strong>Atributos sin completar: </strong>
-                        <field name="missing_attributes" readonly="1" nolabel="1" class="oe_inline"/>
-                        <div>MercadoLibre los pide para esta categoría. Si el estado es
-                        "Listo para publicar" los marcó como recomendados y se puede publicar igual.</div>
+                    <div class="o_coresa_alerts">
+                        <div class="alert alert-warning" role="alert"
+                             attrs="{'invisible': [('has_missing', '=', False)]}">
+                            <strong><i class="fa fa-info-circle"/> Atributos sin completar: </strong>
+                            <field name="missing_attributes" readonly="1" nolabel="1" class="oe_inline"/>
+                            <div class="o_coresa_alert_hint">Si el estado es "Listo para publicar",
+                                MercadoLibre los marcó como recomendados y se puede publicar igual.</div>
+                        </div>
+                        <div class="alert alert-warning" role="alert"
+                             attrs="{'invisible': [('has_validation', '=', False)]}">
+                            <strong><i class="fa fa-exclamation-triangle"/> MercadoLibre rechazó el borrador</strong>
+                            <field name="validation_message" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="alert alert-danger" role="alert"
+                             attrs="{'invisible': [('has_error', '=', False)]}">
+                            <strong><i class="fa fa-times-circle"/> Error al publicar</strong>
+                            <field name="error_message" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="alert alert-info" role="alert"
+                             attrs="{'invisible': [('blocking_reason', '=', False)]}">
+                            <field name="blocking_reason" readonly="1" nolabel="1"/>
+                        </div>
                     </div>
 
-                    <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible': ['|', ('blocking_reason', '=', False), ('missing_attributes', '!=', False)]}">
-                        <field name="blocking_reason" readonly="1" nolabel="1"/>
+                    <div class="oe_title o_coresa_title_block">
+                        <span class="o_coresa_sku"><field name="sku" readonly="1" nolabel="1" class="oe_inline"/></span>
+                        <h1><field name="family_name" placeholder="Título en MercadoLibre" nolabel="1"/></h1>
+                        <div class="o_coresa_title_meta">
+                            <span>Máximo 60 caracteres · usados <field name="title_length" readonly="1" nolabel="1" class="oe_inline"/></span>
+                        </div>
                     </div>
 
-                    <div class="alert alert-warning" role="alert"
-                         attrs="{'invisible': [('validation_message', '=', False)]}">
-                        <strong>MercadoLibre rechazó el borrador:</strong>
-                        <field name="validation_message" readonly="1" nolabel="1"/>
-                    </div>
-
-                    <div class="alert alert-danger" role="alert"
-                         attrs="{'invisible': [('error_message', '=', False)]}">
-                        <strong>Error al publicar:</strong>
-                        <field name="error_message" readonly="1" nolabel="1"/>
-                    </div>
-
-                    <div class="oe_title">
-                        <h1><field name="name" readonly="1" nolabel="1"/></h1>
-                    </div>
-
-                    <group>
-                        <group string="Producto">
-                            <field name="sku"/>
-                            <field name="category_id_ml"/>
-                            <field name="category_name" attrs="{'invisible': [('category_name', '=', False)]}"/>
-                            <field name="ai_model" attrs="{'invisible': [('ai_model', '=', False)]}"/>
-                            <field name="ai_generated_at" attrs="{'invisible': [('ai_generated_at', '=', False)]}"/>
-                            <field name="family_name"/>
-                        </group>
-                        <group string="Precio y stock">
-                            <field name="price"/>
-                            <field name="available_quantity"/>
-                        </group>
-                    </group>
-
-                    <group string="Descripcion">
-                        <field name="description" nolabel="1"/>
-                    </group>
-
-                    <group string="Imagen" attrs="{'invisible': [('picture_url', '=', False)]}">
-                        <field name="picture_url"/>
-                        <field name="picture_url" widget="image_url" nolabel="1" options="{'size': [200, 200]}"/>
-                    </group>
-
-                    <notebook>
-                        <page string="Atributos">
-                            <field name="attribute_ids">
-                                <tree editable="bottom" create="false" delete="false"
-                                      decoration-danger="missing == True">
-                                    <field name="missing" invisible="1"/>
-                                    <field name="attribute_id_ml"/>
-                                    <field name="name"/>
-                                    <field name="value"/>
-                                    <field name="required"/>
-                                    <field name="allowed_values"/>
-                                </tree>
-                            </field>
-                        </page>
-                        <page string="Categorias sugeridas"
-                              attrs="{'invisible': [('category_suggestion_ids', '=', [])]}">
-                            <div class="alert alert-info" role="alert">
-                                Cambiar de categoría rehace el borrador: cada categoría tiene
-                                sus propios atributos obligatorios.
-                            </div>
-                            <field name="category_suggestion_ids">
-                                <tree create="false" delete="false">
-                                    <field name="category_id_ml"/>
-                                    <field name="name"/>
-                                    <field name="domain_name"/>
-                                    <button name="action_use_category" type="object"
-                                            string="Usar esta categoria" icon="fa-refresh"/>
-                                </tree>
-                            </field>
-                        </page>
-                        <page string="Datos de Coresa" attrs="{'invisible': [('coresa_snapshot_json', '=', False)]}">
-                            <field name="coresa_snapshot_json" widget="ace" options="{'mode': 'json'}" nolabel="1"/>
-                        </page>
-                        <page string="Resultado" attrs="{'invisible': [('state', 'not in', ('published', 'partial'))]}">
-                            <group>
-                                <field name="classic_item_id"/>
-                                <field name="premium_item_id"/>
-                                <field name="permalink" widget="url"/>
+                    <div class="o_coresa_editor">
+                        <div class="o_coresa_editor__main">
+                            <group string="Precio y stock" col="4">
+                                <field name="price"/>
+                                <field name="available_quantity"/>
                             </group>
-                        </page>
-                        <page string="Tecnico" groups="base.group_no_one">
-                            <field name="publication_id"/>
-                            <field name="raw_draft_json" widget="ace" options="{'mode': 'json'}"/>
-                        </page>
-                    </notebook>
+
+                            <group string="Descripción">
+                                <field name="description" nolabel="1" placeholder="Texto plano: MercadoLibre no acepta HTML."/>
+                            </group>
+
+                            <notebook>
+                                <page string="Atributos">
+                                    <field name="attribute_ids">
+                                        <tree editable="bottom" create="false" delete="false"
+                                              decoration-danger="missing == True">
+                                            <field name="missing" invisible="1"/>
+                                            <field name="name"/>
+                                            <field name="value"/>
+                                            <field name="allowed_values"/>
+                                            <field name="required"/>
+                                            <field name="attribute_id_ml" optional="hide"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Categorías sugeridas">
+                                    <div class="alert alert-info" role="alert">
+                                        Cambiar de categoría rehace el borrador: cada categoría tiene
+                                        sus propios atributos obligatorios.
+                                    </div>
+                                    <field name="category_suggestion_ids">
+                                        <tree create="false" delete="false">
+                                            <field name="name"/>
+                                            <field name="domain_name"/>
+                                            <field name="category_id_ml"/>
+                                            <button name="action_use_category" type="object"
+                                                    string="Usar" icon="fa-refresh"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Datos de Coresa">
+                                    <field name="coresa_snapshot_json" widget="ace"
+                                           options="{'mode': 'json'}" nolabel="1" readonly="1"/>
+                                </page>
+                            </notebook>
+                        </div>
+
+                        <div class="o_coresa_editor__aside">
+                            <div class="o_coresa_aside_card" attrs="{'invisible': [('has_picture', '=', False)]}">
+                                <span class="o_coresa_aside_title">Imagen</span>
+                                <field name="picture_url" widget="image_url" nolabel="1"
+                                       options="{'size': [260, 260]}" readonly="1"/>
+                            </div>
+
+                            <div class="o_coresa_aside_card">
+                                <span class="o_coresa_aside_title">Origen del contenido</span>
+                                <group>
+                                    <field name="category_id_ml"/>
+                                    <field name="category_name" attrs="{'invisible': [('category_name', '=', False)]}"/>
+                                    <field name="ai_model" attrs="{'invisible': [('ai_model', '=', False)]}"/>
+                                    <field name="ai_generated_at" attrs="{'invisible': [('ai_generated_at', '=', False)]}"/>
+                                </group>
+                                <div class="o_coresa_aside_hint">Título, descripción y atributos los
+                                    genera la IA. Precio y stock salen de Coresa.</div>
+                            </div>
+
+                            <div class="o_coresa_aside_card" attrs="{'invisible': [('has_result', '=', False)]}">
+                                <span class="o_coresa_aside_title">En MercadoLibre</span>
+                                <group>
+                                    <field name="classic_item_id"/>
+                                    <field name="premium_item_id"/>
+                                    <field name="permalink" widget="url"/>
+                                </group>
+                            </div>
+                        </div>
+                    </div>
                 </sheet>
             </form>
         </field>
