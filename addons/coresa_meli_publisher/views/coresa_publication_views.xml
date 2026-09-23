@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_coresa_publication_form" model="ir.ui.view">
+        <field name="name">coresa.publication.form</field>
+        <field name="model">coresa.publication</field>
+        <field name="arch" type="xml">
+            <form string="Publicacion Coresa" create="false">
+                <header>
+                    <!-- Odoo 16 no permite deshabilitar un boton de header por
+                         condicion: se oculta y el motivo queda en el aviso. -->
+                    <button name="action_publish" type="object" string="Publicar en MercadoLibre"
+                            class="btn-primary"
+                            attrs="{'invisible': ['|', ('can_publish', '=', False), ('state', 'in', ('published', 'discarded'))]}"/>
+                    <button name="action_rebuild_draft" type="object" string="Volver a armar borrador"
+                            attrs="{'invisible': [('state', 'not in', ('draft', 'failed'))]}"/>
+                    <button name="action_discard" type="object" string="Descartar"
+                            attrs="{'invisible': [('state', 'in', ('published', 'discarded'))]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,published"/>
+                </header>
+                <sheet>
+                    <field name="can_publish" invisible="1"/>
+
+                    <div class="alert alert-danger" role="alert"
+                         attrs="{'invisible': [('missing_attributes', '=', False)]}">
+                        <strong>Faltan atributos obligatorios: </strong>
+                        <field name="missing_attributes" readonly="1" nolabel="1" class="oe_inline"/>
+                        <div>MercadoLibre va a rechazar la publicación hasta que estén completos.</div>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert"
+                         attrs="{'invisible': ['|', ('blocking_reason', '=', False), ('missing_attributes', '!=', False)]}">
+                        <field name="blocking_reason" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert"
+                         attrs="{'invisible': [('validation_message', '=', False)]}">
+                        <strong>MercadoLibre rechazó el borrador:</strong>
+                        <field name="validation_message" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <div class="alert alert-danger" role="alert"
+                         attrs="{'invisible': [('error_message', '=', False)]}">
+                        <strong>Error al publicar:</strong>
+                        <field name="error_message" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1" nolabel="1"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Producto">
+                            <field name="sku"/>
+                            <field name="category_id_ml"/>
+                            <field name="category_name" attrs="{'invisible': [('category_name', '=', False)]}"/>
+                            <field name="family_name"/>
+                        </group>
+                        <group string="Precio y stock">
+                            <field name="price"/>
+                            <field name="available_quantity"/>
+                        </group>
+                    </group>
+
+                    <group string="Descripcion">
+                        <field name="description" nolabel="1"/>
+                    </group>
+
+                    <group string="Imagen" attrs="{'invisible': [('picture_url', '=', False)]}">
+                        <field name="picture_url"/>
+                        <field name="picture_url" widget="image_url" nolabel="1" options="{'size': [200, 200]}"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Atributos">
+                            <field name="attribute_ids">
+                                <tree editable="bottom" create="false" delete="false"
+                                      decoration-danger="missing == True">
+                                    <field name="missing" invisible="1"/>
+                                    <field name="attribute_id_ml"/>
+                                    <field name="name"/>
+                                    <field name="value"/>
+                                    <field name="required"/>
+                                    <field name="allowed_values"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Resultado" attrs="{'invisible': [('state', 'not in', ('published', 'partial'))]}">
+                            <group>
+                                <field name="classic_item_id"/>
+                                <field name="premium_item_id"/>
+                                <field name="permalink" widget="url"/>
+                            </group>
+                        </page>
+                        <page string="Tecnico" groups="base.group_no_one">
+                            <field name="publication_id"/>
+                            <field name="raw_draft_json" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_coresa_publication_tree" model="ir.ui.view">
+        <field name="name">coresa.publication.tree</field>
+        <field name="model">coresa.publication</field>
+        <field name="arch" type="xml">
+            <tree string="Publicaciones Coresa" create="false"
+                  decoration-success="state == 'published'"
+                  decoration-warning="state == 'partial'"
+                  decoration-danger="state == 'failed'"
+                  decoration-muted="state == 'discarded'">
+                <field name="sku"/>
+                <field name="family_name"/>
+                <field name="state"/>
+                <field name="price"/>
+                <field name="available_quantity"/>
+                <field name="classic_item_id"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_coresa_publication_search" model="ir.ui.view">
+        <field name="name">coresa.publication.search</field>
+        <field name="model">coresa.publication</field>
+        <field name="arch" type="xml">
+            <search string="Publicaciones">
+                <field name="sku"/>
+                <field name="family_name"/>
+                <filter name="filter_draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_ready" string="Listo" domain="[('state', '=', 'ready')]"/>
+                <filter name="filter_published" string="Publicado" domain="[('state', '=', 'published')]"/>
+                <filter name="filter_partial" string="Parcial" domain="[('state', '=', 'partial')]"/>
+                <filter name="filter_failed" string="Con error" domain="[('state', '=', 'failed')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_coresa_publication" model="ir.actions.act_window">
+        <field name="name">Publicaciones</field>
+        <field name="res_model">coresa.publication</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'create': False}</field>
+    </record>
+</odoo>

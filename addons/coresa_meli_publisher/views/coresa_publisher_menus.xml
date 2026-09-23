@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Cuelga de la raiz "Coresa" en vez de crear un menu de primer nivel. -->
+    <menuitem id="menu_coresa_publisher" name="Publicador" parent="coresa_panel.menu_coresa_root" sequence="60"/>
+    <menuitem id="menu_coresa_publisher_wizard" name="Publicar SKU" parent="menu_coresa_publisher"
+              action="action_coresa_publication_wizard" sequence="10"/>
+    <menuitem id="menu_coresa_publisher_list" name="Publicaciones" parent="menu_coresa_publisher"
+              action="action_coresa_publication" sequence="20"/>
+</odoo>

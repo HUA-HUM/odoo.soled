@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_coresa_publication_wizard_form" model="ir.ui.view">
+        <field name="name">coresa.publication.wizard.form</field>
+        <field name="model">coresa.publication.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Publicar SKU de Coresa">
+                <div class="alert alert-info" role="alert">
+                    Armar el borrador tarda entre 10 y 30 segundos: se consultan Coresa,
+                    MercadoLibre y OpenAI. No cierres la ventana mientras corre.
+                </div>
+                <group>
+                    <field name="sku" placeholder="Ej: AEB 35 SC/1"/>
+                </group>
+                <footer>
+                    <button name="action_build_draft" type="object" string="Buscar y armar borrador" class="btn-primary"/>
+                    <button special="cancel" string="Cancelar" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_coresa_publication_wizard" model="ir.actions.act_window">
+        <field name="name">Publicar SKU</field>
+        <field name="res_model">coresa.publication.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
