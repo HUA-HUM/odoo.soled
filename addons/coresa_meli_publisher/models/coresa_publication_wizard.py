@@ -17,7 +17,9 @@ class CoresaPublicationWizard(models.TransientModel):
 
         publication_model = self.env["coresa.publication"]
         values = publication_model.preview_sku(sku)
-        publication = publication_model.create(values)
+        publication = publication_model._apply_values(
+            publication_model.browse(), values
+        )
 
         return {
             "type": "ir.actions.act_window",

@@ -135,9 +135,14 @@ class CoresaPublicationsAction extends Component {
             });
             await this.action.doAction(action);
         } catch (error) {
+            // El mensaje generico esconde la causa, que es lo unico util para
+            // arreglarlo: va el detalle de Odoo cuando existe.
+            const detail = error?.data?.message || error?.message || "";
             this.notification.add(
-                error?.data?.message || "No se pudo abrir la publicación.",
-                { type: "danger" }
+                detail
+                    ? `No se pudo abrir la publicación: ${detail}`
+                    : "No se pudo abrir la publicación.",
+                { type: "danger", sticky: true }
             );
         }
     }

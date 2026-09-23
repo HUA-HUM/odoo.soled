@@ -212,6 +212,20 @@ class CoresaPublication(models.Model):
         return self._values_from_preview(sku, payload)
 
     @api.model
+    def _apply_values(self, record, values):
+        """Crea o actualiza sacando los comandos de limpieza cuando no hay
+        lineas previas que limpiar."""
+        if record:
+            record.write(values)
+            return record
+        clean = dict(values)
+        for field_name in ("attribute_ids", "category_suggestion_ids"):
+            commands = clean.get(field_name)
+            if isinstance(commands, list):
+                clean[field_name] = [cmd for cmd in commands if cmd and cmd[0] != 5]
+        return self.create(clean)
+
+    @api.model
     def _values_from_preview(self, sku, payload):
         draft = payload.get("draft")
         draft = draft if isinstance(draft, dict) else {}
@@ -454,11 +468,9 @@ class CoresaPublication(models.Model):
         payload = self._api_get("/coresa/publications/%s" % publication_id)
         payload = payload if isinstance(payload, dict) else {}
         values = self._values_from_preview(payload.get("sku") or "", payload)
-        record = self.search([("publication_id", "=", publication_id)], limit=1)
-        if record:
-            record.write(values)
-        else:
-            record = self.create(values)
+        record = self._apply_values(
+            self.search([("publication_id", "=", publication_id)], limit=1), values
+        )
         return {
             "type": "ir.actions.act_window",
             "name": _("Borrador de publicación"),
