@@ -102,11 +102,37 @@ class CoresaPublication(models.Model):
         )
 
     @api.model
+    def _api_key(self):
+        return (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("coresa_meli_publisher.api_key", "")
+            .strip()
+        )
+
+    @api.model
     def _api_request(self, method, path, payload=None):
+        api_key = self._api_key()
+        if not api_key:
+            # Sin clave la API responde 401 y el mensaje no dice como arreglarlo.
+            raise UserError(
+                _(
+                    "Falta configurar la clave de coresa-api. Cargala en "
+                    "Ajustes → Técnico → Parámetros del sistema, en la clave "
+                    "coresa_meli_publisher.api_key."
+                )
+            )
         url = "%s%s" % (self._api_base_url(), path)
         try:
             response = requests.request(
-                method, url, json=payload or {}, timeout=self.API_TIMEOUT
+                method,
+                url,
+                json=payload or {},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-internal-api-key": api_key,
+                },
+                timeout=self.API_TIMEOUT,
             )
         except requests.RequestException as error:
             _logger.warning("coresa-api %s %s fallo: %s", method, url, error)
@@ -134,6 +160,10 @@ class CoresaPublication(models.Model):
         data = data if isinstance(data, dict) else {}
         detail = self._flatten_message(data.get("message"))
         mapped = {
+            401: _(
+                "coresa-api rechazó la clave. Revisá "
+                "coresa_meli_publisher.api_key en Parámetros del sistema."
+            ),
             404: _("El SKU no existe en el catálogo de Coresa."),
             409: _("Ese SKU ya tiene una publicación en curso."),
             502: _("MercadoLibre no responde, probá de nuevo en unos minutos."),
