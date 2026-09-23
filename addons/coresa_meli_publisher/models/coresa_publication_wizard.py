@@ -26,6 +26,7 @@ class CoresaPublicationWizard(models.TransientModel):
             "name": _("Borrador de publicación"),
             "res_model": "coresa.publication",
             "res_id": publication.id,
+            "views": [(False, "form")],
             "view_mode": "form",
             "target": "current",
         }

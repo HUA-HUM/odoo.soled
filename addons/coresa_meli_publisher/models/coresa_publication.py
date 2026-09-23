@@ -476,6 +476,7 @@ class CoresaPublication(models.Model):
             "name": _("Borrador de publicación"),
             "res_model": "coresa.publication",
             "res_id": record.id,
+            "views": [(False, "form")],
             "view_mode": "form",
             "target": "current",
         }
