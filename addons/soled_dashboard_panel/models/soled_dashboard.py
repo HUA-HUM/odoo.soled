@@ -1,4 +1,7 @@
+import base64
+
 from odoo import api, fields, models
+from odoo.modules.module import get_resource_path
 
 
 class SoledDashboard(models.Model):
@@ -6,6 +9,26 @@ class SoledDashboard(models.Model):
     _description = "SOLED Dashboard"
 
     name = fields.Char(default="Panel SOLED")
+
+    @api.model
+    def _apply_brand_favicon(self):
+        """Pone el favicon de SOLED en las companias.
+
+        No alcanza con un <record> sobre base.main_company: ese xmlid esta
+        marcado noupdate en base, asi que Odoo saltea la escritura en los
+        upgrades y solo la aplica al instalar. El campo importa porque es lo
+        que sirve /web/image/res.company/<id>/favicon, que es la URL que el
+        navegador puede tener cacheada como icono del sitio.
+        """
+        path = get_resource_path(
+            "soled_dashboard_panel", "static/src/img/soled_tab_icon.png"
+        )
+        if not path:
+            return False
+        with open(path, "rb") as icon:
+            data = base64.b64encode(icon.read())
+        self.env["res.company"].sudo().search([]).write({"favicon": data})
+        return True
 
     def _open_action(self, xmlid):
         action = self.env.ref(xmlid, raise_if_not_found=False)
