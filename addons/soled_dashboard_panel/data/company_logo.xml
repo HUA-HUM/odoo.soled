@@ -2,5 +2,8 @@
 <odoo noupdate="0">
     <record id="base.main_company" model="res.company">
         <field name="logo" type="base64" file="soled_dashboard_panel/static/src/img/soled_login_logo.png"/>
+        <!-- Este campo es el que Odoo sirve en /web/image/res.company/1/favicon
+             y el que alimenta x_icon. Seguia siendo el icono violeta de Odoo. -->
+        <field name="favicon" type="base64" file="soled_dashboard_panel/static/src/img/soled_tab_icon.png"/>
     </record>
 </odoo>

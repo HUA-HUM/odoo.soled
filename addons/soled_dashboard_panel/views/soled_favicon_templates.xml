@@ -3,6 +3,11 @@
     <!-- Sin fallback a x_icon: ese trae el favicon de la compania en la base,
          que sigue siendo el de Odoo y ganaba en el webclient. -->
     <template id="soled_favicon_override" inherit_id="web.layout" name="SOLED Favicon">
+        <!-- Las paginas que renderiza el server (login, sobre todo) titulaban
+             "Odoo". El webclient ya se titula solo desde el sidebar. -->
+        <xpath expr="//title" position="replace">
+            <title t-esc="title or 'SOLED Panel'"/>
+        </xpath>
         <xpath expr="//link[@rel='shortcut icon']" position="replace">
             <link type="image/png" rel="shortcut icon" href="/soled_dashboard_panel/static/src/img/soled_tab_icon.png"/>
             <link type="image/png" rel="icon" href="/soled_dashboard_panel/static/src/img/soled_tab_icon.png"/>
