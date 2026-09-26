@@ -1,4 +1,7 @@
-from odoo import api, fields, models
+from urllib.parse import quote
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class CoresaUpdater(models.Model):
@@ -145,6 +148,110 @@ class CoresaUpdater(models.Model):
             if isinstance(entry, dict)
         ]
         return detail
+
+    # ------------------------------------------------------------------
+    # Acciones: que publicaciones mira el actualizador y que les toca
+    # ------------------------------------------------------------------
+    @api.model
+    def get_actions_counters(self):
+        """Los tres cortes con los que se revisa esto.
+
+        Cada uno sale del total que devuelve la paginacion, pidiendo una
+        sola fila: no hace falta traerlas.
+        """
+        catalog = self._catalog()
+        cuts = {
+            "all": {},
+            "synced": {"updateStock": "true", "updatePrice": "true"},
+            "excluded": {"updateStock": "false", "updatePrice": "false"},
+        }
+        counters = {}
+        for key, params in cuts.items():
+            payload = catalog._api_get(self.LIST_PATH, dict(params, limit=1, offset=0)) or {}
+            counters[key] = catalog._as_int(((payload or {}).get("pagination") or {}).get("total"))
+        return counters
+
+    @api.model
+    def _flag_values(self, update_stock=None, update_price=None):
+        """Solo viajan las banderas que se quieren cambiar: la API deja
+        intacta la que no venga."""
+        values = {}
+        if update_stock is not None:
+            values["updateStock"] = bool(update_stock)
+        if update_price is not None:
+            values["updatePrice"] = bool(update_price)
+        if not values:
+            raise UserError(_("No se indicó qué cambiar."))
+        return values
+
+    @api.model
+    def set_publication_flags(self, mla, update_stock=None, update_price=None):
+        """Cambia las banderas de una publicacion puntual."""
+        mla = (mla or "").strip()
+        if not mla:
+            raise UserError(_("Falta la publicación (MLA)."))
+        values = self._flag_values(update_stock, update_price)
+        payload = self._catalog()._api_write(
+            "PATCH", "%s/by-mla/%s" % (self.LIST_PATH, quote(mla, safe="")), values
+        )
+        return self._flags_payload(payload)
+
+    @api.model
+    def set_sku_flags(self, sku, update_stock=None, update_price=None):
+        """Cambia las banderas de todas las publicaciones de un SKU.
+
+        Un SKU puede tener varias MLA (clasica y premium, por ejemplo) y
+        casi siempre se quiere lo mismo para todas.
+        """
+        sku = (sku or "").strip()
+        if not sku:
+            raise UserError(_("Falta el SKU."))
+        values = self._flag_values(update_stock, update_price)
+        payload = self._catalog()._api_write(
+            "PATCH", "%s/by-sku/%s" % (self.LIST_PATH, quote(sku, safe="")), values
+        )
+        return {
+            "updated": self._catalog()._as_int((payload or {}).get("updated")),
+            "items": [
+                self._flags_payload(item)
+                for item in ((payload or {}).get("items") or [])
+                if isinstance(item, dict)
+            ],
+        }
+
+    @api.model
+    def link_publication(self, sku, mla, update_stock=True, update_price=True):
+        """Da de alta el vinculo SKU ↔ MLA.
+
+        Es un upsert por el par: si ya existe, la API actualiza las
+        banderas en vez de fallar.
+        """
+        sku = (sku or "").strip()
+        mla = (mla or "").strip()
+        if not sku or not mla:
+            raise UserError(_("Hacen falta el SKU y la publicación (MLA)."))
+        payload = self._catalog()._api_write(
+            "POST",
+            self.LIST_PATH,
+            {
+                "sku": sku,
+                "mla": mla,
+                "updateStock": bool(update_stock),
+                "updatePrice": bool(update_price),
+            },
+        )
+        return self._flags_payload(payload)
+
+    @api.model
+    def _flags_payload(self, item):
+        item = item if isinstance(item, dict) else {}
+        return {
+            "sku": item.get("sku") or "",
+            "mla": item.get("mla") or "",
+            "updateStock": bool(item.get("updateStock")),
+            "updatePrice": bool(item.get("updatePrice")),
+            "createdAt": item.get("createdAt") or "",
+        }
 
     # ------------------------------------------------------------------
     @api.model

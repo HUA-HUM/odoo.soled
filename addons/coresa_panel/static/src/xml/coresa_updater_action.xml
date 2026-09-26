@@ -1,32 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <!-- El contenedor: encabezado, totales y las dos pestañas. -->
     <t t-name="coresa_panel.UpdaterAction" owl="1">
         <div class="o_cupd_page">
             <section class="o_cupd_header">
                 <div class="o_cupd_header__text">
                     <span class="o_cupd_eyebrow">Coresa · Actualizador</span>
-                    <h1>Catálogo</h1>
-                    <p>Cada fila es una publicación de MercadoLibre: un mismo SKU puede tener varias. Se muestra lo que hay en Coresa y qué sincroniza el actualizador.</p>
+                    <h1>Actualizador</h1>
+                    <p>El proceso corre cada hora y sincroniza precio y stock de Coresa hacia MercadoLibre. Acá se ve qué mira y se decide qué le toca.</p>
                 </div>
                 <div class="o_cupd_stats">
                     <div class="o_cupd_stat">
-                        <span t-esc="formatUnits(state.summary.total)"/>
+                        <span t-esc="num(state.summary.total)"/>
                         <small>publicaciones</small>
                     </div>
                     <div class="o_cupd_stat">
-                        <span t-esc="formatUnits(state.summary.skus)"/>
+                        <span t-esc="num(state.summary.skus)"/>
                         <small>SKU distintos</small>
                     </div>
                     <div class="o_cupd_stat is-stock">
-                        <span t-esc="formatUnits(state.summary.stock)"/>
+                        <span t-esc="num(state.summary.stock)"/>
                         <small>actualizan stock</small>
                     </div>
                     <div class="o_cupd_stat is-price">
-                        <span t-esc="formatUnits(state.summary.price)"/>
+                        <span t-esc="num(state.summary.price)"/>
                         <small>actualizan precio</small>
                     </div>
                 </div>
             </section>
+
+            <nav class="o_cupd_tabs">
+                <button type="button" t-attf-class="o_cupd_tab #{state.tab === 'catalog' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('catalog')">
+                    <i class="fa fa-list-ul"/> Catálogo
+                </button>
+                <button type="button" t-attf-class="o_cupd_tab #{state.tab === 'actions' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('actions')">
+                    <i class="fa fa-sliders"/> Acciones
+                </button>
+            </nav>
+
+            <UpdaterCatalogTab t-if="state.tab === 'catalog'"/>
+            <UpdaterActionsTab t-else="" onChanged.bind="loadSummary"/>
+        </div>
+    </t>
+
+    <!-- Pestaña 1: lo publicado, con su ficha. -->
+    <t t-name="coresa_panel.UpdaterCatalogTab" owl="1">
+        <div class="o_cupd_tabpane">
+            <p class="o_cupd_lead">Cada fila es una publicación de MercadoLibre: un mismo SKU puede tener varias. Se muestra lo que hay en Coresa y qué sincroniza el actualizador.</p>
 
             <section class="o_cupd_filters">
                 <form t-on-submit="applyFilters">
@@ -235,6 +257,167 @@
                     </div>
                 </aside>
             </div>
+        </div>
+    </t>
+
+    <!-- Pestaña 2: qué sincroniza cada publicación. -->
+    <t t-name="coresa_panel.UpdaterActionsTab" owl="1">
+        <div class="o_cupd_tabpane">
+            <p class="o_cupd_lead">
+                Los switches dicen <b>qué se puede tocar</b>. Apagar uno no cambia nada en MercadoLibre:
+                lo publicado queda como está y solo se frenan las actualizaciones futuras.
+            </p>
+
+            <section class="o_cupd_switchbar">
+                <div class="o_cupd_chips">
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'all' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('all')">
+                        Todas <b t-esc="formatUnits(state.counters.all)"/>
+                    </button>
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'synced' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('synced')">
+                        Se sincronizan <b t-esc="formatUnits(state.counters.synced)"/>
+                    </button>
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'excluded' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('excluded')">
+                        Excluidas <b t-esc="formatUnits(state.counters.excluded)"/>
+                    </button>
+                </div>
+
+                <form class="o_cupd_searchform" t-on-submit="applySearch">
+                    <input type="text" placeholder="SKU" t-model="state.search.sku" t-att-disabled="state.loading"/>
+                    <input type="text" placeholder="MLA" t-model="state.search.mla" t-att-disabled="state.loading"/>
+                    <button type="submit" class="o_cupd_apply" t-att-disabled="state.loading">Buscar</button>
+                    <button type="button" class="o_cupd_clear" t-if="state.search.sku || state.search.mla"
+                            t-on-click="resetSearch" t-att-disabled="state.loading">Limpiar</button>
+                </form>
+
+                <button type="button" class="o_cupd_new" t-on-click="toggleForm">
+                    <i t-attf-class="fa #{state.form.open ? 'fa-times' : 'fa-plus'}"/>
+                    <span t-esc="state.form.open ? 'Cancelar' : 'Vincular SKU'"/>
+                </button>
+            </section>
+
+            <form t-if="state.form.open" class="o_cupd_newlink" t-on-submit="createLink">
+                <div class="o_cupd_newlink__head">
+                    <strong>Vincular un SKU con una publicación</strong>
+                    <small>Si el par ya existe, se actualizan sus switches en vez de duplicarlo.</small>
+                </div>
+                <label class="o_cupd_field is-grow">
+                    <span>SKU de Coresa</span>
+                    <input type="text" placeholder="Ej: JDAW2212" t-model="state.form.sku" t-att-disabled="state.form.saving"/>
+                </label>
+                <label class="o_cupd_field is-grow">
+                    <span>Publicación (MLA)</span>
+                    <input type="text" placeholder="Ej: MLA1442302519" t-model="state.form.mla" t-att-disabled="state.form.saving"/>
+                </label>
+                <label class="o_cupd_check">
+                    <input type="checkbox" t-model="state.form.updateStock" t-att-disabled="state.form.saving"/>
+                    <span>Sincronizar stock</span>
+                </label>
+                <label class="o_cupd_check">
+                    <input type="checkbox" t-model="state.form.updatePrice" t-att-disabled="state.form.saving"/>
+                    <span>Sincronizar precio</span>
+                </label>
+                <button type="submit" class="o_cupd_apply" t-att-disabled="state.form.saving">
+                    <t t-if="state.form.saving">Guardando...</t>
+                    <t t-else="">Vincular</t>
+                </button>
+                <p class="o_cupd_hint">
+                    Arranca sincronizando las dos cosas. Si estás cargando varias de una importación,
+                    conviene apagarlas y prenderlas a mano después.
+                </p>
+            </form>
+
+            <div t-if="skuBulk" class="o_cupd_skubulk">
+                <span><b t-esc="skuBulk.sku"/> tiene <b t-esc="formatUnits(skuBulk.total)"/> publicaciones registradas.</span>
+                <div>
+                    <button type="button" t-on-click="() => this.applyToSku(true)" t-att-disabled="state.loading">Sincronizar todas</button>
+                    <button type="button" class="is-danger" t-on-click="() => this.applyToSku(false)" t-att-disabled="state.loading">Sacar todas</button>
+                </div>
+            </div>
+
+            <section t-if="state.error" class="o_cupd_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_cupd_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Cargando...</strong>
+            </section>
+
+            <t t-else="">
+                <section t-if="state.items.length" class="o_cupd_table">
+                    <header class="o_cupd_row is-head is-actions">
+                        <span class="o_cupd_col is-sku">SKU</span>
+                        <span class="o_cupd_col is-mla">Publicación</span>
+                        <span class="o_cupd_col is-switch">Stock</span>
+                        <span class="o_cupd_col is-switch">Precio</span>
+                        <span class="o_cupd_col is-act"/>
+                    </header>
+
+                    <article t-foreach="state.items" t-as="row" t-key="row.mla || row.sku"
+                             t-attf-class="o_cupd_row is-actions #{state.busy === row.mla ? 'is-busy' : ''}">
+                        <span class="o_cupd_col is-sku">
+                            <strong t-esc="row.sku"/>
+                            <small t-if="row.description" t-esc="row.description"/>
+                            <small t-else="" class="o_cupd_warn">Ya no está en el catálogo de Coresa</small>
+                        </span>
+
+                        <span class="o_cupd_col is-mla"><code t-esc="row.mla"/></span>
+
+                        <span class="o_cupd_col is-switch">
+                            <button type="button" role="switch"
+                                    t-attf-class="o_cupd_switch #{row.updateStock ? 'is-on' : ''}"
+                                    t-att-aria-checked="row.updateStock ? 'true' : 'false'"
+                                    t-att-disabled="state.busy === row.mla"
+                                    t-attf-title="#{row.updateStock ? 'Dejar de sincronizar' : 'Volver a sincronizar'} el stock"
+                                    t-on-click="() => this.toggleFlag(row, 'updateStock')">
+                                <span class="o_cupd_switch__track"><span class="o_cupd_switch__dot"/></span>
+                            </button>
+                        </span>
+
+                        <span class="o_cupd_col is-switch">
+                            <button type="button" role="switch"
+                                    t-attf-class="o_cupd_switch #{row.updatePrice ? 'is-on' : ''}"
+                                    t-att-aria-checked="row.updatePrice ? 'true' : 'false'"
+                                    t-att-disabled="state.busy === row.mla"
+                                    t-attf-title="#{row.updatePrice ? 'Dejar de sincronizar' : 'Volver a sincronizar'} el precio"
+                                    t-on-click="() => this.toggleFlag(row, 'updatePrice')">
+                                <span class="o_cupd_switch__track"><span class="o_cupd_switch__dot"/></span>
+                            </button>
+                        </span>
+
+                        <span class="o_cupd_col is-act">
+                            <button t-if="row.updateStock || row.updatePrice" type="button" class="o_cupd_remove"
+                                    t-att-disabled="state.busy === row.mla"
+                                    t-on-click="() => this.removeFromUpdater(row)">
+                                Sacar del actualizador
+                            </button>
+                            <button t-else="" type="button" class="o_cupd_restore"
+                                    t-att-disabled="state.busy === row.mla"
+                                    t-on-click="() => this.applyBoth(row, true)">
+                                Volver a sincronizar
+                            </button>
+                        </span>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_cupd_state">
+                    <i class="fa fa-inbox"/>
+                    <strong>No hay publicaciones en este corte.</strong>
+                </section>
+
+                <footer t-if="state.items.length" class="o_cupd_pager">
+                    <span t-esc="rangeLabel"/>
+                    <div>
+                        <button type="button" t-on-click="previousPage" t-att-disabled="!hasPrevious">Anterior</button>
+                        <span>Página <t t-esc="currentPage"/> de <t t-esc="totalPages"/></span>
+                        <button type="button" t-on-click="nextPage" t-att-disabled="!hasNext">Siguiente</button>
+                    </div>
+                </footer>
+            </t>
         </div>
     </t>
 </templates>

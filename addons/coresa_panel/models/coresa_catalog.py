@@ -113,6 +113,48 @@ class CoresaCatalog(models.Model):
             raise UserError(_("El catálogo no devolvió JSON válido.")) from error
 
     @api.model
+    def _api_message(self, response):
+        """El mensaje que manda la API cuando rechaza algo.
+
+        Nest devuelve {"message": "..."} o {"message": ["...", "..."]}. Sirve
+        mas que un "HTTP 400" pelado: dice cual campo falta o que MLA no
+        existe.
+        """
+        try:
+            payload = response.json()
+        except ValueError:
+            return ""
+        message = (payload or {}).get("message")
+        if isinstance(message, list):
+            return "; ".join(str(part) for part in message)
+        return str(message or "")
+
+    @api.model
+    def _api_write(self, method, path, payload=None):
+        """POST/PATCH contra la API interna, con el error de la API a la vista."""
+        try:
+            response = requests.request(
+                method,
+                "%s%s" % (self._api_base_url(), path),
+                json=payload or {},
+                headers=dict(self._api_headers(), **{"content-type": "application/json"}),
+                timeout=self.API_TIMEOUT,
+            )
+        except requests.RequestException as error:
+            raise UserError(_("No se pudo contactar a la API interna: %s") % error) from error
+
+        if response.status_code >= 400:
+            detail = self._api_message(response)
+            raise UserError(
+                _("La API interna rechazó el cambio (%(code)s): %(detail)s")
+                % {"code": response.status_code, "detail": detail or _("sin detalle")}
+            )
+        try:
+            return response.json()
+        except ValueError:
+            return {}
+
+    @api.model
     def _api_post(self, path, payload=None, silent=False):
         try:
             response = requests.post(
