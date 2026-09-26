@@ -78,7 +78,7 @@ class SoledDashboard(models.Model):
         return self._open_action("sku_publisher_panel.action_publisher_dashboard_panel")
 
     def action_open_coresa(self):
-        return self._open_action("coresa_panel.action_coresa_dashboard")
+        return self._open_action("coresa_panel.action_coresa_dashboard_panel")
 
     # ------------------------------------------------------------------
     # Navegacion global
@@ -146,7 +146,7 @@ class SoledDashboard(models.Model):
                     "label": "Coresa",
                     "description": "Operaciones Coresa",
                     "icon": "fa-cube",
-                    "action": "coresa_panel.action_coresa_dashboard",
+                    "action": "coresa_panel.action_coresa_dashboard_panel",
                     "children": [
                         {
                             "key": "coresa_catalog",

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_panel.DashboardAction" owl="1">
+        <div class="o_cdash_page">
+            <section class="o_cdash_hero">
+                <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
+                <div class="o_cdash_hero__text">
+                    <span class="o_cdash_eyebrow">Módulo</span>
+                    <h1>Coresa</h1>
+                    <p>El catálogo del mayorista, lo que está publicado en MercadoLibre y la sincronización de precio y stock.</p>
+                </div>
+                <button type="button" class="o_cdash_refresh" t-on-click="load" t-att-disabled="state.loading">
+                    <i t-attf-class="fa fa-refresh #{state.loading ? 'fa-spin' : ''}"/>
+                    <span>Actualizar</span>
+                </button>
+            </section>
+
+            <section t-if="state.data.errors.length" class="o_cdash_note" role="alert">
+                <i class="fa fa-exclamation-triangle"/>
+                <span>
+                    <t t-foreach="state.data.errors" t-as="message" t-key="message_index">
+                        <t t-esc="message"/>
+                    </t>
+                </span>
+            </section>
+
+            <section class="o_cdash_kpis">
+                <article class="o_cdash_kpi">
+                    <span class="o_cdash_kpi__label">Catálogo</span>
+                    <strong t-esc="num(state.data.catalog)"/>
+                    <small>productos del mayorista</small>
+                </article>
+
+                <article class="o_cdash_kpi">
+                    <span class="o_cdash_kpi__label">En MercadoLibre</span>
+                    <strong t-esc="num(state.data.publications)"/>
+                    <small><t t-esc="num(state.data.skus)"/> SKU distintos</small>
+                </article>
+
+                <article class="o_cdash_kpi is-sync">
+                    <span class="o_cdash_kpi__label">Sincronizan</span>
+                    <strong><t t-esc="num(state.data.stock)"/> <em>stock</em></strong>
+                    <small><t t-esc="formatUnits(state.data.price)"/> precio · <t t-esc="formatUnits(idlePublications)"/> sin sincronizar</small>
+                </article>
+
+                <article class="o_cdash_kpi is-publisher">
+                    <span class="o_cdash_kpi__label">Publicador</span>
+                    <strong t-esc="num(state.data.publisher.total)"/>
+                    <small>
+                        <t t-esc="formatUnits(state.data.publisher.pending)"/> pendientes ·
+                        <t t-esc="formatUnits(state.data.publisher.published)"/> publicadas
+                    </small>
+                </article>
+            </section>
+
+            <section class="o_cdash_sections">
+                <t t-foreach="state.sections" t-as="section" t-key="section.key">
+                    <button type="button"
+                            t-attf-class="o_cdash_card #{section.available ? 'is-open' : 'is-soon'}"
+                            t-att-disabled="!section.available"
+                            t-on-click="() => this.openSection(section)">
+                        <span class="o_cdash_card__icon"><i t-attf-class="fa #{section.icon}"/></span>
+                        <span class="o_cdash_card__body">
+                            <strong t-esc="section.label"/>
+                            <small t-esc="section.hint"/>
+                            <em t-if="state.data.metrics[section.key]" t-esc="state.data.metrics[section.key]"/>
+                        </span>
+                        <span t-if="section.available" class="o_cdash_card__go"><i class="fa fa-arrow-right"/></span>
+                        <span t-else="" class="o_cdash_soon">Próximamente</span>
+                    </button>
+                </t>
+            </section>
+
+            <footer class="o_cdash_foot">
+                <span t-if="state.loading"><i class="fa fa-spinner fa-spin"/> Leyendo la API interna...</span>
+                <span t-else="">Datos en vivo de internal-soled.</span>
+            </footer>
+        </div>
+    </t>
+</templates>

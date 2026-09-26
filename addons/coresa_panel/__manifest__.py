@@ -15,6 +15,8 @@
     "assets": {
         "web.assets_backend": [
             "coresa_panel/static/src/scss/coresa_panel.scss",
+            "coresa_panel/static/src/js/coresa_dashboard_action.js",
+            "coresa_panel/static/src/xml/coresa_dashboard_action.xml",
             "coresa_panel/static/src/js/coresa_catalog_action.js",
             "coresa_panel/static/src/xml/coresa_catalog_action.xml",
             "coresa_panel/static/src/js/coresa_updater_action.js",

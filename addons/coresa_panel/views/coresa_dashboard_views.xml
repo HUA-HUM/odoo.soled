@@ -1,58 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="coresa_dashboard_record" model="coresa.dashboard">
+    <!-- La portada dejo de ser un form de Odoo: ahora es una accion cliente,
+         para poder mostrar los contadores en vivo. El xmlid es nuevo a
+         proposito: Odoo no deja reusar uno entre modelos distintos. -->
+    <record id="action_coresa_dashboard_panel" model="ir.actions.client">
         <field name="name">Coresa</field>
-    </record>
-
-    <record id="view_coresa_dashboard_form" model="ir.ui.view">
-        <field name="name">coresa.dashboard.form</field>
-        <field name="model">coresa.dashboard</field>
-        <field name="arch" type="xml">
-            <form string="Coresa" create="false" edit="false">
-                <sheet class="o_coresa_dashboard_sheet">
-                    <div class="o_coresa_dashboard">
-                        <div class="o_coresa_hero">
-                            <img src="/coresa_panel/static/src/img/coresa_logo.svg" alt="Coresa"/>
-                            <div>
-                                <h1>Coresa</h1>
-                                <p>Modulo preparado para integrar catalogo, ordenes y operaciones de Coresa.</p>
-                            </div>
-                        </div>
-                        <div class="o_coresa_sections">
-                            <button name="action_open_catalog" type="object" class="o_coresa_section is-clickable">
-                                <strong>Catalogo</strong>
-                                <span>5.400 productos del mayorista.</span>
-                            </button>
-                            <div class="o_coresa_section">
-                                <strong>Ordenes</strong>
-                                <span>Ventas y seguimiento operativo.</span>
-                            </div>
-                            <div class="o_coresa_section">
-                                <strong>Envios</strong>
-                                <span>Logistica y estados.</span>
-                            </div>
-                            <div class="o_coresa_section">
-                                <strong>Facturacion</strong>
-                                <span>Comprobantes y conciliacion.</span>
-                            </div>
-                        </div>
-                    </div>
-                </sheet>
-            </form>
-        </field>
+        <field name="tag">coresa_panel.dashboard_action</field>
     </record>
 
     <record id="action_coresa_catalog" model="ir.actions.client">
         <field name="name">Catálogo Coresa</field>
         <field name="tag">coresa_panel.catalog_action</field>
-    </record>
-
-    <record id="action_coresa_dashboard" model="ir.actions.act_window">
-        <field name="name">Coresa</field>
-        <field name="res_model">coresa.dashboard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_coresa_dashboard_form"/>
-        <field name="res_id" ref="coresa_dashboard_record"/>
-        <field name="target">current</field>
     </record>
 </odoo>
