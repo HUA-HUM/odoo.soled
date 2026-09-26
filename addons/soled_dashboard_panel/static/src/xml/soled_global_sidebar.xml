@@ -9,23 +9,31 @@
                 <span t-esc="previousItem.label"/>
             </button>
 
-            <aside class="o_soled_global_sidebar" aria-label="Navegación del panel">
+            <aside t-attf-class="o_soled_global_sidebar #{state.collapsed ? 'is-collapsed' : ''}"
+                   aria-label="Navegación del panel">
                 <header class="o_soled_sidebar_brand">
-                    <img src="/ml_catalog_panel/static/src/img/soled_logo.png" alt="SOLED"/>
-                    <div>
+                    <img src="/soled_dashboard_panel/static/src/img/soled_favicon.png" alt="SOLED"/>
+                    <div class="o_soled_sidebar_brand__text">
                         <strong>SOLED</strong>
                         <span>Panel operativo</span>
                     </div>
+                    <button type="button" class="o_soled_sidebar_collapse"
+                            t-attf-title="#{state.collapsed ? 'Expandir' : 'Contraer'} el menú"
+                            t-att-aria-label="state.collapsed ? 'Expandir el menú' : 'Contraer el menú'"
+                            t-on-click="toggleCollapsed">
+                        <i t-attf-class="fa #{state.collapsed ? 'fa-angle-double-right' : 'fa-angle-double-left'}"/>
+                    </button>
                 </header>
 
                 <nav class="o_soled_sidebar_navigation">
                     <t t-foreach="state.sections" t-as="section" t-key="section.key">
-                        <span t-attf-class="o_soled_sidebar_section #{section_index > 0 ? 'o_soled_sidebar_section_split' : ''}" t-esc="section.label"/>
+                        <span t-attf-class="o_soled_sidebar_section #{section_index > 0 ? 'o_soled_sidebar_section_split' : ''}"
+                              t-esc="section.label"/>
 
                         <div t-foreach="section.items" t-as="item" t-key="item.key" class="o_soled_sidebar_group">
                             <div t-attf-class="o_soled_sidebar_link #{state.activeKey === item.key ? 'is-active' : ''} #{state.activeKey === item.key &amp;&amp; !state.activeChildKey ? 'is-current' : ''}">
                                 <button type="button" class="o_soled_sidebar_link_main"
-                                        t-att-title="item.label"
+                                        t-attf-title="#{item.label}#{item.description ? ' — ' + item.description : ''}"
                                         t-on-click="() => this.openItem(item)">
                                     <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{item.icon}"/></span>
                                     <span class="o_soled_sidebar_copy">

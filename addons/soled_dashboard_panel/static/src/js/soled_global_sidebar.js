@@ -10,6 +10,14 @@ import { UserMenu } from "@web/webclient/user_menu/user_menu";
 // que no depende de internals del action manager.
 const HASH_POLL_MS = 400;
 
+// La pestaña decia "Odoo - <lo que sea>". Odoo compone el titulo por partes
+// y "zopenerp" es la que trae su marca.
+const TITLE_PART = "zopenerp";
+const PANEL_TITLE = "SOLED Panel";
+
+// Modo compacto: se recuerda entre recargas.
+const COLLAPSED_KEY = "soled_sidebar_collapsed";
+
 class SoledGlobalSidebar extends Component {
     static template = "soled_dashboard_panel.GlobalSidebar";
     static components = { UserMenu };
@@ -24,8 +32,11 @@ class SoledGlobalSidebar extends Component {
             activeChildKey: "",
             expanded: {},
             trail: [],
+            collapsed: this.readCollapsed(),
             loading: true,
         });
+
+        this.applyPanelTitle();
 
         onWillStart(async () => {
             try {
@@ -55,6 +66,39 @@ class SoledGlobalSidebar extends Component {
             window.removeEventListener("hashchange", this.onHashChange);
             window.clearInterval(this.poller);
         });
+    }
+
+    // ------------------------------------------------------------------
+    // Marca del panel
+    // ------------------------------------------------------------------
+    applyPanelTitle() {
+        // Defensivo: si el servicio cambia de forma, la navegacion no se cae
+        // por un titulo.
+        try {
+            const title = this.env.services.title;
+            if (title && typeof title.setParts === "function") {
+                title.setParts({ [TITLE_PART]: PANEL_TITLE });
+            }
+        } catch (error) {
+            // Sin titulo propio el panel funciona igual.
+        }
+    }
+
+    readCollapsed() {
+        try {
+            return window.localStorage.getItem(COLLAPSED_KEY) === "1";
+        } catch (error) {
+            return false;
+        }
+    }
+
+    toggleCollapsed() {
+        this.state.collapsed = !this.state.collapsed;
+        try {
+            window.localStorage.setItem(COLLAPSED_KEY, this.state.collapsed ? "1" : "0");
+        } catch (error) {
+            // Sin persistencia igual funciona en esta sesion.
+        }
     }
 
     get allItems() {
