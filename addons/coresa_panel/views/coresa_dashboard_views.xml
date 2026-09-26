@@ -19,10 +19,10 @@
                             </div>
                         </div>
                         <div class="o_coresa_sections">
-                            <div class="o_coresa_section">
+                            <button name="action_open_catalog" type="object" class="o_coresa_section is-clickable">
                                 <strong>Catalogo</strong>
-                                <span>Productos y publicaciones.</span>
-                            </div>
+                                <span>5.400 productos del mayorista.</span>
+                            </button>
                             <div class="o_coresa_section">
                                 <strong>Ordenes</strong>
                                 <span>Ventas y seguimiento operativo.</span>
@@ -40,6 +40,11 @@
                 </sheet>
             </form>
         </field>
+    </record>
+
+    <record id="action_coresa_catalog" model="ir.actions.client">
+        <field name="name">Catálogo Coresa</field>
+        <field name="tag">coresa_panel.catalog_action</field>
     </record>
 
     <record id="action_coresa_dashboard" model="ir.actions.act_window">

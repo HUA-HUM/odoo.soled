@@ -126,6 +126,11 @@ class SoledDashboard(models.Model):
                     "action": "coresa_panel.action_coresa_dashboard",
                     "children": [
                         {
+                            "key": "coresa_catalog",
+                            "label": "Catálogo",
+                            "action": "coresa_panel.action_coresa_catalog",
+                        },
+                        {
                             "key": "coresa_publish",
                             "label": "Publicar SKU",
                             "action": "coresa_meli_publisher.action_coresa_publication_wizard",

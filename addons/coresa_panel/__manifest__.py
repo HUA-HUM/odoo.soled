@@ -14,6 +14,8 @@
     "assets": {
         "web.assets_backend": [
             "coresa_panel/static/src/scss/coresa_panel.scss",
+            "coresa_panel/static/src/js/coresa_catalog_action.js",
+            "coresa_panel/static/src/xml/coresa_catalog_action.xml",
         ],
     },
     "application": True,

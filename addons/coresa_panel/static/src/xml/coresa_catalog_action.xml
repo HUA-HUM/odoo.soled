@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_panel.CatalogAction" owl="1">
+        <div class="o_ccat_page">
+            <section class="o_ccat_header">
+                <div>
+                    <span class="o_ccat_eyebrow">Coresa</span>
+                    <h1>Catálogo</h1>
+                    <p><t t-esc="formatUnits(state.total)"/> productos del mayorista Coresa.</p>
+                </div>
+            </section>
+
+            <section class="o_ccat_filters">
+                <form t-on-submit="applyFilters">
+                    <label class="o_ccat_field is-grow">
+                        <span>Buscar</span>
+                        <input type="text" placeholder="SKU, descripción o marca" t-model="state.filters.search" t-att-disabled="state.loading"/>
+                    </label>
+                    <label class="o_ccat_field">
+                        <span>Marca</span>
+                        <select t-model="state.filters.marca" t-on-change="selectBrand" t-att-disabled="state.loading">
+                            <option value="">Todas</option>
+                            <option t-foreach="state.brands" t-as="brand" t-key="brand.value" t-att-value="brand.value">
+                                <t t-esc="brand.value"/> (<t t-esc="brand.total"/>)
+                            </option>
+                        </select>
+                    </label>
+                    <label class="o_ccat_field">
+                        <span>Familia</span>
+                        <input type="text" placeholder="Ej: Tornillos" t-model="state.filters.subFamilia" t-att-disabled="state.loading"/>
+                    </label>
+                    <label class="o_ccat_field">
+                        <span>SKU exacto</span>
+                        <input type="text" placeholder="Ej: A2C 10 PE" t-model="state.filters.sku" t-att-disabled="state.loading"/>
+                    </label>
+                    <label class="o_ccat_field">
+                        <span>Stock</span>
+                        <select t-model="state.filters.disponible" t-on-change="selectBrand" t-att-disabled="state.loading">
+                            <option value="">Todos</option>
+                            <option value="true">Con stock</option>
+                            <option value="false">Sin stock</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="o_ccat_apply" t-att-disabled="state.loading">Buscar</button>
+                    <button type="button" class="o_ccat_clear" t-if="hasFilters" t-on-click="resetFilters" t-att-disabled="state.loading">Limpiar</button>
+                </form>
+            </section>
+
+            <section t-if="state.error" class="o_ccat_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_ccat_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Cargando catálogo...</strong>
+            </section>
+
+            <t t-else="">
+                <section t-if="state.items.length" class="o_ccat_grid">
+                    <article t-foreach="state.items" t-as="item" t-key="item.sku" class="o_ccat_card"
+                             t-on-click="() => this.openDetail(item)">
+                        <div class="o_ccat_card__media">
+                            <img t-if="item.image" t-att-src="item.image" t-att-alt="item.sku" loading="lazy"/>
+                            <div t-else="" class="o_ccat_noimg"><i class="fa fa-image"/></div>
+                        </div>
+                        <div class="o_ccat_card__body">
+                            <div class="o_ccat_card__top">
+                                <strong t-esc="item.sku"/>
+                                <span t-attf-class="o_ccat_stock #{stockTone(item.available)}">
+                                    <t t-esc="formatUnits(item.available)"/>
+                                </span>
+                            </div>
+                            <p class="o_ccat_card__desc" t-att-title="item.description" t-esc="item.description"/>
+                            <div class="o_ccat_card__tags">
+                                <span t-if="item.brand" t-esc="item.brand"/>
+                                <span t-if="item.family" class="is-soft" t-esc="item.family"/>
+                            </div>
+                            <div class="o_ccat_card__price">
+                                <strong t-esc="formatArs(item.priceArs)"/>
+                                <small t-if="formatList(item.priceList, item.currency)" t-esc="formatList(item.priceList, item.currency)"/>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_ccat_state is-empty">
+                    <i class="fa fa-inbox"/>
+                    <strong>No hay productos para estos filtros.</strong>
+                    <small t-if="hasFilters">Probá quitando alguno.</small>
+                </section>
+
+                <footer t-if="state.total > state.limit" class="o_ccat_pager">
+                    <span>Página <t t-esc="currentPage"/> de <t t-esc="formatUnits(totalPages)"/></span>
+                    <div>
+                        <button type="button" t-att-disabled="!hasPrevious" t-on-click="previousPage"><i class="fa fa-chevron-left"/></button>
+                        <button type="button" t-att-disabled="!hasNext" t-on-click="nextPage"><i class="fa fa-chevron-right"/></button>
+                    </div>
+                </footer>
+            </t>
+
+            <div t-if="state.detail" class="o_ccat_backdrop" t-on-click="closeDetail">
+                <aside class="o_ccat_drawer" t-on-click.stop="() => {}">
+                    <header class="o_ccat_drawer__head">
+                        <div>
+                            <span class="o_ccat_eyebrow">Producto Coresa</span>
+                            <h2 t-esc="state.detail.sku"/>
+                        </div>
+                        <button type="button" t-on-click="closeDetail" title="Cerrar"><i class="fa fa-times"/></button>
+                    </header>
+
+                    <div class="o_ccat_drawer__body">
+                        <div class="o_ccat_drawer__hero">
+                            <img t-if="state.detail.image" t-att-src="state.detail.image" t-att-alt="state.detail.sku"/>
+                            <div class="o_ccat_drawer__summary">
+                                <p t-esc="state.detail.description"/>
+                                <div class="o_ccat_card__tags">
+                                    <span t-if="state.detail.brand" t-esc="state.detail.brand"/>
+                                    <span t-if="state.detail.family" class="is-soft" t-esc="state.detail.family"/>
+                                </div>
+                                <div class="o_ccat_drawer__price">
+                                    <strong t-esc="formatArs(state.detail.priceArs)"/>
+                                    <small t-if="formatList(state.detail.priceList, state.detail.currency)"
+                                           t-esc="'Lista ' + formatList(state.detail.priceList, state.detail.currency)"/>
+                                </div>
+                                <span t-attf-class="o_ccat_stock #{stockTone(state.detail.available)}">
+                                    <t t-esc="formatUnits(state.detail.available)"/> en stock
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="o_ccat_drawer__links" t-if="state.detail.datasheet || state.detail.web">
+                            <button type="button" t-if="state.detail.datasheet" t-on-click="(ev) => this.openLink(state.detail.datasheet, ev)">
+                                <i class="fa fa-file-pdf-o"/> Datasheet
+                            </button>
+                            <button type="button" t-if="state.detail.web" t-on-click="(ev) => this.openLink(state.detail.web, ev)">
+                                <i class="fa fa-external-link"/> Ficha del fabricante
+                            </button>
+                        </div>
+
+                        <section class="o_ccat_block" t-if="state.detail.specs.length">
+                            <h3>Ficha técnica</h3>
+                            <dl class="o_ccat_specs">
+                                <div t-foreach="state.detail.specs" t-as="row" t-key="row.label">
+                                    <dt t-esc="row.label"/>
+                                    <dd t-esc="row.value"/>
+                                </div>
+                            </dl>
+                        </section>
+
+                        <section class="o_ccat_block" t-if="state.detail.logistics.length">
+                            <h3>Logística y empaque</h3>
+                            <dl class="o_ccat_specs">
+                                <div t-foreach="state.detail.logistics" t-as="row" t-key="row.label">
+                                    <dt t-esc="row.label"/>
+                                    <dd t-esc="row.value"/>
+                                </div>
+                            </dl>
+                        </section>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>
