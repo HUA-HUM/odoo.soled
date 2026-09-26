@@ -34,19 +34,19 @@
                                 <i class="fa fa-line-chart o_soled_area_icon"></i>
                                 <span class="o_soled_area_name">Comercial</span>
                                 <small>MercadoLibre, Retailers y Coresa.</small>
-                                <i class="fa fa-arrow-right o_soled_area_go"></i>
+                                <i class="fa fa-arrow-right o_soled_area_go" title="Entrar" role="img"></i>
                             </button>
                             <button name="action_open_administration" type="object" class="o_soled_area_card o_soled_area_admin">
                                 <i class="fa fa-building-o o_soled_area_icon"></i>
                                 <span class="o_soled_area_name">Administración</span>
                                 <small>Procesos internos de la operación.</small>
-                                <i class="fa fa-arrow-right o_soled_area_go"></i>
+                                <i class="fa fa-arrow-right o_soled_area_go" title="Entrar" role="img"></i>
                             </button>
                             <button name="action_open_configurations" type="object" class="o_soled_area_card o_soled_area_config">
                                 <i class="fa fa-cog o_soled_area_icon"></i>
                                 <span class="o_soled_area_name">Configuraciones</span>
                                 <small>Usuarios, accesos y ajustes del panel.</small>
-                                <i class="fa fa-arrow-right o_soled_area_go"></i>
+                                <i class="fa fa-arrow-right o_soled_area_go" title="Entrar" role="img"></i>
                             </button>
                         </div>
                     </div>

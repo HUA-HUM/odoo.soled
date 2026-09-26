@@ -621,7 +621,7 @@ class CoresaPublicationAttribute(models.Model):
     publication_ref = fields.Many2one(
         "coresa.publication", string="Publicacion", required=True, ondelete="cascade", index=True
     )
-    attribute_id_ml = fields.Char(string="ID", readonly=True)
+    attribute_id_ml = fields.Char(string="ID en MercadoLibre", readonly=True)
     name = fields.Char(string="Atributo", readonly=True)
     value = fields.Char(string="Valor")
     required = fields.Boolean(string="Obligatorio", readonly=True)
