@@ -82,20 +82,56 @@ class CoresaCatalog(models.Model):
         )
 
     @api.model
-    def _api_get(self, path, params=None):
+    def _api_headers(self):
+        return {"accept": "*/*", "x-internal-api-key": self._api_key()}
+
+    @api.model
+    def _api_get(self, path, params=None, silent=False):
+        """GET contra la API interna.
+
+        Con silent=True devuelve None en vez de cortar: sirve para los datos
+        de relleno, como el espejo de MercadoLibre, donde un 404 significa
+        "todavia no lo vimos" y no tiene por que voltear la pantalla entera.
+        """
         try:
             response = requests.get(
                 "%s%s" % (self._api_base_url(), path),
                 params=params or {},
-                headers={"accept": "*/*", "x-internal-api-key": self._api_key()},
+                headers=self._api_headers(),
                 timeout=self.API_TIMEOUT,
             )
             response.raise_for_status()
             return response.json()
         except requests.RequestException as error:
+            if silent:
+                _logger.info("API interna: %s fallo (%s)", path, error)
+                return None
             raise UserError(_("Error consultando el catálogo Coresa: %s") % error) from error
         except ValueError as error:
+            if silent:
+                return None
             raise UserError(_("El catálogo no devolvió JSON válido.")) from error
+
+    @api.model
+    def _api_post(self, path, payload=None, silent=False):
+        try:
+            response = requests.post(
+                "%s%s" % (self._api_base_url(), path),
+                json=payload or {},
+                headers=dict(self._api_headers(), **{"content-type": "application/json"}),
+                timeout=self.API_TIMEOUT,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as error:
+            if silent:
+                _logger.info("API interna: %s fallo (%s)", path, error)
+                return None
+            raise UserError(_("Error consultando la API interna: %s") % error) from error
+        except ValueError as error:
+            if silent:
+                return None
+            raise UserError(_("La API interna no devolvió JSON válido.")) from error
 
     # ------------------------------------------------------------------
     @api.model

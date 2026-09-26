@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_panel.UpdaterAction" owl="1">
+        <div class="o_cupd_page">
+            <section class="o_cupd_header">
+                <div class="o_cupd_header__text">
+                    <span class="o_cupd_eyebrow">Coresa · Actualizador</span>
+                    <h1>Catálogo</h1>
+                    <p>Cada fila es una publicación de MercadoLibre: un mismo SKU puede tener varias. Se muestra lo que hay en Coresa y qué sincroniza el actualizador.</p>
+                </div>
+                <div class="o_cupd_stats">
+                    <div class="o_cupd_stat">
+                        <span t-esc="formatUnits(state.summary.total)"/>
+                        <small>publicaciones</small>
+                    </div>
+                    <div class="o_cupd_stat">
+                        <span t-esc="formatUnits(state.summary.skus)"/>
+                        <small>SKU distintos</small>
+                    </div>
+                    <div class="o_cupd_stat is-stock">
+                        <span t-esc="formatUnits(state.summary.stock)"/>
+                        <small>actualizan stock</small>
+                    </div>
+                    <div class="o_cupd_stat is-price">
+                        <span t-esc="formatUnits(state.summary.price)"/>
+                        <small>actualizan precio</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="o_cupd_filters">
+                <form t-on-submit="applyFilters">
+                    <label class="o_cupd_field is-grow">
+                        <span>SKU</span>
+                        <input type="text" placeholder="Ej: JDAAC501" t-model="state.filters.sku" t-att-disabled="state.loading"/>
+                    </label>
+                    <label class="o_cupd_field is-grow">
+                        <span>MLA</span>
+                        <input type="text" placeholder="Ej: MLA1657707581" t-model="state.filters.mla" t-att-disabled="state.loading"/>
+                    </label>
+                    <label class="o_cupd_field">
+                        <span>Actualiza stock</span>
+                        <select t-model="state.filters.updateStock" t-on-change="applyFilters" t-att-disabled="state.loading">
+                            <option value="">Todos</option>
+                            <option value="true">Sí</option>
+                            <option value="false">No</option>
+                        </select>
+                    </label>
+                    <label class="o_cupd_field">
+                        <span>Actualiza precio</span>
+                        <select t-model="state.filters.updatePrice" t-on-change="applyFilters" t-att-disabled="state.loading">
+                            <option value="">Todos</option>
+                            <option value="true">Sí</option>
+                            <option value="false">No</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="o_cupd_apply" t-att-disabled="state.loading">Buscar</button>
+                    <button type="button" class="o_cupd_clear" t-if="hasFilters" t-on-click="resetFilters" t-att-disabled="state.loading">Limpiar</button>
+                </form>
+            </section>
+
+            <section t-if="state.error" class="o_cupd_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_cupd_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Cargando publicaciones...</strong>
+            </section>
+
+            <t t-else="">
+                <section t-if="state.items.length" class="o_cupd_table">
+                    <header class="o_cupd_row is-head">
+                        <span class="o_cupd_col is-media"/>
+                        <span class="o_cupd_col is-sku">SKU</span>
+                        <span class="o_cupd_col is-mla">Publicación</span>
+                        <span class="o_cupd_col is-num">Stock Coresa</span>
+                        <span class="o_cupd_col is-num">Precio lista</span>
+                        <span class="o_cupd_col is-flags">Sincroniza</span>
+                        <span class="o_cupd_col is-date">Registrado</span>
+                    </header>
+
+                    <article t-foreach="state.items" t-as="row" t-key="row.mla || row.sku" class="o_cupd_row"
+                             t-on-click="() => this.openDetail(row)">
+                        <span class="o_cupd_col is-media">
+                            <img t-if="row.image &amp;&amp; !row.imageFailed" t-att-src="row.image" t-att-alt="row.sku"
+                                 loading="lazy" t-on-error="() => this.onImageError(row)"/>
+                            <span t-else="" class="o_cupd_noimg"><i class="fa fa-image"/></span>
+                        </span>
+
+                        <span class="o_cupd_col is-sku">
+                            <strong t-esc="row.sku"/>
+                            <small t-if="row.description" t-esc="row.description"/>
+                            <small t-else="" class="o_cupd_warn">Ya no está en el catálogo de Coresa</small>
+                            <em t-if="row.brand" t-esc="row.brand"/>
+                        </span>
+
+                        <span class="o_cupd_col is-mla">
+                            <code t-esc="row.mla"/>
+                        </span>
+
+                        <span class="o_cupd_col is-num">
+                            <b t-if="row.inCatalog" t-attf-class="o_cupd_stock #{stockTone(row.available)}"
+                               t-esc="formatUnits(row.available)"/>
+                            <b t-else="">—</b>
+                        </span>
+
+                        <span class="o_cupd_col is-num">
+                            <b t-esc="formatList(row.priceList, row.currency)"/>
+                        </span>
+
+                        <span class="o_cupd_col is-flags">
+                            <span t-attf-class="o_cupd_flag #{row.updateStock ? 'is-on' : 'is-off'}">
+                                <i t-attf-class="fa #{row.updateStock ? 'fa-check' : 'fa-times'}"/> Stock
+                            </span>
+                            <span t-attf-class="o_cupd_flag #{row.updatePrice ? 'is-on' : 'is-off'}">
+                                <i t-attf-class="fa #{row.updatePrice ? 'fa-check' : 'fa-times'}"/> Precio
+                            </span>
+                        </span>
+
+                        <span class="o_cupd_col is-date" t-esc="formatDate(row.createdAt)"/>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_cupd_state">
+                    <i class="fa fa-inbox"/>
+                    <strong>No hay publicaciones con esos filtros.</strong>
+                </section>
+
+                <footer t-if="state.items.length" class="o_cupd_pager">
+                    <span t-esc="rangeLabel"/>
+                    <div>
+                        <button type="button" t-on-click="previousPage" t-att-disabled="!hasPrevious">Anterior</button>
+                        <span>Página <t t-esc="currentPage"/> de <t t-esc="totalPages"/></span>
+                        <button type="button" t-on-click="nextPage" t-att-disabled="!hasNext">Siguiente</button>
+                    </div>
+                </footer>
+            </t>
+
+            <!-- Ficha del SKU -->
+            <div t-if="state.detail || state.loadingDetail" class="o_cupd_scrim" t-on-click="closeDetail">
+                <aside class="o_cupd_drawer" t-on-click.stop="() => {}">
+                    <header class="o_cupd_drawer__head">
+                        <div>
+                            <span class="o_cupd_eyebrow">SKU</span>
+                            <h2 t-esc="state.detailSku"/>
+                        </div>
+                        <button type="button" class="o_cupd_close" t-on-click="closeDetail" aria-label="Cerrar">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </header>
+
+                    <div t-if="state.loadingDetail" class="o_cupd_state">
+                        <i class="fa fa-spinner fa-spin"/>
+                        <strong>Buscando el SKU...</strong>
+                    </div>
+
+                    <div t-else="" class="o_cupd_drawer__body">
+                        <p t-foreach="state.detail.errors" t-as="message" t-key="message_index" class="o_cupd_note">
+                            <i class="fa fa-exclamation-triangle"/> <t t-esc="message"/>
+                        </p>
+
+                        <section t-if="state.detail.product" class="o_cupd_block">
+                            <h3>En Coresa</h3>
+                            <div class="o_cupd_product">
+                                <img t-if="state.detail.product.image" t-att-src="state.detail.product.image" t-att-alt="state.detail.sku"/>
+                                <div>
+                                    <p t-esc="state.detail.product.description"/>
+                                    <dl class="o_cupd_pairs">
+                                        <div><dt>Marca</dt><dd t-esc="state.detail.product.brand || '—'"/></div>
+                                        <div><dt>Familia</dt><dd t-esc="state.detail.product.family || '—'"/></div>
+                                        <div><dt>Stock</dt><dd t-esc="formatUnits(state.detail.product.available)"/></div>
+                                        <div><dt>Precio lista</dt><dd t-esc="formatList(state.detail.product.priceList, state.detail.product.currency)"/></div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section t-if="state.detail.meli" class="o_cupd_block">
+                            <h3>En MercadoLibre</h3>
+                            <dl class="o_cupd_pairs">
+                                <div>
+                                    <dt>Estado</dt>
+                                    <dd><span t-attf-class="o_cupd_pill is-#{state.detail.meli.status}" t-esc="meliStatusLabel(state.detail.meli.status)"/></dd>
+                                </div>
+                                <div><dt>Precio</dt><dd t-esc="formatArs(state.detail.meli.price)"/></div>
+                                <div><dt>Stock publicado</dt><dd t-esc="formatUnits(state.detail.meli.available)"/></div>
+                                <div><dt>Vendidos</dt><dd t-esc="formatUnits(state.detail.meli.sold)"/></div>
+                                <div><dt>Tipo</dt><dd t-esc="state.detail.meli.listingType || '—'"/></div>
+                                <div><dt>Actualizado</dt><dd t-esc="formatDateTime(state.detail.meli.updatedAt)"/></div>
+                            </dl>
+
+                            <p t-if="gapMessage(state.detail)"
+                               t-attf-class="o_cupd_gap #{stockGap(state.detail) === 0 ? 'is-ok' : 'is-diff'}"
+                               t-esc="gapMessage(state.detail)"/>
+
+                            <button t-if="state.detail.meli.permalink" type="button" class="o_cupd_link"
+                                    t-on-click="(ev) => this.openLink(state.detail.meli.permalink, ev)">
+                                Ver la publicación <i class="fa fa-external-link"/>
+                            </button>
+                        </section>
+
+                        <section t-if="state.detail.publications.length" class="o_cupd_block">
+                            <h3>Publicaciones del SKU</h3>
+                            <div t-foreach="state.detail.publications" t-as="publication" t-key="publication.mla" class="o_cupd_pubrow">
+                                <code t-esc="publication.mla"/>
+                                <span t-attf-class="o_cupd_flag #{publication.updateStock ? 'is-on' : 'is-off'}">
+                                    <i t-attf-class="fa #{publication.updateStock ? 'fa-check' : 'fa-times'}"/> Stock
+                                </span>
+                                <span t-attf-class="o_cupd_flag #{publication.updatePrice ? 'is-on' : 'is-off'}">
+                                    <i t-attf-class="fa #{publication.updatePrice ? 'fa-check' : 'fa-times'}"/> Precio
+                                </span>
+                                <small t-esc="formatDate(publication.createdAt)"/>
+                            </div>
+                        </section>
+
+                        <section class="o_cupd_block">
+                            <h3>Últimas sincronizaciones</h3>
+                            <div t-if="state.detail.changes.length" class="o_cupd_changes">
+                                <div t-foreach="state.detail.changes" t-as="change" t-key="change.id || change_index" class="o_cupd_change">
+                                    <span t-attf-class="o_cupd_pill is-#{change.result}" t-esc="changeResultLabel(change.result)"/>
+                                    <span class="o_cupd_change__data">
+                                        <t t-if="change.priceApplied">Precio <t t-esc="formatArs(change.priceBefore)"/> → <t t-esc="formatArs(change.priceApplied)"/></t>
+                                        <t t-if="change.stockApplied">Stock <t t-esc="formatUnits(change.stockBefore)"/> → <t t-esc="formatUnits(change.stockApplied)"/></t>
+                                        <t t-if="change.errorMessage" t-esc="change.errorMessage"/>
+                                    </span>
+                                    <small t-esc="formatDateTime(change.createdAt)"/>
+                                </div>
+                            </div>
+                            <p t-else="" class="o_cupd_empty">
+                                Todavía no hay corridas registradas para este SKU.
+                            </p>
+                        </section>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>

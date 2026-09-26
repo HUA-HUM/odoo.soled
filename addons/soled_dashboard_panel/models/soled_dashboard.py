@@ -154,6 +154,11 @@ class SoledDashboard(models.Model):
                             "action": "coresa_panel.action_coresa_catalog",
                         },
                         {
+                            "key": "coresa_updater",
+                            "label": "Actualizador",
+                            "action": "coresa_panel.action_coresa_updater",
+                        },
+                        {
                             "key": "coresa_publish",
                             "label": "Publicar SKU",
                             "action": "coresa_meli_publisher.action_coresa_publication_wizard",

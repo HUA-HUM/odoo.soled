@@ -474,3 +474,432 @@
     .o_ccat_drawer__hero { flex-direction: column; }
     .o_ccat_drawer__hero img { flex: 0 0 auto; width: 100%; }
 }
+
+/* ------------------------------------------------------------------
+   Actualizador → Catálogo: lo que esta publicado en MercadoLibre y que
+   de eso sincroniza el actualizador. Misma paleta que el catalogo.
+   ------------------------------------------------------------------ */
+.o_cupd_page {
+    background: #f4f7f8;
+    color: #17303f;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100vh;
+    overflow-y: auto;
+    /* Deja pasar el boton flotante de "volver", que es fixed. */
+    padding: 64px 24px 28px;
+}
+
+.o_cupd_eyebrow {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.o_cupd_header {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: space-between;
+}
+
+.o_cupd_header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 8px 0 0;
+}
+
+.o_cupd_header p { color: #7a8798; font-size: 13px; margin: 6px 0 0; max-width: 560px; }
+
+.o_cupd_stats { display: flex; gap: 10px; }
+
+.o_cupd_stat {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-width: 116px;
+    padding: 12px 16px;
+}
+
+.o_cupd_stat span { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.o_cupd_stat small { color: #7a8798; font-size: 11px; margin-top: 2px; }
+.o_cupd_stat.is-stock span { color: #0f766e; }
+.o_cupd_stat.is-price span { color: #b45309; }
+
+.o_cupd_filters {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    padding: 14px 18px;
+}
+
+.o_cupd_filters form {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.o_cupd_field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 150px;
+}
+
+.o_cupd_field.is-grow { flex: 1 1 200px; }
+
+.o_cupd_field span {
+    color: #7a8798;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+.o_cupd_field input,
+.o_cupd_field select {
+    background: #ffffff;
+    border: 1px solid #dbe3e9;
+    border-radius: 9px;
+    color: #17303f;
+    font-size: 13px;
+    min-height: 36px;
+    padding: 0 10px;
+}
+
+.o_cupd_field input:focus,
+.o_cupd_field select:focus {
+    border-color: #17303f;
+    outline: 0;
+}
+
+.o_cupd_apply,
+.o_cupd_clear {
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 650;
+    min-height: 36px;
+    padding: 0 18px;
+}
+
+.o_cupd_apply { background: #17303f; border: 1px solid #17303f; color: #ffffff; }
+.o_cupd_apply:hover { background: #22475c; }
+.o_cupd_clear { background: #ffffff; border: 1px solid #dbe3e9; color: #52626d; }
+.o_cupd_clear:hover { border-color: #b9c6cf; }
+
+.o_cupd_state {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    color: #7a8798;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+}
+
+.o_cupd_state i { font-size: 22px; }
+.o_cupd_state.is-error { border-color: #fbd5d5; color: #b42318; }
+
+/* La grilla es una tabla hecha con grid: las filas tienen alto propio y el
+   detalle se abre al clic, asi que <table> solo estorbaba. */
+.o_cupd_table {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.o_cupd_row {
+    align-items: center;
+    border-bottom: 1px solid #eef2f5;
+    cursor: pointer;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 52px minmax(200px, 2.4fr) 148px 110px 130px 190px 96px;
+    min-height: 66px;
+    padding: 10px 18px;
+    transition: background 120ms ease;
+}
+
+.o_cupd_row:last-child { border-bottom: 0; }
+.o_cupd_row:hover { background: #f8fbfc; }
+
+.o_cupd_row.is-head {
+    background: #f8fafb;
+    color: #94a3b8;
+    cursor: default;
+    font-size: 10.5px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    min-height: 40px;
+    text-transform: uppercase;
+}
+
+.o_cupd_row.is-head:hover { background: #f8fafb; }
+
+.o_cupd_col { min-width: 0; }
+.o_cupd_col.is-num { text-align: right; }
+.o_cupd_col.is-date { color: #94a3b8; font-size: 12px; text-align: right; }
+
+.o_cupd_col.is-media img {
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 9px;
+    height: 44px;
+    object-fit: contain;
+    width: 44px;
+}
+
+.o_cupd_noimg {
+    align-items: center;
+    background: #f4f7f8;
+    border: 1px dashed #dbe3e9;
+    border-radius: 9px;
+    color: #b9c6cf;
+    display: flex;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+}
+
+.o_cupd_col.is-sku { display: flex; flex-direction: column; gap: 1px; }
+.o_cupd_col.is-sku strong { font-size: 13px; font-weight: 750; }
+
+.o_cupd_col.is-sku small,
+.o_cupd_col.is-sku em {
+    color: #7a8798;
+    font-size: 11.5px;
+    font-style: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_cupd_col.is-sku em { color: #94a3b8; font-size: 11px; }
+.o_cupd_warn { color: #b45309 !important; }
+
+.o_cupd_col code {
+    background: #f4f7f8;
+    border-radius: 6px;
+    color: #52626d;
+    font-size: 11.5px;
+    padding: 3px 7px;
+}
+
+.o_cupd_stock { font-size: 13px; font-weight: 750; }
+.o_cupd_stock.is-ok { color: #0f766e; }
+.o_cupd_stock.is-low { color: #b45309; }
+.o_cupd_stock.is-out { color: #b42318; }
+
+.o_cupd_col.is-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.o_cupd_flag {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 650;
+    gap: 5px;
+    padding: 4px 10px;
+}
+
+.o_cupd_flag.is-on { background: #e7f6f2; color: #0f766e; }
+.o_cupd_flag.is-off { background: #f1f4f6; color: #94a3b8; }
+
+.o_cupd_pager {
+    align-items: center;
+    color: #94a3b8;
+    display: flex;
+    font-size: 12px;
+    justify-content: space-between;
+}
+
+.o_cupd_pager div { align-items: center; display: flex; gap: 10px; }
+
+.o_cupd_pager button {
+    background: #ffffff;
+    border: 1px solid #dbe3e9;
+    border-radius: 8px;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12px;
+    min-height: 32px;
+    padding: 0 14px;
+}
+
+.o_cupd_pager button:disabled { color: #c4cfd6; cursor: default; }
+
+/* Ficha del SKU. */
+.o_cupd_scrim {
+    backdrop-filter: blur(3px);
+    background: rgba(15, 29, 41, 0.44);
+    display: flex;
+    inset: 0;
+    justify-content: flex-end;
+    position: fixed;
+    /* Igual que el catalogo: el sidebar queda encima y se puede navegar
+       sin cerrar la ficha. */
+    z-index: 1100;
+}
+
+.o_cupd_drawer {
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 560px;
+    width: 100%;
+}
+
+.o_cupd_drawer__head {
+    align-items: flex-start;
+    border-bottom: 1px solid #eef2f5;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+}
+
+.o_cupd_drawer__head h2 { font-size: 22px; font-weight: 800; margin: 6px 0 0; }
+
+.o_cupd_close {
+    background: #f4f7f8;
+    border: 0;
+    border-radius: 9px;
+    color: #52626d;
+    cursor: pointer;
+    height: 32px;
+    width: 32px;
+}
+
+.o_cupd_close:hover { background: #e9eef1; }
+
+.o_cupd_drawer__body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+    padding: 20px 24px 32px;
+}
+
+.o_cupd_block h3 {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+}
+
+.o_cupd_product { display: flex; gap: 14px; }
+
+.o_cupd_product img {
+    border: 1px solid #eef2f5;
+    border-radius: 10px;
+    height: 96px;
+    object-fit: contain;
+    width: 96px;
+}
+
+.o_cupd_product p { font-size: 13px; line-height: 1.4; margin: 0 0 10px; }
+
+.o_cupd_pairs {
+    display: grid;
+    gap: 8px 16px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    margin: 0;
+}
+
+.o_cupd_pairs dt { color: #94a3b8; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.o_cupd_pairs dd { font-size: 13px; font-weight: 650; margin: 2px 0 0; }
+
+.o_cupd_pill {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+}
+
+.o_cupd_pill.is-active,
+.o_cupd_pill.is-updated { background: #e7f6f2; color: #0f766e; }
+.o_cupd_pill.is-paused,
+.o_cupd_pill.is-not_applied { background: #fdf3e6; color: #b45309; }
+.o_cupd_pill.is-closed,
+.o_cupd_pill.is-failed { background: #fdeceb; color: #b42318; }
+
+.o_cupd_gap {
+    border-radius: 10px;
+    font-size: 12.5px;
+    margin: 12px 0 0;
+    padding: 9px 12px;
+}
+
+.o_cupd_gap.is-ok { background: #e7f6f2; color: #0f766e; }
+.o_cupd_gap.is-diff { background: #fdf3e6; color: #b45309; }
+
+.o_cupd_link {
+    background: #ffffff;
+    border: 1px solid #dbe3e9;
+    border-radius: 9px;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 650;
+    margin-top: 12px;
+    min-height: 34px;
+    padding: 0 14px;
+}
+
+.o_cupd_link:hover { border-color: #17303f; }
+
+.o_cupd_pubrow,
+.o_cupd_change {
+    align-items: center;
+    border-bottom: 1px solid #f1f4f6;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 9px 0;
+}
+
+.o_cupd_pubrow:last-child,
+.o_cupd_change:last-child { border-bottom: 0; }
+
+.o_cupd_pubrow small,
+.o_cupd_change small { color: #94a3b8; font-size: 11px; margin-left: auto; }
+
+.o_cupd_change__data { color: #52626d; font-size: 12.5px; }
+
+.o_cupd_note {
+    background: #fdf3e6;
+    border-radius: 10px;
+    color: #b45309;
+    font-size: 12.5px;
+    margin: 0;
+    padding: 10px 12px;
+}
+
+.o_cupd_empty { color: #94a3b8; font-size: 12.5px; margin: 0; }
+
+@media (max-width: 1180px) {
+    .o_cupd_row {
+        grid-template-columns: 44px minmax(160px, 2fr) 128px 96px 150px;
+    }
+
+    .o_cupd_col.is-num:nth-of-type(5),
+    .o_cupd_col.is-date { display: none; }
+}
+
+.o_cupd_header__text { flex: 1 1 320px; min-width: 0; }
+.o_cupd_changes { display: flex; flex-direction: column; }
