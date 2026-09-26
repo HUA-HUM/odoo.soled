@@ -1,5 +1,7 @@
-name: Deploy Odoo 18 Preview
+name: Deploy panel
 
+# El push despliega produccion. Para volver a deploy manual, borrar el bloque
+# "push:" y disparar el workflow desde la pestaña Actions.
 on:
   push:
     branches:
@@ -7,16 +9,16 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: odoo18-preview-deploy
+  group: panel-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy Odoo 18 preview to DigitalOcean
+    name: Actualizar los modulos que cambiaron
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy Odoo 18 preview over SSH
+      - name: Desplegar por SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -24,55 +26,15 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
           script_stop: true
+          command_timeout: 20m
           script: |
             set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
 
-            PROD_PATH="${{ secrets.DEPLOY_PATH }}"
-            PREVIEW_PATH="${PROD_PATH%/}18"
-            REPO_URL="https://github.com/HUA-HUM/odoo.soled.git"
-            COMPOSE="docker compose"
-
-            if ! docker compose version >/dev/null 2>&1; then
-              mkdir -p /usr/local/lib/docker/cli-plugins
-              curl -SL \
-                https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64 \
-                -o /usr/local/lib/docker/cli-plugins/docker-compose
-              chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-            fi
-
-            docker compose version
-
-            if [ -d "$PROD_PATH" ]; then
-              cd "$PROD_PATH"
-              mkdir -p backups
-              docker-compose exec -T db pg_dump -U odoo soled > "backups/soled-$(date +%Y%m%d-%H%M%S).sql" || true
-            fi
-
-            if [ ! -d "$PREVIEW_PATH/.git" ]; then
-              rm -rf "$PREVIEW_PATH"
-              git clone "$REPO_URL" "$PREVIEW_PATH"
-            fi
-
-            cd "$PREVIEW_PATH"
+            # El script vive en el repo, asi que primero lo traemos: despues
+            # el se encarga de bajar el resto y decidir que actualizar.
             git fetch origin main
-            git reset --hard origin/main
+            git checkout origin/main -- deploy/deploy.sh
+            chmod +x deploy/deploy.sh
 
-            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml pull
-            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml up -d db
-
-            sleep 5
-
-            MODULE_MODE="-i"
-            if $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml exec -T db \
-              psql -U odoo -tAc "SELECT 1 FROM pg_database WHERE datname='soled'" | grep -q 1; then
-              MODULE_MODE="-u"
-            fi
-
-            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml run --rm odoo odoo \
-              -d soled \
-              "$MODULE_MODE" base,ml_catalog_panel,retailer_marketplace_panel,sku_publisher_panel,coresa_panel,soled_dashboard_panel \
-              --without-demo=all \
-              --stop-after-init
-
-            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml up -d odoo
-            $COMPOSE -p odoosoled18 -f docker-compose.odoo18-test.yml ps
+            ./deploy/deploy.sh
