@@ -22,7 +22,7 @@
             <aside t-attf-class="o_soled_global_sidebar #{state.collapsed ? 'is-collapsed' : ''}"
                    aria-label="Navegación del panel">
                 <header class="o_soled_sidebar_brand">
-                    <img src="/soled_dashboard_panel/static/src/img/soled_favicon.png" alt="SOLED"/>
+                    <img src="/soled_dashboard_panel/static/src/img/soled_tab_icon.png" alt="SOLED"/>
                     <div class="o_soled_sidebar_brand__text">
                         <strong>SOLED</strong>
                         <span>Panel operativo</span>
