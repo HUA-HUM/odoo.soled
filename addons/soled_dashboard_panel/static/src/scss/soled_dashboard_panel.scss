@@ -361,26 +361,43 @@
     }
 }
 
-/* Navegacion global: barra izquierda fija, visible entre modulos. */
-$soled-sidebar-width: clamp(224px, 14vw, 280px);
-$soled-sidebar-collapsed: 72px;
+/* ------------------------------------------------------------------
+   Navegacion global: barra izquierda fija, visible entre modulos.
+
+   Paleta tomada de la marca: el navy del logo del login (#16283a) y el
+   coral del isotipo (#ff5b62). La pestana activa usa el mismo color que
+   el fondo del contenido (#f4f7f8) y se pega al borde derecho, asi se
+   lee como una lengueta que entra en la pagina.
+   ------------------------------------------------------------------ */
+:root {
+    --soled-sidebar-w: clamp(236px, 14.5vw, 288px);
+    --soled-ink: #16283a;
+    --soled-ink-deep: #0e1b26;
+    --soled-accent: #ff5b62;
+    --soled-accent-soft: #ffb380;
+    --soled-surface: #f4f7f8;
+    --soled-text: #cfdae3;
+    --soled-muted: #8298ab;
+    --soled-line: rgba(255, 255, 255, 0.07);
+    --soled-notch: 16px;
+}
 
 .o_web_client {
     box-sizing: border-box;
-    padding-left: $soled-sidebar-width;
-    transition: padding-left 180ms ease;
+    padding-left: var(--soled-sidebar-w);
+    transition: padding-left 200ms ease;
 }
 
+/* Una sola variable mueve el ancho, el padding del contenido y el boton
+   de atras: el modo compacto no necesita tocar nada mas. */
 .o_web_client:has(.o_soled_global_sidebar.is-collapsed) {
-    padding-left: $soled-sidebar-collapsed;
+    --soled-sidebar-w: 76px;
 }
 
 .o_soled_global_sidebar {
-    background: linear-gradient(180deg, #131c2b 0%, #0f1722 100%);
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, var(--soled-ink) 0%, var(--soled-ink-deep) 100%);
     bottom: 0;
-    box-shadow: 10px 0 34px rgba(8, 13, 20, 0.16);
-    color: #e5e7eb;
+    color: var(--soled-text);
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -388,52 +405,67 @@ $soled-sidebar-collapsed: 72px;
     overflow: hidden;
     position: fixed;
     top: 0;
-    transition: width 180ms ease;
-    width: $soled-sidebar-width;
+    transition: width 200ms ease;
+    width: var(--soled-sidebar-w);
     z-index: 1100;
 }
 
-.o_soled_global_sidebar.is-collapsed {
-    width: $soled-sidebar-collapsed;
+/* El ancho lo maneja la variable, pero la barra tiene que valerse sola por
+   si alguna vez se renderiza fuera de .o_web_client. */
+.o_soled_global_sidebar.is-collapsed { width: 76px; }
+
+/* Halo coral arriba: le saca la sensacion de bloque plano. */
+.o_soled_global_sidebar::before {
+    background: radial-gradient(120% 70% at 0% 0%, rgba(255, 91, 98, 0.18), transparent 68%);
+    content: "";
+    height: 260px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 0;
+}
+
+.o_soled_sidebar_brand,
+.o_soled_sidebar_navigation,
+.o_soled_sidebar_footer {
+    position: relative;
+    z-index: 1;
 }
 
 /* Boton de atras: reemplaza la navegacion que daba el navbar superior. */
 .o_soled_global_back {
     align-items: center;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #dde5ea;
     border-radius: 999px;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
-    color: #334155;
+    box-shadow: 0 6px 18px rgba(22, 40, 58, 0.1);
+    color: #2c4256;
     cursor: pointer;
     display: inline-flex;
     font-size: 12px;
     font-weight: 650;
     gap: 7px;
-    left: calc(#{$soled-sidebar-width} + 16px);
+    left: calc(var(--soled-sidebar-w) + 16px);
     max-width: 220px;
     min-height: 36px;
     padding: 0 15px 0 12px;
     position: fixed;
     top: 12px;
-    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, left 180ms ease;
+    transition: background 140ms ease, border-color 140ms ease, transform 140ms ease, left 200ms ease;
     z-index: 1090;
-}
-
-.o_web_client:has(.o_soled_global_sidebar.is-collapsed) .o_soled_global_back {
-    left: calc(#{$soled-sidebar-collapsed} + 16px);
 }
 
 .o_soled_global_back:hover,
 .o_soled_global_back:focus {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #0f172a;
+    border-color: var(--soled-accent);
+    color: var(--soled-accent);
     outline: 0;
     transform: translateX(-2px);
 }
 
-.o_soled_global_back i { font-size: 11px; }
+.o_soled_global_back svg { height: 15px; width: 15px; }
 
 .o_soled_global_back span {
     overflow: hidden;
@@ -444,21 +476,20 @@ $soled-sidebar-collapsed: 72px;
 /* Marca. */
 .o_soled_sidebar_brand {
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--soled-line);
     display: flex;
     flex: 0 0 auto;
     gap: 11px;
-    min-height: 72px;
+    min-height: 74px;
     padding: 16px 14px;
-    position: relative;
 }
 
 .o_soled_sidebar_brand img {
-    border-radius: 9px;
-    flex: 0 0 32px;
-    height: 32px;
+    border-radius: 10px;
+    flex: 0 0 34px;
+    height: 34px;
     object-fit: contain;
-    width: 32px;
+    width: 34px;
 }
 
 .o_soled_sidebar_brand__text {
@@ -470,14 +501,15 @@ $soled-sidebar-collapsed: 72px;
 
 .o_soled_sidebar_brand strong {
     color: #ffffff;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 750;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
 }
 
 .o_soled_sidebar_brand span {
-    color: #7c8da3;
+    color: var(--soled-muted);
     font-size: 10px;
+    letter-spacing: 0.02em;
     margin-top: 1px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -489,7 +521,7 @@ $soled-sidebar-collapsed: 72px;
     background: transparent;
     border: 0;
     border-radius: 8px;
-    color: #64748b;
+    color: var(--soled-muted);
     cursor: pointer;
     display: flex;
     flex: 0 0 26px;
@@ -503,115 +535,161 @@ $soled-sidebar-collapsed: 72px;
     color: #ffffff;
 }
 
+.o_soled_sidebar_collapse svg { height: 15px; width: 15px; }
+
+/* Sin padding a la derecha: la pestana activa tiene que llegar al borde. */
 .o_soled_sidebar_navigation {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: 2px;
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 14px 10px;
-    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+    padding: 16px 0 16px 12px;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
     scrollbar-width: thin;
 }
 
+.o_soled_sidebar_navigation::-webkit-scrollbar { width: 6px; }
+.o_soled_sidebar_navigation::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+}
+
 .o_soled_sidebar_section {
-    color: #5c6b80;
+    color: var(--soled-muted);
     display: block;
     font-size: 9px;
     font-weight: 750;
-    letter-spacing: 0.14em;
-    padding: 0 10px 8px;
+    letter-spacing: 0.16em;
+    opacity: 0.85;
+    padding: 0 16px 10px 12px;
     text-transform: uppercase;
 }
 
 .o_soled_sidebar_section_split {
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    margin-top: 12px;
+    border-top: 1px solid var(--soled-line);
+    margin: 14px 16px 0 0;
     padding-top: 16px;
 }
 
-.o_soled_sidebar_group { margin-bottom: 2px; }
+.o_soled_sidebar_group { margin-bottom: 3px; }
 
-/* El link es un contenedor: adentro van el destino y el desplegable, que son
-   dos acciones distintas y no deben pisarse. */
+/* El link es un contenedor: adentro van el destino y el desplegable, que
+   son dos acciones distintas y no deben pisarse. */
 .o_soled_sidebar_link {
     align-items: stretch;
-    border-radius: 10px;
+    border-radius: 12px 0 0 12px;
     display: flex;
     position: relative;
-    transition: background 140ms ease;
+    transition: background 150ms ease;
 }
 
-.o_soled_sidebar_link:hover { background: rgba(255, 255, 255, 0.05); }
-.o_soled_sidebar_link.is-active { background: rgba(255, 255, 255, 0.07); }
-
-/* Barra a la izquierda: marca la seccion en la que estas parado, aunque
-   estes viendo una subseccion. */
-.o_soled_sidebar_link.is-active::before {
-    background: #f65359;
-    border-radius: 0 3px 3px 0;
-    bottom: 9px;
-    content: "";
-    left: 0;
-    position: absolute;
-    top: 9px;
-    width: 3px;
-}
+.o_soled_sidebar_link:hover { background: rgba(255, 255, 255, 0.06); }
 
 .o_soled_sidebar_link_main {
     align-items: center;
     background: transparent;
     border: 0;
-    color: #b9c5d4;
+    color: var(--soled-text);
     cursor: pointer;
     display: flex;
     flex: 1 1 auto;
-    gap: 11px;
-    min-height: 46px;
+    gap: 12px;
+    min-height: 48px;
     min-width: 0;
-    padding: 7px 10px;
+    padding: 7px 8px 7px 10px;
     text-align: left;
 }
 
+/* Seccion abierta pero parado en una subseccion: se marca sin robarle
+   protagonismo a la pestana del hijo. */
 .o_soled_sidebar_link.is-active .o_soled_sidebar_link_main { color: #ffffff; }
+.o_soled_sidebar_link.is-active .o_soled_sidebar_icon {
+    background: rgba(255, 91, 98, 0.16);
+    color: var(--soled-accent);
+}
 
-/* La pagina exacta va en blanco pleno; la seccion contenedora, apenas marcada. */
-.o_soled_sidebar_link.is-current { background: #ffffff; }
-.o_soled_sidebar_link.is-current .o_soled_sidebar_link_main { color: #111827; }
-.o_soled_sidebar_link.is-current::before { display: none; }
+/* La pestana: mismo color que el contenido y pegada al borde derecho. */
+.o_soled_sidebar_link.is-current {
+    background: var(--soled-surface);
+    border-radius: 14px 0 0 14px;
+}
+
+/* Las dos esquinas concavas que enganchan la pestana con la pagina. */
+.o_soled_sidebar_link.is-current::before,
+.o_soled_sidebar_link.is-current::after {
+    content: "";
+    height: var(--soled-notch);
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    width: var(--soled-notch);
+}
+
+.o_soled_sidebar_link.is-current::before {
+    background: radial-gradient(circle 16px at 0 0, transparent 15.5px, var(--soled-surface) 16px);
+    top: calc(var(--soled-notch) * -1);
+}
+
+.o_soled_sidebar_link.is-current::after {
+    background: radial-gradient(circle 16px at 0 100%, transparent 15.5px, var(--soled-surface) 16px);
+    bottom: calc(var(--soled-notch) * -1);
+}
+
+.o_soled_sidebar_link.is-current .o_soled_sidebar_link_main { color: #16283a; }
+.o_soled_sidebar_link.is-current:hover { background: var(--soled-surface); }
 
 .o_soled_sidebar_toggle {
     align-items: center;
     background: transparent;
     border: 0;
-    color: #5c6b80;
+    border-radius: 50%;
+    color: var(--soled-muted);
     cursor: pointer;
     display: flex;
-    flex: 0 0 28px;
+    flex: 0 0 30px;
     font-size: 9px;
     justify-content: center;
+    margin-right: 6px;
+    transition: color 130ms ease;
 }
 
+.o_soled_sidebar_toggle svg { height: 14px; width: 14px; }
 .o_soled_sidebar_toggle:hover { color: #ffffff; }
-.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle { color: #94a3b8; }
-.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle:hover { color: #111827; }
+.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle { color: #7a91a5; }
+.o_soled_sidebar_link.is-current .o_soled_sidebar_toggle:hover { color: var(--soled-accent); }
 
+/* Iconos de trazo: 32px de caja, el dibujo adentro a 19px. */
 .o_soled_sidebar_icon {
     align-items: center;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 9px;
+    border-radius: 10px;
+    color: var(--soled-accent-soft);
     display: inline-flex;
-    flex: 0 0 30px;
-    font-size: 12px;
-    height: 30px;
+    flex: 0 0 32px;
+    height: 32px;
     justify-content: center;
-    transition: background 140ms ease;
-    width: 30px;
+    transition: background 150ms ease, color 150ms ease;
+    width: 32px;
 }
 
-.o_soled_sidebar_link.is-current .o_soled_sidebar_icon { background: #f1f5f9; }
+.o_soled_sidebar_icon svg {
+    height: 19px;
+    width: 19px;
+}
+
+.o_soled_sidebar_link:hover .o_soled_sidebar_icon {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd0ae;
+}
+
+.o_soled_sidebar_link.is-current .o_soled_sidebar_icon,
+.o_soled_sidebar_link.is-current:hover .o_soled_sidebar_icon {
+    background: linear-gradient(140deg, var(--soled-accent) 0%, #ff8a63 100%);
+    box-shadow: 0 5px 14px rgba(255, 91, 98, 0.32);
+    color: #ffffff;
+}
 
 .o_soled_sidebar_copy {
     display: flex;
@@ -621,50 +699,52 @@ $soled-sidebar-collapsed: 72px;
 }
 
 .o_soled_sidebar_copy strong {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 650;
-    line-height: 1.2;
+    letter-spacing: 0.005em;
+    line-height: 1.25;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .o_soled_sidebar_copy small {
-    color: #5c6b80;
+    color: var(--soled-muted);
     font-size: 10px;
-    line-height: 1.2;
+    line-height: 1.25;
     margin-top: 2px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.o_soled_sidebar_link:hover small { color: #8394a8; }
-.o_soled_sidebar_link.is-current small { color: #64748b; }
+.o_soled_sidebar_link.is-current small { color: #6f8598; }
 
 /* Subsecciones: guia vertical para que se lean como hijas de su modulo. */
 .o_soled_sidebar_children {
-    border-left: 1px solid rgba(255, 255, 255, 0.09);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    margin: 3px 0 7px 26px;
-    padding-left: 9px;
+    gap: 1px;
+    margin: 4px 0 8px 27px;
+    padding-left: 10px;
 }
 
 .o_soled_sidebar_child {
     align-items: center;
     background: transparent;
     border: 0;
-    border-radius: 7px;
-    color: #8394a8;
+    border-radius: 9px 0 0 9px;
+    color: var(--soled-muted);
     cursor: pointer;
     display: flex;
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 550;
-    gap: 9px;
-    min-height: 30px;
+    gap: 10px;
+    min-height: 32px;
     min-width: 0;
-    padding: 4px 9px;
+    padding: 4px 10px;
+    position: relative;
     text-align: left;
     transition: background 130ms ease, color 130ms ease;
 }
@@ -675,33 +755,59 @@ $soled-sidebar-collapsed: 72px;
     white-space: nowrap;
 }
 
-.o_soled_sidebar_child:hover { background: rgba(255, 255, 255, 0.05); color: #e5e7eb; }
-
-.o_soled_sidebar_child_dot {
-    background: rgba(255, 255, 255, 0.22);
-    border-radius: 50%;
-    flex: 0 0 4px;
-    height: 4px;
-    transition: background 130ms ease, transform 130ms ease;
-    width: 4px;
+.o_soled_sidebar_child:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
 }
 
+.o_soled_sidebar_child_dot {
+    background: rgba(255, 255, 255, 0.28);
+    border-radius: 50%;
+    flex: 0 0 5px;
+    height: 5px;
+    transition: background 130ms ease, box-shadow 130ms ease;
+    width: 5px;
+}
+
+/* La subseccion actual usa la misma pestana que el modulo, mas chica. */
 .o_soled_sidebar_child.is-current {
-    background: rgba(255, 255, 255, 0.09);
-    color: #ffffff;
+    background: var(--soled-surface);
+    color: #16283a;
     font-weight: 700;
+    margin-right: -10px;
+    padding-right: 20px;
+}
+
+.o_soled_sidebar_child.is-current::before,
+.o_soled_sidebar_child.is-current::after {
+    content: "";
+    height: 10px;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    width: 10px;
+}
+
+.o_soled_sidebar_child.is-current::before {
+    background: radial-gradient(circle 10px at 0 0, transparent 9.5px, var(--soled-surface) 10px);
+    top: -10px;
+}
+
+.o_soled_sidebar_child.is-current::after {
+    background: radial-gradient(circle 10px at 0 100%, transparent 9.5px, var(--soled-surface) 10px);
+    bottom: -10px;
 }
 
 .o_soled_sidebar_child.is-current .o_soled_sidebar_child_dot {
-    background: #f65359;
-    transform: scale(1.5);
+    background: var(--soled-accent);
+    box-shadow: 0 0 0 3px rgba(255, 91, 98, 0.18);
 }
 
 /* Modo compacto: solo iconos. */
 .o_soled_global_sidebar.is-collapsed .o_soled_sidebar_brand {
     flex-direction: column;
     gap: 8px;
-    min-height: 96px;
+    min-height: 100px;
     padding: 14px 8px;
 }
 
@@ -716,15 +822,12 @@ $soled-sidebar-collapsed: 72px;
 }
 
 .o_soled_global_sidebar.is-collapsed .o_soled_sidebar_navigation {
-    align-items: center;
-    padding: 14px 8px;
+    padding: 14px 0 14px 10px;
 }
-
-.o_soled_global_sidebar.is-collapsed .o_soled_sidebar_group { width: 100%; }
 
 .o_soled_global_sidebar.is-collapsed .o_soled_sidebar_link_main {
     justify-content: center;
-    padding: 7px;
+    padding: 7px 6px;
 }
 
 .o_soled_global_sidebar.is-collapsed .o_soled_sidebar_footer {
@@ -740,14 +843,14 @@ $soled-sidebar-collapsed: 72px;
 .o_soled_global_sidebar.is-collapsed .o_soled_sidebar_health { justify-content: center; }
 
 .o_soled_sidebar_footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    color: #64748b;
+    border-top: 1px solid var(--soled-line);
+    color: var(--soled-muted);
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
     font-size: 9.5px;
     gap: 8px;
-    padding: 10px clamp(12px, 1.1vw, 16px) 11px;
+    padding: 10px clamp(12px, 1.1vw, 16px) 12px;
 }
 
 /* Menu de usuario de Odoo (preferencias, cerrar sesion) reubicado aca. */
@@ -761,12 +864,12 @@ $soled-sidebar-collapsed: 72px;
     align-items: center;
     background: rgba(255, 255, 255, 0.07);
     border: 0;
-    border-radius: 9px;
-    color: #e5e7eb !important;
+    border-radius: 10px;
+    color: var(--soled-text) !important;
     display: flex;
-    gap: 8px;
-    min-height: 40px;
-    padding: 5px 9px !important;
+    gap: 9px;
+    min-height: 42px;
+    padding: 5px 10px !important;
     width: 100%;
 }
 
@@ -776,6 +879,7 @@ $soled-sidebar-collapsed: 72px;
 }
 
 .o_soled_sidebar_user .o_user_avatar {
+    border-radius: 50%;
     flex: 0 0 28px;
     height: 28px !important;
     padding: 0 !important;
@@ -784,7 +888,7 @@ $soled-sidebar-collapsed: 72px;
 
 .o_soled_sidebar_user .oe_topbar_name {
     display: block !important;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
     margin: 0 !important;
 }
@@ -800,64 +904,43 @@ $soled-sidebar-collapsed: 72px;
 .o_soled_sidebar_status {
     background: #34d399;
     border-radius: 50%;
-    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.12);
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14);
     flex: 0 0 6px;
     height: 6px;
     width: 6px;
 }
 
 @media (max-width: 760px) {
-    .o_web_client {
-        padding-left: 68px;
-    }
-
-    .o_soled_global_sidebar {
-        width: 68px;
-    }
+    :root { --soled-sidebar-w: 72px; }
 
     .o_soled_sidebar_brand {
         justify-content: center;
         padding: 12px 8px;
     }
 
-    .o_soled_sidebar_brand > div,
+    .o_soled_sidebar_brand__text,
+    .o_soled_sidebar_collapse,
     .o_soled_sidebar_copy,
     .o_soled_sidebar_section,
+    .o_soled_sidebar_toggle,
+    .o_soled_sidebar_children,
     .o_soled_sidebar_user .oe_topbar_name,
     .o_soled_sidebar_health span:last-child {
         display: none !important;
     }
 
-    .o_soled_global_back {
-        left: 84px;
-    }
-
-    .o_soled_global_back span {
-        display: none;
-    }
+    .o_soled_global_back span { display: none; }
 
     .o_soled_sidebar_user .dropdown-toggle {
         justify-content: center;
         padding: 5px !important;
     }
 
-    .o_soled_sidebar_navigation {
-        align-items: center;
-        padding: 12px 8px;
-    }
-
-    .o_soled_sidebar_toggle,
-    .o_soled_sidebar_children {
-        display: none !important;
-    }
-
-    .o_soled_sidebar_group {
-        width: 100%;
-    }
+    .o_soled_sidebar_navigation { padding: 12px 0 12px 8px; }
 
     .o_soled_sidebar_link_main {
         justify-content: center;
-        min-height: 44px;
+        min-height: 46px;
         padding: 6px;
     }
 
@@ -866,7 +949,5 @@ $soled-sidebar-collapsed: 72px;
         padding: 10px 8px;
     }
 
-    .o_soled_sidebar_health {
-        justify-content: center;
-    }
+    .o_soled_sidebar_health { justify-content: center; }
 }

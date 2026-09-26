@@ -89,6 +89,14 @@ fi
 log "Actualizando modulos"
 $COMPOSE run --rm odoo odoo -d "$ODOO_DB" $ARGS --without-demo=all --stop-after-init
 
+# Los bundles de assets viven como adjuntos en la base. Odoo los regenera
+# solo cuando detecta el cambio, y cuando no lo detecta el navegador sigue
+# sirviendo el CSS/JS viejo y parece que el deploy no hizo nada. Borrarlos
+# es barato: se rearman en el primer request.
+log "Invalidando los assets compilados"
+$COMPOSE exec -T db psql -U odoo -d "$ODOO_DB" -qc \
+    "DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';"
+
 log "Reiniciando Odoo"
 $COMPOSE restart odoo
 

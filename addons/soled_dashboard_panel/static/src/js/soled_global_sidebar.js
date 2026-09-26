@@ -15,6 +15,62 @@ const HASH_POLL_MS = 400;
 const TITLE_PART = "zopenerp";
 const PANEL_TITLE = "SOLED Panel";
 
+// Iconos propios, en trazo y sobre una grilla de 24x24. FontAwesome 4 es
+// solido y pesado: al lado del texto fino del sidebar quedaba sucio. Se
+// mapean por key del item, con un fallback para lo que se agregue despues.
+const ICON_PATHS = {
+    home: [
+        "M3.6 10.6 12 4l8.4 6.6",
+        "M5.4 9.6V19a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V9.6",
+        "M9.6 21v-6.2h4.8V21",
+    ],
+    mercadolibre: [
+        "M12.9 3.2H20a.8.8 0 0 1 .8.8v7.1a2 2 0 0 1-.6 1.4l-7.7 7.7a1.8 1.8 0 0 1-2.5 0l-6.2-6.2a1.8 1.8 0 0 1 0-2.5l7.7-7.7a2 2 0 0 1 1.4-.6z",
+        "M16.6 7.4h.01",
+    ],
+    retailers: [
+        "M5.6 8.4h12.8l.9 11.1a1.5 1.5 0 0 1-1.5 1.6H6.2a1.5 1.5 0 0 1-1.5-1.6z",
+        "M9 10.4V7.2a3 3 0 0 1 6 0v3.2",
+    ],
+    publisher: [
+        "M12 15.4V3.8",
+        "m7.8 8 4.2-4.2L16.2 8",
+        "M4.4 15v3.6a2 2 0 0 0 2 2h11.2a2 2 0 0 0 2-2V15",
+    ],
+    updater: [
+        "M20 12a8 8 0 1 1-2.7-6L20 8.4",
+        "M20 4v4.4h-4.4",
+    ],
+    coresa: [
+        "m12 3.4 8 4.4v8.4l-8 4.4-8-4.4V7.8z",
+        "m4.2 7.9 7.8 4.3 7.8-4.3",
+        "M12 12.2v8.4",
+    ],
+    administration: [
+        "M4.6 21V5.4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2V21",
+        "M15.6 10.4h3a2 2 0 0 1 2 2V21",
+        "M3 21h18",
+        "M8 7.6h2.6M8 11.6h2.6M8 15.6h2.6",
+    ],
+    settings: [
+        "M4 7h3.4M11.6 7H20M4 12h9.4M17.6 12H20M4 17h5.4M13.6 17H20",
+        "M11.6 7a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 0 1 4.2 0",
+        "M17.6 12a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 0 1 4.2 0",
+        "M13.6 17a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 0 1 4.2 0",
+    ],
+};
+
+const FALLBACK_ICON = ["M4.2 4.2h6v6h-6zM13.8 4.2h6v6h-6zM4.2 13.8h6v6h-6zM13.8 13.8h6v6h-6z"];
+
+// Los glifos chicos de la interfaz, con el mismo trazo que los iconos.
+const GLYPHS = {
+    back: ["M19 12H5", "m11 18-6-6 6-6"],
+    chevronDown: ["m6 9.5 6 6 6-6"],
+    chevronUp: ["m18 14.5-6-6-6 6"],
+    collapse: ["m13 18-6-6 6-6", "m19 18-6-6 6-6"],
+    expand: ["m11 6 6 6-6 6", "m5 6 6 6-6 6"],
+};
+
 // Modo compacto: se recuerda entre recargas.
 const COLLAPSED_KEY = "soled_sidebar_collapsed";
 
@@ -82,6 +138,17 @@ class SoledGlobalSidebar extends Component {
         } catch (error) {
             // Sin titulo propio el panel funciona igual.
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Iconografia
+    // ------------------------------------------------------------------
+    iconPaths(item) {
+        return ICON_PATHS[item.key] || FALLBACK_ICON;
+    }
+
+    glyph(name) {
+        return GLYPHS[name] || [];
     }
 
     readCollapsed() {

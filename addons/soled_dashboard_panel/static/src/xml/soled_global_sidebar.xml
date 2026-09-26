@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <!-- Un solo lugar donde se dibuja el trazo: los paths los pone el que llama. -->
+    <t t-name="soled_dashboard_panel.SidebarGlyph" owl="1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path t-foreach="paths" t-as="glyph_d" t-key="glyph_d_index" t-att-d="glyph_d"/>
+        </svg>
+    </t>
+
     <t t-name="soled_dashboard_panel.GlobalSidebar" owl="1">
         <div class="o_soled_shell">
             <button t-if="previousItem" class="o_soled_global_back" type="button"
                     t-attf-title="Volver a {{previousItem.label}}"
                     t-on-click="goBack">
-                <i class="fa fa-arrow-left"/>
+                <t t-call="soled_dashboard_panel.SidebarGlyph">
+                    <t t-set="paths" t-value="glyph('back')"/>
+                </t>
                 <span t-esc="previousItem.label"/>
             </button>
 
@@ -21,7 +31,9 @@
                             t-attf-title="#{state.collapsed ? 'Expandir' : 'Contraer'} el menú"
                             t-att-aria-label="state.collapsed ? 'Expandir el menú' : 'Contraer el menú'"
                             t-on-click="toggleCollapsed">
-                        <i t-attf-class="fa #{state.collapsed ? 'fa-angle-double-right' : 'fa-angle-double-left'}"/>
+                        <t t-call="soled_dashboard_panel.SidebarGlyph">
+                            <t t-set="paths" t-value="glyph(state.collapsed ? 'expand' : 'collapse')"/>
+                        </t>
                     </button>
                 </header>
 
@@ -35,7 +47,11 @@
                                 <button type="button" class="o_soled_sidebar_link_main"
                                         t-attf-title="#{item.label}#{item.description ? ' — ' + item.description : ''}"
                                         t-on-click="() => this.openItem(item)">
-                                    <span class="o_soled_sidebar_icon"><i t-attf-class="fa #{item.icon}"/></span>
+                                    <span class="o_soled_sidebar_icon">
+                                        <t t-call="soled_dashboard_panel.SidebarGlyph">
+                                            <t t-set="paths" t-value="iconPaths(item)"/>
+                                        </t>
+                                    </span>
                                     <span class="o_soled_sidebar_copy">
                                         <strong t-esc="item.label"/>
                                         <small t-esc="item.description"/>
@@ -45,7 +61,9 @@
                                         t-attf-title="#{isExpanded(item) ? 'Contraer' : 'Desplegar'} {{item.label}}"
                                         t-att-aria-expanded="isExpanded(item) ? 'true' : 'false'"
                                         t-on-click="(ev) => this.toggle(item, ev)">
-                                    <i t-attf-class="fa #{isExpanded(item) ? 'fa-chevron-up' : 'fa-chevron-down'}"/>
+                                    <t t-call="soled_dashboard_panel.SidebarGlyph">
+                                        <t t-set="paths" t-value="glyph(isExpanded(item) ? 'chevronUp' : 'chevronDown')"/>
+                                    </t>
                                 </button>
                             </div>
 
