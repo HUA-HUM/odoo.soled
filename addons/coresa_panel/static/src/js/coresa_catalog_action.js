@@ -126,6 +126,12 @@ class CoresaCatalogAction extends Component {
         }
     }
 
+    // Algunas imagenes del bucket de Coresa dan 403 (hoy, toda la carpeta
+    // DCK). Sin esto el navegador deja el icono de imagen rota.
+    onImageError(item) {
+        item.imageFailed = true;
+    }
+
     openDetail(item) {
         this.state.detail = item;
     }

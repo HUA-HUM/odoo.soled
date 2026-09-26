@@ -61,8 +61,8 @@
                     <article t-foreach="state.items" t-as="item" t-key="item.sku" class="o_ccat_card"
                              t-on-click="() => this.openDetail(item)">
                         <div class="o_ccat_card__media">
-                            <img t-if="item.image" t-att-src="item.image" t-att-alt="item.sku" loading="lazy"/>
-                            <div t-else="" class="o_ccat_noimg"><i class="fa fa-image"/></div>
+                            <img t-if="item.image &amp;&amp; !item.imageFailed" t-att-src="item.image" t-att-alt="item.sku" loading="lazy" t-on-error="() => this.onImageError(item)"/>
+                            <div t-else="" class="o_ccat_noimg"><i class="fa fa-image" title="Imagen no disponible"/><small t-if="item.image">Sin acceso</small></div>
                         </div>
                         <div class="o_ccat_card__body">
                             <div class="o_ccat_card__top">
@@ -111,7 +111,7 @@
 
                     <div class="o_ccat_drawer__body">
                         <div class="o_ccat_drawer__hero">
-                            <img t-if="state.detail.image" t-att-src="state.detail.image" t-att-alt="state.detail.sku"/>
+                                <img t-if="state.detail.image &amp;&amp; !state.detail.imageFailed" t-att-src="state.detail.image" t-att-alt="state.detail.sku" t-on-error="() => this.onImageError(state.detail)"/>
                             <div class="o_ccat_drawer__summary">
                                 <p t-esc="state.detail.description"/>
                                 <div class="o_ccat_card__tags">
