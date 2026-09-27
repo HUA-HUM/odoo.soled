@@ -57,9 +57,55 @@
             </section>
 
             <t t-else="">
+                <section t-if="state.items.length" class="o_ccat_sendbar">
+                    <label class="o_ccat_checkall">
+                        <input type="checkbox" t-att-checked="allSelected" t-att-disabled="state.run.active"
+                               t-on-change="toggleAll"/>
+                        <span>Seleccionar la página</span>
+                    </label>
+                    <span t-if="selectedSkus.length" class="o_ccat_selcount">
+                        <b t-esc="selectedSkus.length"/> seleccionados
+                        <button type="button" t-att-disabled="state.run.active" t-on-click="clearSelection">limpiar</button>
+                    </span>
+                    <button type="button" class="o_ccat_send" t-att-disabled="state.run.active || !selectedSkus.length"
+                            t-on-click="sendSelected">
+                        <i class="fa fa-magic"/>
+                        <span>Mandar al publicador</span>
+                    </button>
+                </section>
+
+                <!-- Avance del armado. Corta despues del que esta en curso. -->
+                <section t-if="state.run.total" class="o_ccat_run">
+                    <div class="o_ccat_run__head">
+                        <strong t-if="state.run.active">Armando <t t-esc="state.run.done + 1"/> de <t t-esc="state.run.total"/>...</strong>
+                        <strong t-else="">
+                            Listo: <t t-esc="runSummary.ready"/> para publicar, <t t-esc="runSummary.draft"/> en borrador<t t-if="runSummary.failed">, <t t-esc="runSummary.failed"/> con error</t>
+                        </strong>
+                        <button t-if="state.run.active" type="button" class="o_ccat_runbtn" t-att-disabled="state.run.cancel"
+                                t-on-click="cancelRun">
+                            <t t-esc="state.run.cancel ? 'Cortando...' : 'Cortar'"/>
+                        </button>
+                        <button t-else="" type="button" class="o_ccat_runbtn" t-on-click="openPublisher">
+                            Ir al publicador <i class="fa fa-arrow-right"/>
+                        </button>
+                    </div>
+                    <div class="o_ccat_bar"><span t-attf-style="width: #{progressPercent}%"/></div>
+                    <small>No publica nada: arma el borrador y lo valida. Cada uno tarda unos segundos.</small>
+                </section>
+
                 <section t-if="state.items.length" class="o_ccat_grid">
-                    <article t-foreach="state.items" t-as="item" t-key="item.sku" class="o_ccat_card"
+                    <article t-foreach="state.items" t-as="item" t-key="item.sku"
+                             t-attf-class="o_ccat_card #{state.selected[item.sku] ? 'is-picked' : ''} #{resultFor(item) ? 'is-' + resultFor(item).state : ''}"
                              t-on-click="() => this.openDetail(item)">
+                        <label class="o_ccat_pick" t-on-click="(ev) => ev.stopPropagation()">
+                            <input type="checkbox" t-att-checked="state.selected[item.sku]"
+                                   t-att-disabled="state.run.active" t-on-change="(ev) => this.toggle(item, ev)"/>
+                        </label>
+                        <span t-if="resultFor(item)" t-attf-class="o_ccat_resu is-#{resultFor(item).state}"
+                              t-att-title="resultFor(item).detail">
+                            <i t-if="resultFor(item).state === 'working'" class="fa fa-spinner fa-spin"/>
+                            <t t-esc="resultLabel(resultFor(item).state)"/>
+                        </span>
                         <div class="o_ccat_card__media">
                             <img t-if="item.image &amp;&amp; !item.imageFailed" t-att-src="item.image" t-att-alt="item.sku" loading="lazy" t-on-error="() => this.onImageError(item)"/>
                             <div t-else="" class="o_ccat_noimg"><i class="fa fa-image" title="Imagen no disponible"/><small t-if="item.image">Sin acceso</small></div>

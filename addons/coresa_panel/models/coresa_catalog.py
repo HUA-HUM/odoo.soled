@@ -227,6 +227,37 @@ class CoresaCatalog(models.Model):
         return rows
 
     # ------------------------------------------------------------------
+    # Mandar un SKU al publicador
+    # ------------------------------------------------------------------
+    @api.model
+    def send_to_publisher(self, sku):
+        """Arma el borrador de publicacion de un SKU.
+
+        El trabajo lo hace coresa.publication, del modulo del publicador:
+        aca solo se delega para que el catalogo no tenga que saber como se
+        habla con coresa-api. El estado que devuelve lo decide MercadoLibre
+        al validar: "ready" si lo acepta, "draft" si todavia no.
+        """
+        sku = str(sku or "").strip()
+        if not sku:
+            raise UserError(_("Falta el SKU."))
+        publication = self.env.get("coresa.publication")
+        if publication is None:
+            raise UserError(
+                _("El módulo del publicador no está instalado en este panel.")
+            )
+        data = publication.preview_payload(sku)
+        validation = data.get("validation") or []
+        return {
+            "sku": data.get("sku") or sku,
+            "publicationId": data.get("publicationId") or 0,
+            "status": data.get("status") or "",
+            "valid": any(row.get("valid") for row in validation),
+            "missing": data.get("missing") or [],
+            "categoryId": data.get("categoryId") or "",
+        }
+
+    # ------------------------------------------------------------------
     @api.model
     def get_catalog_facets(self, force=False):
         """Marcas con su conteo. Recorrer 5.400 filas tarda, asi que el

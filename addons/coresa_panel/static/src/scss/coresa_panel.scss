@@ -1285,3 +1285,127 @@
 
     .o_cupd_col.is-act { display: none; }
 }
+
+/* ------------------------------------------------------------------
+   Catálogo: elegir varios y mandarlos al publicador.
+   ------------------------------------------------------------------ */
+.o_ccat_sendbar {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 11px 16px;
+}
+
+.o_ccat_checkall { align-items: center; cursor: pointer; display: flex; gap: 8px; font-size: 12.5px; }
+.o_ccat_checkall input { height: 15px; width: 15px; }
+.o_ccat_selcount { color: #7a8798; font-size: 12.5px; }
+.o_ccat_selcount b { color: #17303f; }
+
+.o_ccat_selcount button {
+    background: transparent;
+    border: 0;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 6px;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.o_ccat_send {
+    align-items: center;
+    background: #17303f;
+    border: 1px solid #17303f;
+    border-radius: 9px;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 12.5px;
+    font-weight: 650;
+    gap: 8px;
+    margin-left: auto;
+    min-height: 36px;
+    padding: 0 16px;
+}
+
+.o_ccat_send:hover { background: #22455b; }
+.o_ccat_send:disabled { background: #b9c6cf; border-color: #b9c6cf; cursor: default; }
+
+.o_ccat_run {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.o_ccat_run__head { align-items: center; display: flex; gap: 12px; }
+.o_ccat_run__head strong { font-size: 13.5px; }
+.o_ccat_run small { color: #94a3b8; display: block; font-size: 11.5px; margin-top: 8px; }
+
+.o_ccat_runbtn {
+    background: transparent;
+    border: 0;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 650;
+    margin-left: auto;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.o_ccat_runbtn:disabled { color: #b9c6cf; cursor: default; }
+
+.o_ccat_bar {
+    background: #eef2f5;
+    border-radius: 999px;
+    height: 7px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.o_ccat_bar span { background: #0f766e; display: block; height: 100%; transition: width 220ms ease; }
+
+/* El check y el estado van flotando sobre la tarjeta. */
+.o_ccat_card { position: relative; }
+
+.o_ccat_pick {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    left: 10px;
+    padding: 5px;
+    position: absolute;
+    top: 10px;
+    z-index: 2;
+}
+
+.o_ccat_pick input { height: 15px; margin: 0; width: 15px; }
+
+.o_ccat_resu {
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 750;
+    padding: 4px 9px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 2;
+}
+
+.o_ccat_resu i { margin-right: 4px; }
+.o_ccat_resu.is-queued { background: #eef2f5; color: #7a8798; }
+.o_ccat_resu.is-working { background: #fdf3e6; color: #b45309; }
+.o_ccat_resu.is-ready { background: #d7f0e8; color: #0f766e; }
+.o_ccat_resu.is-draft { background: #e6edf5; color: #3f5f7f; }
+.o_ccat_resu.is-failed { background: #fadedb; color: #b42318; }
+.o_ccat_resu.is-cancelled { background: #eef2f5; color: #94a3b8; }
+
+.o_ccat_card.is-picked { border-color: #17303f; box-shadow: 0 0 0 1px #17303f; }
+.o_ccat_card.is-ready { border-color: #bfe5da; }
+.o_ccat_card.is-failed { border-color: #f6cfcb; }

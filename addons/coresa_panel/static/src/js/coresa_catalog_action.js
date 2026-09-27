@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -12,6 +13,8 @@ class CoresaCatalogAction extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
+        this.action = useService("action");
         this.state = useState({
             items: [],
             brands: [],
@@ -20,6 +23,9 @@ class CoresaCatalogAction extends Component {
             offset: 0,
             filters: { search: "", marca: "", subFamilia: "", sku: "", disponible: "" },
             detail: null,
+            // Por SKU, no por posicion: la seleccion sobrevive al paginado.
+            selected: {},
+            run: { active: false, cancel: false, done: 0, total: 0, results: {} },
             loading: false,
             loadingBrands: false,
             error: "",
@@ -53,6 +59,31 @@ class CoresaCatalogAction extends Component {
 
     get hasNext() {
         return this.state.offset + this.state.limit < this.state.total;
+    }
+
+    get selectedSkus() {
+        return Object.keys(this.state.selected).filter((sku) => this.state.selected[sku]);
+    }
+
+    get allSelected() {
+        return (
+            this.state.items.length > 0 &&
+            this.state.items.every((item) => this.state.selected[item.sku])
+        );
+    }
+
+    get progressPercent() {
+        const run = this.state.run;
+        return run.total ? Math.round((run.done / run.total) * 100) : 0;
+    }
+
+    get runSummary() {
+        const results = Object.values(this.state.run.results);
+        return {
+            ready: results.filter((one) => one.state === "ready").length,
+            draft: results.filter((one) => one.state === "draft").length,
+            failed: results.filter((one) => one.state === "failed").length,
+        };
     }
 
     get hasFilters() {
@@ -134,6 +165,134 @@ class CoresaCatalogAction extends Component {
 
     openDetail(item) {
         this.state.detail = item;
+    }
+
+    // ------------------------------------------------------------------
+    // Mandar al publicador
+    // ------------------------------------------------------------------
+    toggle(item, ev) {
+        if (ev) {
+            // La tarjeta entera abre la ficha: el check no tiene que abrirla.
+            ev.stopPropagation();
+        }
+        if (this.state.run.active) {
+            return;
+        }
+        this.state.selected[item.sku] = !this.state.selected[item.sku];
+    }
+
+    toggleAll() {
+        if (this.state.run.active) {
+            return;
+        }
+        const select = !this.allSelected;
+        for (const item of this.state.items) {
+            this.state.selected[item.sku] = select;
+        }
+    }
+
+    clearSelection() {
+        this.state.selected = {};
+    }
+
+    resultFor(item) {
+        return this.state.run.results[item.sku] || null;
+    }
+
+    resultLabel(state) {
+        const labels = {
+            queued: "En cola",
+            working: "Armando...",
+            ready: "Listo para publicar",
+            draft: "Borrador",
+            failed: "Con error",
+            cancelled: "Cancelado",
+        };
+        return labels[state] || state;
+    }
+
+    sendSelected() {
+        const skus = this.selectedSkus;
+        if (!skus.length) {
+            this.notification.add("Elegí al menos un producto.", { type: "warning" });
+            return;
+        }
+        this.dialog.add(ConfirmationDialog, {
+            title: skus.length === 1 ? "Mandar al publicador" : `Mandar ${skus.length} al publicador`,
+            body:
+                `Se arma el borrador de ${skus.length === 1 ? "este SKU" : `estos ${skus.length} SKU`}: ` +
+                "categoría, atributos y el texto del aviso. No publica nada en MercadoLibre. " +
+                "Si un SKU ya tenía borrador, se rehace. " +
+                `Van de a uno: ${this.estimate(skus.length)}.`,
+            confirmLabel: "Armar borradores",
+            cancelLabel: "Cancelar",
+            confirm: () => this.runSend(skus),
+        });
+    }
+
+    // De a uno, esperando cada respuesta: el preview encadena Coresa,
+    // MercadoLibre y la redaccion, y no conviene dispararlos en paralelo.
+    async runSend(skus) {
+        const run = this.state.run;
+        Object.assign(run, { active: true, cancel: false, done: 0, total: skus.length, results: {} });
+        for (const sku of skus) {
+            run.results[sku] = { state: "queued", detail: "" };
+        }
+
+        for (const sku of skus) {
+            if (run.cancel) {
+                run.results[sku].state = "cancelled";
+                continue;
+            }
+            run.results[sku].state = "working";
+            try {
+                const result = await this.orm.call(MODEL, "send_to_publisher", [sku]);
+                const state = result.status === "ready" ? "ready" : "draft";
+                run.results[sku] = {
+                    state,
+                    detail:
+                        state === "ready"
+                            ? "MercadoLibre lo acepta."
+                            : result.missing.length
+                            ? `Faltan atributos: ${result.missing.join(", ")}`
+                            : "MercadoLibre todavía no lo acepta.",
+                };
+            } catch (error) {
+                run.results[sku] = {
+                    state: "failed",
+                    detail: error?.data?.message || "No se pudo armar el borrador.",
+                };
+            }
+            run.done += 1;
+        }
+
+        run.active = false;
+        const summary = this.runSummary;
+        this.notification.add(
+            `${summary.ready} listos para publicar, ${summary.draft} en borrador` +
+                (summary.failed ? `, ${summary.failed} con error` : "") + ".",
+            { type: summary.failed ? "warning" : "success" }
+        );
+        this.state.selected = {};
+    }
+
+    // Medido contra produccion: el preview tarda entre 4 y 10 segundos.
+    estimate(count) {
+        const seconds = count * 10;
+        if (seconds < 60) {
+            return `unos ${seconds} segundos en total`;
+        }
+        const minutes = Math.round(seconds / 60);
+        return `unos ${minutes} minuto${minutes === 1 ? "" : "s"} en total`;
+    }
+
+    cancelRun() {
+        this.state.run.cancel = true;
+        this.notification.add("Se corta cuando termine el que está en curso.", { type: "info" });
+    }
+
+    async openPublisher() {
+        await this.action.doAction("coresa_meli_publisher.action_coresa_publisher");
     }
 
     closeDetail() {
