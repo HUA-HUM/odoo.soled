@@ -2,6 +2,9 @@
 <templates xml:space="preserve">
     <t t-name="coresa_meli_publisher.PublisherAction" owl="1">
         <div class="o_cpub_page">
+            <PublicationEditor t-if="state.editingId" publicationId="state.editingId" onClose.bind="closeEditor"/>
+
+            <t t-else="">
             <section class="o_cpub_header">
                 <div>
                     <span class="o_cpub_eyebrow">Coresa</span>
@@ -26,8 +29,9 @@
             </nav>
 
             <PublisherPreviewTab t-if="state.tab === 'preview'" sku="state.previewSku"/>
-            <PublisherQueueTab t-elif="state.tab === 'queue'" onPreview.bind="openPreview"/>
-            <PublicationsEmbedded t-else=""/>
+            <PublisherQueueTab t-elif="state.tab === 'queue'" onPreview.bind="openPreview" onEdit.bind="openEditor"/>
+            <PublicationsEmbedded t-else="" onOpen.bind="openEditor"/>
+            </t>
         </div>
     </t>
 
@@ -241,8 +245,11 @@
                         </dl>
                         <p t-if="row.errorMessage" class="o_cpub_qerror" t-esc="row.errorMessage"/>
                         <footer>
-                            <button type="button" class="o_cpub_primary" t-on-click="() => this.preview(row.sku)">
+                            <button type="button" class="o_cedit_ghost" t-on-click="() => this.preview(row.sku)">
                                 <i class="fa fa-eye"/> <span>Previsualizar</span>
+                            </button>
+                            <button type="button" class="o_cpub_primary" t-on-click="() => this.edit(row)">
+                                <i class="fa fa-pencil"/> <span>Editar</span>
                             </button>
                         </footer>
                     </article>

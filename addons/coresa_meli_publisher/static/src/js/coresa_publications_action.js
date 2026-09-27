@@ -129,6 +129,12 @@ export class CoresaPublicationsAction extends Component {
     }
 
     async openPublication(item) {
+        // Adentro del Publicador la fila abre el editor nuevo; suelta, sigue
+        // abriendo el formulario de Odoo.
+        if (this.props.onOpen) {
+            this.props.onOpen(item);
+            return;
+        }
         try {
             const action = await this.orm.call(MODEL, "open_publication", [], {
                 publication_id: item.id,
@@ -211,4 +217,5 @@ registry
 // de la pestaña "Publicador".
 export class PublicationsEmbedded extends CoresaPublicationsAction {
     static template = "coresa_meli_publisher.PublicationsEmbedded";
+    static props = { onOpen: { type: Function, optional: true } };
 }

@@ -203,7 +203,9 @@ class CoresaPublication(models.Model):
             502: _("MercadoLibre no responde, probá de nuevo en unos minutos."),
             503: _("MercadoLibre no responde, probá de nuevo en unos minutos."),
         }.get(status_code)
-        if status_code in (400, 422) and detail:
+        if status_code in (400, 404, 422) and detail:
+            # El 404 puede ser del SKU o de la publicacion: el mensaje de la
+            # API dice cual, el nuestro adivina mal la mitad de las veces.
             return detail
         if mapped and detail:
             return "%s\n\n%s" % (mapped, detail)
@@ -282,6 +284,9 @@ class CoresaPublication(models.Model):
             # Los que ML pide para esta categoria y el borrador no trae: son
             # los que hacen fallar la validacion.
             "missing": [str(one) for one in (payload.get("missingRequiredAttributes") or [])],
+            # Los que no estaban en Coresa y completo la IA. Van marcados en
+            # la pantalla: son lo unico del borrador que nadie verifico.
+            "inferred": [str(one) for one in (payload.get("inferredAttributes") or [])],
             "draft": {
                 "title": draft.get("title") or "",
                 "price": self._as_float(draft.get("price")),
@@ -651,6 +656,198 @@ class CoresaPublication(models.Model):
             "view_mode": "form",
             "target": "current",
         }
+
+    # ------------------------------------------------------------------
+    # Editor del borrador (contra la API, sin espejo en Odoo)
+    # ------------------------------------------------------------------
+    EDITABLE_STATES = ("draft", "ready", "failed")
+
+    @api.model
+    def get_publication(self, publication_id):
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        payload = self._api_get("/coresa/publications/%s" % publication_id)
+        return self._editor_payload(payload if isinstance(payload, dict) else {})
+
+    @api.model
+    def save_draft(self, publication_id, draft):
+        """Guarda las correcciones y revalida en ML. No publica.
+
+        El estado lo decide MercadoLibre: si el borrador queda bien vuelve
+        "ready" y si no, "draft". Por eso el front tiene que recalcular con
+        la respuesta si Publicar va habilitado.
+        """
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        body = {"draft": self._draft_body(draft), "requestedBy": self._requested_by()}
+        try:
+            payload = self._api_request(
+                "PUT", "/coresa/publications/%s/draft" % publication_id, body
+            )
+        except UserError as error:
+            # El endpoint puede no estar desplegado todavia: el 404 generico
+            # habla del SKU y manda a buscar donde no es.
+            if "Cannot PUT" in str(error):
+                raise UserError(
+                    _(
+                        "coresa-api todavía no tiene el endpoint para guardar "
+                        "cambios (PUT /coresa/publications/%s/draft). El resto "
+                        "de la pantalla funciona; guardar va a andar cuando se "
+                        "despliegue esa versión."
+                    )
+                    % publication_id
+                ) from error
+            raise
+        return self._editor_payload(payload)
+
+    @api.model
+    def publish_draft(self, publication_id):
+        """Publica de verdad en MercadoLibre. No tiene vuelta atras desde acá."""
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        payload = self._api_request(
+            "POST",
+            "/coresa/publications/%s/publish" % publication_id,
+            {"requestedBy": self._requested_by()},
+        )
+        result = self._editor_payload(payload)
+        # linkedForSync solo viene en la respuesta de publish.
+        result["linkedForSync"] = bool(payload.get("linkedForSync"))
+        return result
+
+    @api.model
+    def rebuild_draft(self, sku, category_id=None):
+        """Rehace el borrador con la IA. Pisa las correcciones a mano."""
+        return self.preview_payload(sku, category_id)
+
+    @api.model
+    def _draft_body(self, draft):
+        """Lo que se manda en el PUT.
+
+        attributes y pictures se reemplazan enteros del lado de la API, asi
+        que van completos: mandar solo el que se toco borraria el resto.
+        """
+        draft = draft if isinstance(draft, dict) else {}
+        body = {}
+        for key, source in (
+            ("title", "title"),
+            ("description", "description"),
+            ("category_id", "categoryId"),
+        ):
+            value = draft.get(source)
+            if value is not None:
+                body[key] = str(value).strip()
+        if draft.get("price") is not None:
+            body["price"] = self._as_float(draft.get("price"))
+        if draft.get("quantity") is not None:
+            body["available_quantity"] = self._as_int(draft.get("quantity"))
+        if isinstance(draft.get("attributes"), list):
+            attributes = []
+            for entry in draft["attributes"]:
+                if not isinstance(entry, dict) or not entry.get("id"):
+                    continue
+                value = str(entry.get("value") or "").strip()
+                if not value:
+                    continue
+                attribute = {"id": str(entry["id"]).strip(), "value_name": value}
+                # El value_id solo sirve si el valor no se edito a mano.
+                if entry.get("valueId") and not entry.get("dirty"):
+                    attribute["value_id"] = str(entry["valueId"])
+                attributes.append(attribute)
+            body["attributes"] = attributes
+        if isinstance(draft.get("pictures"), list):
+            body["pictures"] = [str(one).strip() for one in draft["pictures"] if str(one).strip()]
+        return body
+
+    @api.model
+    def _editor_payload(self, payload):
+        """Normaliza lo que devuelven detalle, preview, PUT y publish.
+
+        Las cuatro respuestas traen el mismo borrador con distinto envoltorio:
+        el detalle usa id y el resto publicationId, y solo el preview trae
+        las categorias sugeridas.
+        """
+        payload = payload if isinstance(payload, dict) else {}
+        draft = payload.get("draft") or {}
+        draft = draft if isinstance(draft, dict) else {}
+        shipping = draft.get("shipping") or {}
+        status = payload.get("status") or ""
+        inferred = [str(one) for one in (payload.get("inferredAttributes") or [])]
+        suggestions = [
+            {
+                "id": entry.get("category_id") or "",
+                "name": entry.get("category_name") or "",
+                "domain": entry.get("domain_name") or "",
+            }
+            for entry in (payload.get("categorySuggestions") or [])
+            if isinstance(entry, dict) and entry.get("category_id")
+        ]
+        category_id = payload.get("categoryId") or draft.get("category_id") or ""
+        current = next((one for one in suggestions if one["id"] == category_id), None)
+        return {
+            "id": self._as_int(payload.get("id") or payload.get("publicationId")),
+            "sku": payload.get("sku") or draft.get("sku") or "",
+            "status": status,
+            "statusLabel": dict(self.STATE_SELECTION).get(status, status or "—"),
+            "categoryId": category_id,
+            "categoryName": (current or {}).get("name", ""),
+            "suggestions": suggestions,
+            "missing": [str(one) for one in (payload.get("missingRequiredAttributes") or [])],
+            "inferred": inferred,
+            "canEdit": status in self.EDITABLE_STATES,
+            "canPublish": status == "ready",
+            "draft": {
+                "title": draft.get("title") or "",
+                "description": draft.get("description") or "",
+                "price": self._as_float(draft.get("price")),
+                "quantity": self._as_int(draft.get("available_quantity")),
+                "condition": draft.get("condition") or "",
+                "pictures": [str(one) for one in (draft.get("pictures") or [])],
+                "listingTypes": [str(one) for one in (draft.get("listing_types") or [])],
+                "shipping": {
+                    "mode": shipping.get("mode") or "",
+                    "freeShipping": bool(shipping.get("free_shipping")),
+                },
+                "attributes": self._editor_attributes(draft.get("attributes"), inferred),
+                "saleTerms": self._attribute_rows(draft.get("sale_terms")),
+            },
+            "validation": self._validation_rows(payload.get("validation")),
+            "links": {
+                "classicItemId": payload.get("classicItemId") or "",
+                "premiumItemId": payload.get("premiumItemId") or "",
+                "permalink": payload.get("permalink") or "",
+            },
+            "meta": {
+                "requestedBy": payload.get("requestedBy") or "",
+                "aiModel": payload.get("aiModel") or "",
+                "aiGeneratedAt": payload.get("aiGeneratedAt") or "",
+                "createdAt": payload.get("createdAt") or "",
+                "updatedAt": payload.get("updatedAt") or "",
+                "publishedAt": payload.get("publishedAt") or "",
+                "errorMessage": payload.get("errorMessage") or "",
+            },
+        }
+
+    @api.model
+    def _editor_attributes(self, entries, inferred):
+        rows = []
+        for entry in entries or []:
+            if not isinstance(entry, dict):
+                continue
+            attribute_id = str(entry.get("id") or "")
+            rows.append(
+                {
+                    "id": attribute_id,
+                    "value": str(entry.get("value_name") or ""),
+                    "valueId": str(entry.get("value_id") or ""),
+                    "inferred": attribute_id in inferred,
+                    "dirty": False,
+                }
+            )
+        return rows
 
     # ------------------------------------------------------------------
     # Acciones del formulario

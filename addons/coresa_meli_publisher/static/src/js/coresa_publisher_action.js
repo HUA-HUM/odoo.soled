@@ -4,6 +4,7 @@ import { Component, onMounted, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { PublicationsEmbedded } from "@coresa_meli_publisher/js/coresa_publications_action";
+import { PublicationEditor } from "@coresa_meli_publisher/js/coresa_publication_editor";
 
 const MODEL = "coresa.publication";
 
@@ -153,7 +154,10 @@ class PublisherPreviewTab extends Component {
 /* ------------------------------------------------------------------ */
 class PublisherQueueTab extends Component {
     static template = "coresa_meli_publisher.PublisherQueueTab";
-    static props = { onPreview: { type: Function, optional: true } };
+    static props = {
+        onPreview: { type: Function, optional: true },
+        onEdit: { type: Function, optional: true },
+    };
 
     setup() {
         this.orm = useService("orm");
@@ -190,6 +194,12 @@ class PublisherQueueTab extends Component {
     preview(sku) {
         if (this.props.onPreview) {
             this.props.onPreview(sku);
+        }
+    }
+
+    edit(row) {
+        if (this.props.onEdit) {
+            this.props.onEdit(row);
         }
     }
 
@@ -230,10 +240,10 @@ class PublisherQueueTab extends Component {
 /* ------------------------------------------------------------------ */
 class CoresaPublisherAction extends Component {
     static template = "coresa_meli_publisher.PublisherAction";
-    static components = { PublisherPreviewTab, PublisherQueueTab, PublicationsEmbedded };
+    static components = { PublisherPreviewTab, PublisherQueueTab, PublicationsEmbedded, PublicationEditor };
 
     setup() {
-        this.state = useState({ tab: "preview", previewSku: "" });
+        this.state = useState({ tab: "preview", previewSku: "", editingId: 0 });
     }
 
     setTab(tab) {
@@ -247,6 +257,16 @@ class CoresaPublisherAction extends Component {
     openPreview(sku) {
         this.state.previewSku = sku || "";
         this.state.tab = "preview";
+    }
+
+    // El editor se come la pantalla entera: tiene su propia barra con
+    // volver, guardar y publicar.
+    openEditor(row) {
+        this.state.editingId = Number(row && row.id) || 0;
+    }
+
+    closeEditor() {
+        this.state.editingId = 0;
     }
 }
 

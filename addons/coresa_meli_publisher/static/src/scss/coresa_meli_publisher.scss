@@ -833,3 +833,209 @@
     margin: 0;
     padding: 8px 10px;
 }
+
+/* ------------------------------------------------------------------
+   Editor del borrador: corregir, revalidar y publicar.
+   ------------------------------------------------------------------ */
+.o_cedit { display: flex; flex-direction: column; gap: 16px; }
+
+.o_cedit_bar {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+.o_cedit_back {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #52626d;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 12.5px;
+    font-weight: 650;
+    gap: 7px;
+    padding: 0;
+}
+
+.o_cedit_back:hover { color: #17303f; }
+
+.o_cedit_bar__id { align-items: center; display: flex; flex: 1 1 auto; gap: 10px; }
+
+.o_cedit_bar__id code {
+    background: #f4f7f8;
+    border-radius: 6px;
+    color: #17303f;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 9px;
+}
+
+.o_cedit_bar__id small { color: #94a3b8; font-size: 11.5px; }
+
+.o_cedit_actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.o_cedit_ghost,
+.o_cedit_save {
+    align-items: center;
+    border-radius: 9px;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 12.5px;
+    font-weight: 650;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 14px;
+}
+
+.o_cedit_ghost { background: #ffffff; border: 1px solid #dbe3e9; color: #52626d; }
+.o_cedit_ghost:hover { border-color: #b9c6cf; color: #17303f; }
+.o_cedit_save { background: #ffffff; border: 1px solid #0f766e; color: #0f766e; }
+.o_cedit_save:hover { background: #f0faf7; }
+
+.o_cedit_ghost:disabled,
+.o_cedit_save:disabled { border-color: #e3e9ee; color: #c4cfd6; cursor: default; }
+
+.o_cedit_dirty {
+    background: #fdf3e6;
+    border-radius: 10px;
+    color: #b45309;
+    font-size: 12.5px;
+    margin: 0;
+    padding: 9px 13px;
+}
+
+.o_cedit_links { align-items: center; display: flex; gap: 10px; }
+
+/* Dos columnas: el aviso a la izquierda, el contexto a la derecha. */
+.o_cedit_cols {
+    align-items: start;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.o_cedit_main,
+.o_cedit_side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.o_cedit_input {
+    background: #ffffff;
+    border: 1px solid #dbe3e9;
+    border-radius: 9px;
+    color: #17303f;
+    font-family: inherit;
+    font-size: 13.5px;
+    min-height: 38px;
+    padding: 8px 12px;
+    width: 100%;
+}
+
+.o_cedit_input:focus { border-color: #17303f; outline: 0; }
+.o_cedit_input:disabled { background: #f8fafb; color: #7a8798; }
+.o_cedit_input.is-title { font-size: 16px; font-weight: 650; }
+
+/* El problema de la pantalla vieja: la descripcion entraba en una
+   columna de 100px y salia una palabra por renglon. */
+.o_cedit_input.is-description { line-height: 1.55; min-height: 220px; resize: vertical; }
+
+.o_cedit_counter { color: #94a3b8; display: block; font-size: 11.5px; margin-top: 6px; }
+.o_cedit_counter.is-over { color: #b42318; font-weight: 700; }
+
+.o_cedit_grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.o_cedit_grid label { display: flex; flex-direction: column; gap: 5px; }
+.o_cedit_grid span { color: #7a8798; font-size: 11px; font-weight: 650; }
+
+.o_cedit_hint { color: #94a3b8; display: block; font-size: 11.5px; margin-top: 8px; }
+
+.o_cedit_attrs { display: flex; flex-direction: column; gap: 7px; }
+
+.o_cedit_attr {
+    align-items: center;
+    background: #f8fafb;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 180px minmax(0, 1fr) auto auto;
+    padding: 7px 9px;
+}
+
+.o_cedit_attr code { color: #52626d; font-size: 11.5px; font-weight: 650; }
+.o_cedit_attr.is-ai { background: #fdf6ec; border-color: #f3dfc0; }
+
+.o_cedit_ai {
+    background: #b45309;
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+}
+
+.o_cedit_del {
+    background: transparent;
+    border: 0;
+    color: #b9c6cf;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 6px;
+}
+
+.o_cedit_del:hover { color: #b42318; }
+.o_cedit_del:disabled { color: #e3e9ee; cursor: default; }
+
+.o_cedit_newattr {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 180px minmax(0, 1fr) auto;
+    margin-top: 12px;
+}
+
+.o_cedit_missing { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.o_cedit_missing span { color: #b42318; font-size: 11.5px; font-weight: 700; }
+
+.o_cedit_missingbtn {
+    background: #fdeceb;
+    border: 0;
+    border-radius: 999px;
+    color: #b42318;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 11px;
+}
+
+.o_cedit_missingbtn:hover { background: #fadedb; }
+
+.o_cedit_pic {
+    border: 1px solid #eef2f5;
+    border-radius: 10px;
+    display: block;
+    height: auto;
+    max-height: 240px;
+    object-fit: contain;
+    width: 100%;
+}
+
+.o_cedit_pic.is-failed { display: none; }
+
+/* Variantes apiladas para la columna angosta. */
+.o_cpub_cats.is-stacked { flex-direction: column; }
+.o_cpub_cats.is-stacked .o_cpub_cat { min-width: 0; width: 100%; }
+.o_cpub_pairs.is-stacked { grid-template-columns: 1fr; }
+.o_cpub_attrs.is-stacked { grid-template-columns: 1fr; }
+
+@media (max-width: 1080px) {
+    .o_cedit_cols { grid-template-columns: minmax(0, 1fr); }
+    .o_cedit_attr,
+    .o_cedit_newattr { grid-template-columns: 120px minmax(0, 1fr) auto auto; }
+}
+
+/* En la columna angosta el hint va debajo de un dato, no de un titulo. */
+.o_cedit_side .o_cpub_hint { margin: 8px 0 0; }

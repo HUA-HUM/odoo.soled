@@ -20,6 +20,8 @@
             "coresa_meli_publisher/static/src/scss/coresa_meli_publisher.scss",
             "coresa_meli_publisher/static/src/js/coresa_publications_action.js",
             "coresa_meli_publisher/static/src/xml/coresa_publications_action.xml",
+            "coresa_meli_publisher/static/src/js/coresa_publication_editor.js",
+            "coresa_meli_publisher/static/src/xml/coresa_publication_editor.xml",
             "coresa_meli_publisher/static/src/js/coresa_publisher_action.js",
             "coresa_meli_publisher/static/src/xml/coresa_publisher_action.xml",
         ],

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_meli_publisher.PublicationEditor" owl="1">
+        <div class="o_cedit">
+            <div t-if="state.loading" class="o_cpub_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Abriendo el borrador...</strong>
+            </div>
+
+            <div t-elif="state.error" class="o_cpub_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+                <button type="button" class="o_cpub_more" t-on-click="close">Volver a los registros</button>
+            </div>
+
+            <t t-else="">
+                <header class="o_cedit_bar">
+                    <button type="button" class="o_cedit_back" t-on-click="close">
+                        <i class="fa fa-arrow-left"/> Registros
+                    </button>
+                    <div class="o_cedit_bar__id">
+                        <code t-esc="state.data.sku"/>
+                        <span t-attf-class="o_cpub_pill #{statusTone}" t-esc="state.data.statusLabel"/>
+                        <small>borrador #<t t-esc="state.data.id"/></small>
+                    </div>
+                    <div class="o_cedit_actions">
+                        <button type="button" class="o_cedit_ghost" t-att-disabled="state.busy"
+                                t-on-click="rebuild">
+                            <i t-attf-class="fa #{state.busy === 'rebuild' ? 'fa-spinner fa-spin' : 'fa-refresh'}"/>
+                            Volver a armar
+                        </button>
+                        <button type="button" class="o_cedit_save" t-att-disabled="state.busy || !state.data.canEdit"
+                                t-on-click="revalidate">
+                            <i t-attf-class="fa #{state.busy === 'save' ? 'fa-spinner fa-spin' : 'fa-check'}"/>
+                            Guardar y revalidar
+                        </button>
+                        <button type="button" class="o_cpub_primary" t-att-disabled="state.busy || !canPublish"
+                                t-attf-title="#{canPublish ? 'Crea la publicación real en MercadoLibre' : 'Solo se publica cuando MercadoLibre acepta el borrador'}"
+                                t-on-click="publish">
+                            <i t-attf-class="fa #{state.busy === 'publish' ? 'fa-spinner fa-spin' : 'fa-paper-plane'}"/>
+                            Publicar
+                        </button>
+                    </div>
+                </header>
+
+                <p t-if="state.dirty" class="o_cedit_dirty">
+                    <i class="fa fa-pencil"/> Hay cambios sin guardar. Publicar se habilita recién después de revalidar.
+                </p>
+
+                <!-- Lo que dice MercadoLibre, arriba de todo. -->
+                <section t-attf-class="o_cpub_verdict #{state.data.canPublish ? 'is-ok' : 'is-bad'}">
+                    <div class="o_cpub_verdict__head">
+                        <i t-attf-class="fa #{state.data.canPublish ? 'fa-check-circle' : 'fa-times-circle'}"/>
+                        <div>
+                            <strong t-if="state.data.canPublish">MercadoLibre acepta el borrador.</strong>
+                            <strong t-elif="state.data.status === 'published'">Publicado en MercadoLibre.</strong>
+                            <strong t-else="">MercadoLibre todavía no lo acepta. Corregí y revalidá.</strong>
+                            <span>Actualizado <t t-esc="formatDateTime(state.data.meta.updatedAt)"/> · pedido por <t t-esc="state.data.meta.requestedBy || '—'"/></span>
+                        </div>
+                    </div>
+
+                    <p t-if="state.data.missing.length" class="o_cpub_missing">
+                        <i class="fa fa-exclamation-triangle"/>
+                        Faltan atributos obligatorios de esta categoría:
+                        <b t-foreach="state.data.missing" t-as="attribute" t-key="attribute">
+                            <t t-esc="attribute"/><t t-if="!attribute_last">, </t>
+                        </b>
+                    </p>
+
+                    <div t-foreach="state.data.validation" t-as="row" t-key="row.listingType" class="o_cpub_valrow">
+                        <span t-attf-class="o_cpub_pill #{row.valid ? 'is-green' : 'is-red'}">
+                            Clásica: <t t-esc="row.valid ? 'válida' : 'rechazada'"/>
+                        </span>
+                        <!-- Lo que manda ML viene en ingles: va como detalle. -->
+                        <ul t-if="row.causes.length" class="o_cpub_causes">
+                            <li t-foreach="row.causes" t-as="cause" t-key="cause_index" t-esc="cause"/>
+                        </ul>
+                        <small t-if="row.warnings.length" class="o_cpub_warnlabel">Advertencias, no bloquean:</small>
+                        <ul t-if="row.warnings.length" class="o_cpub_warnings">
+                            <li t-foreach="row.warnings" t-as="warning" t-key="warning_index" t-esc="warning"/>
+                        </ul>
+                    </div>
+
+                    <p t-if="state.data.meta.errorMessage" class="o_cpub_qerror" t-esc="state.data.meta.errorMessage"/>
+
+                    <div t-if="state.data.links.permalink" class="o_cedit_links">
+                        <button type="button" class="o_cpub_more" t-on-click="() => this.openLink(state.data.links.permalink)">
+                            Ver la publicación en MercadoLibre <i class="fa fa-external-link"/>
+                        </button>
+                        <code t-esc="state.data.links.classicItemId"/>
+                    </div>
+                </section>
+
+                <div class="o_cedit_cols">
+                    <!-- Columna del aviso -->
+                    <div class="o_cedit_main">
+                        <section class="o_cpub_block">
+                            <h3>Título</h3>
+                            <input type="text" class="o_cedit_input is-title" t-model="state.form.title"
+                                   t-on-input="touch" t-att-disabled="!state.data.canEdit"/>
+                            <small t-attf-class="o_cedit_counter #{titleTooLong ? 'is-over' : ''}">
+                                <t t-esc="titleLength"/> de <t t-esc="titleMax"/> caracteres
+                                <t t-if="titleTooLong"> — MercadoLibre lo va a cortar</t>
+                            </small>
+                        </section>
+
+                        <section class="o_cpub_block">
+                            <h3>Precio y stock</h3>
+                            <div class="o_cedit_grid">
+                                <label>
+                                    <span>Precio (ARS)</span>
+                                    <input type="number" step="1" class="o_cedit_input" t-model.number="state.form.price"
+                                           t-on-input="touch" t-att-disabled="!state.data.canEdit"/>
+                                </label>
+                                <label>
+                                    <span>Stock</span>
+                                    <input type="number" step="1" class="o_cedit_input" t-model.number="state.form.quantity"
+                                           t-on-input="touch" t-att-disabled="!state.data.canEdit"/>
+                                </label>
+                            </div>
+                            <small class="o_cedit_hint">Precio y stock salen del catálogo de Coresa. Si los cambiás acá, el actualizador los vuelve a pisar en su próxima corrida.</small>
+                        </section>
+
+                        <section class="o_cpub_block">
+                            <h3>Descripción</h3>
+                            <textarea class="o_cedit_input is-description" rows="12" t-model="state.form.description"
+                                      t-on-input="touch" t-att-disabled="!state.data.canEdit"/>
+                        </section>
+
+                        <section class="o_cpub_block">
+                            <h3>Atributos</h3>
+                            <p class="o_cpub_hint">
+                                Los marcados como <b>IA</b> no venían en los datos de Coresa: los completó el modelo y
+                                pueden estar mal. Revisalos antes de publicar.
+                            </p>
+
+                            <div class="o_cedit_attrs">
+                                <div t-foreach="state.form.attributes" t-as="attribute" t-key="attribute.id"
+                                     t-attf-class="o_cedit_attr #{attribute.inferred ? 'is-ai' : ''}">
+                                    <code t-esc="attribute.id"/>
+                                    <input type="text" class="o_cedit_input" t-model="attribute.value"
+                                           t-on-input="() => this.editAttribute(attribute)"
+                                           t-att-disabled="!state.data.canEdit"/>
+                                    <span t-if="attribute.inferred" class="o_cedit_ai" title="Completado por la IA: revisar">IA</span>
+                                    <button type="button" class="o_cedit_del" t-att-disabled="!state.data.canEdit"
+                                            title="Quitar el atributo"
+                                            t-on-click="() => this.removeAttribute(attribute_index)">
+                                        <i class="fa fa-times"/>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div t-if="state.data.canEdit" class="o_cedit_newattr">
+                                <input type="text" class="o_cedit_input" placeholder="ID (ej: MATERIAL)" t-model="state.newAttribute.id"/>
+                                <input type="text" class="o_cedit_input" placeholder="Valor" t-model="state.newAttribute.value"/>
+                                <button type="button" class="o_cedit_ghost" t-on-click="addAttribute">
+                                    <i class="fa fa-plus"/> Agregar
+                                </button>
+                            </div>
+
+                            <div t-if="state.data.missing.length" class="o_cedit_missing">
+                                <span>Faltantes:</span>
+                                <button t-foreach="state.data.missing" t-as="attribute" t-key="attribute" type="button"
+                                        class="o_cedit_missingbtn" t-on-click="() => this.fillMissing(attribute)">
+                                    <t t-esc="attribute"/> <i class="fa fa-arrow-down"/>
+                                </button>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Columna de contexto -->
+                    <aside class="o_cedit_side">
+                        <section class="o_cpub_block">
+                            <h3>Imagen</h3>
+                            <img t-if="state.data.draft.pictures.length" class="o_cedit_pic"
+                                 t-att-src="state.data.draft.pictures[0]" t-att-alt="state.data.sku"
+                                 t-on-error="(ev) => ev.target.classList.add('is-failed')"/>
+                            <p t-else="" class="o_cpub_empty">Sin imagen.</p>
+                        </section>
+
+                        <section class="o_cpub_block">
+                            <h3>Categoría</h3>
+                            <div t-if="state.data.suggestions.length" class="o_cpub_cats is-stacked">
+                                <button t-foreach="state.data.suggestions" t-as="suggestion" t-key="suggestion.id" type="button"
+                                        t-attf-class="o_cpub_cat #{suggestion.id === state.form.categoryId ? 'is-active' : ''}"
+                                        t-att-disabled="!state.data.canEdit"
+                                        t-on-click="() => this.useCategory(suggestion.id)">
+                                    <strong t-esc="suggestion.name"/>
+                                    <small t-esc="suggestion.domain"/>
+                                    <code t-esc="suggestion.id"/>
+                                </button>
+                            </div>
+                            <div t-else="">
+                                <code t-esc="state.form.categoryId || '—'"/>
+                                <p class="o_cpub_hint">Las sugerencias aparecen al volver a armar el borrador.</p>
+                            </div>
+                        </section>
+
+                        <section class="o_cpub_block">
+                            <h3>Origen del contenido</h3>
+                            <dl class="o_cpub_pairs is-stacked">
+                                <div><dt>Modelo de IA</dt><dd t-esc="state.data.meta.aiModel || '—'"/></div>
+                                <div><dt>Generado</dt><dd t-esc="formatDateTime(state.data.meta.aiGeneratedAt)"/></div>
+                                <div><dt>Creado</dt><dd t-esc="formatDateTime(state.data.meta.createdAt)"/></div>
+                                <div t-if="state.data.meta.publishedAt"><dt>Publicado</dt><dd t-esc="formatDateTime(state.data.meta.publishedAt)"/></div>
+                            </dl>
+                            <small class="o_cedit_hint">Título, descripción y los atributos marcados IA los genera el modelo. Precio y stock salen de Coresa.</small>
+                        </section>
+
+                        <section t-if="state.data.draft.saleTerms.length" class="o_cpub_block">
+                            <h3>Garantía</h3>
+                            <div class="o_cpub_attrs is-stacked">
+                                <div t-foreach="state.data.draft.saleTerms" t-as="term" t-key="term.id" class="o_cpub_attr">
+                                    <code t-esc="term.id"/>
+                                    <span t-esc="term.value"/>
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>
