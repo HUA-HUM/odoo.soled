@@ -234,6 +234,126 @@ class CoresaPublication(models.Model):
         payload = self._api_request("POST", "/coresa/publications/preview", body)
         return self._values_from_preview(sku, payload)
 
+    # ------------------------------------------------------------------
+    # Preview para el panel (sin tocar registros de Odoo)
+    # ------------------------------------------------------------------
+    @api.model
+    def preview_payload(self, sku, category_id=None):
+        """El borrador tal cual lo devuelve coresa-api, listo para mostrar.
+
+        Es la misma llamada que usa el asistente, pero sin crear ni escribir
+        nada en Odoo: la pantalla de previsualizar solo mira. La API igual
+        deja su propio registro del lado de Coresa (devuelve publicationId).
+        """
+        sku = str(sku or "").strip()
+        if not sku:
+            raise UserError(_("Ingresá un SKU."))
+        body = {"sku": sku, "requestedBy": self._requested_by()}
+        if category_id:
+            body["categoryId"] = category_id
+        payload = self._api_request("POST", "/coresa/publications/preview", body)
+        return self._preview_payload(payload, sku)
+
+    @api.model
+    def _preview_payload(self, payload, sku):
+        payload = payload if isinstance(payload, dict) else {}
+        draft = payload.get("draft") or {}
+        draft = draft if isinstance(draft, dict) else {}
+        shipping = draft.get("shipping") or {}
+        category_id = payload.get("categoryId") or draft.get("category_id") or ""
+        suggestions = [
+            {
+                "id": entry.get("category_id") or "",
+                "name": entry.get("category_name") or "",
+                "domain": entry.get("domain_name") or "",
+            }
+            for entry in (payload.get("categorySuggestions") or [])
+            if isinstance(entry, dict) and entry.get("category_id")
+        ]
+        current = next((one for one in suggestions if one["id"] == category_id), None)
+        return {
+            "publicationId": self._as_int(payload.get("publicationId")),
+            "sku": payload.get("sku") or sku,
+            "status": payload.get("status") or "",
+            "categoryId": category_id,
+            "categoryName": (current or {}).get("name", ""),
+            "categoryDomain": (current or {}).get("domain", ""),
+            "suggestions": suggestions,
+            # Los que ML pide para esta categoria y el borrador no trae: son
+            # los que hacen fallar la validacion.
+            "missing": [str(one) for one in (payload.get("missingRequiredAttributes") or [])],
+            "draft": {
+                "title": draft.get("title") or "",
+                "price": self._as_float(draft.get("price")),
+                "quantity": self._as_int(draft.get("available_quantity")),
+                "condition": draft.get("condition") or "",
+                "pictures": [str(one) for one in (draft.get("pictures") or [])],
+                "description": draft.get("description") or "",
+                "listingTypes": [str(one) for one in (draft.get("listing_types") or [])],
+                "shipping": {
+                    "mode": shipping.get("mode") or "",
+                    "freeShipping": bool(shipping.get("free_shipping")),
+                },
+                "attributes": self._attribute_rows(draft.get("attributes")),
+                "saleTerms": self._attribute_rows(draft.get("sale_terms")),
+            },
+            "validation": self._validation_rows(payload.get("validation")),
+        }
+
+    @api.model
+    def _attribute_rows(self, entries):
+        rows = []
+        for entry in entries or []:
+            if not isinstance(entry, dict):
+                continue
+            value = entry.get("value_name")
+            if value in (None, ""):
+                value = entry.get("value_id") or ""
+            rows.append({"id": entry.get("id") or "", "value": str(value)})
+        return rows
+
+    @api.model
+    def _validation_rows(self, validation):
+        """Una fila por tipo de publicacion.
+
+        ML contesta el motivo real adentro de error.cause; el message de
+        arriba suele ser un "Validation error" que no dice nada.
+        """
+        validation = validation if isinstance(validation, dict) else {}
+        results = validation.get("results") or {}
+        rows = []
+        for listing_type, result in (results.items() if isinstance(results, dict) else []):
+            result = result if isinstance(result, dict) else {}
+            error = result.get("error") or {}
+            error = error if isinstance(error, dict) else {}
+            rows.append(
+                {
+                    "listingType": listing_type,
+                    "valid": bool(result.get("valid")),
+                    # ML manda warnings y causes como objetos: lo unico que
+                    # sirve mostrar es su message.
+                    "warnings": self._messages(result.get("warnings")),
+                    "errorCode": error.get("code") or "",
+                    "errorMessage": error.get("message") or "",
+                    "causes": self._messages(error.get("cause")),
+                    "retryable": bool(error.get("retryable")),
+                }
+            )
+        return sorted(rows, key=lambda row: row["listingType"])
+
+    @api.model
+    def _messages(self, entries):
+        messages = []
+        for entry in entries or []:
+            if isinstance(entry, dict):
+                text = entry.get("message") or entry.get("code") or ""
+            else:
+                text = str(entry or "")
+            text = str(text).strip()
+            if text:
+                messages.append(text)
+        return messages
+
     @api.model
     def _apply_values(self, record, values):
         """Crea o actualiza sacando los comandos de limpieza cuando no hay

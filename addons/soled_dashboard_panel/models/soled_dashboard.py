@@ -159,14 +159,11 @@ class SoledDashboard(models.Model):
                             "action": "coresa_panel.action_coresa_updater",
                         },
                         {
-                            "key": "coresa_publish",
-                            "label": "Publicar SKU",
-                            "action": "coresa_meli_publisher.action_coresa_publication_wizard",
-                        },
-                        {
-                            "key": "coresa_publications",
-                            "label": "Publicaciones",
-                            "action": "coresa_meli_publisher.action_coresa_publications_panel",
+                            # Previsualizar y el registro de envios viven en
+                            # la misma vista, en dos pestañas.
+                            "key": "coresa_publisher",
+                            "label": "Publicador",
+                            "action": "coresa_meli_publisher.action_coresa_publisher",
                         },
                     ],
                 },

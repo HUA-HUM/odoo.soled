@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="coresa_meli_publisher.PublisherAction" owl="1">
+        <div class="o_cpub_page">
+            <section class="o_cpub_header">
+                <div>
+                    <span class="o_cpub_eyebrow">Coresa</span>
+                    <h1>Publicador</h1>
+                    <p>Armá el borrador de un SKU, mirá cómo queda y qué dice MercadoLibre antes de mandarlo.</p>
+                </div>
+            </section>
+
+            <nav class="o_cpub_tabs">
+                <button type="button" t-attf-class="o_cpub_tab #{state.tab === 'preview' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('preview')">
+                    <i class="fa fa-eye"/> Previsualizar
+                </button>
+                <button type="button" t-attf-class="o_cpub_tab #{state.tab === 'registry' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('registry')">
+                    <i class="fa fa-paper-plane-o"/> Publicador
+                </button>
+            </nav>
+
+            <PublisherPreviewTab t-if="state.tab === 'preview'"/>
+            <PublicationsEmbedded t-else=""/>
+        </div>
+    </t>
+
+    <t t-name="coresa_meli_publisher.PublisherPreviewTab" owl="1">
+        <div class="o_cpub_tabpane">
+            <form class="o_cpub_search" t-on-submit="submit">
+                <label class="o_cpub_field">
+                    <span>SKU de Coresa</span>
+                    <input type="text" placeholder="Ej: AEB 35 SC/1" t-model="state.sku" t-att-disabled="state.loading"/>
+                </label>
+                <button type="submit" class="o_cpub_primary" t-att-disabled="state.loading">
+                    <i t-attf-class="fa #{state.loading ? 'fa-spinner fa-spin' : 'fa-magic'}"/>
+                    <span t-esc="state.loading ? 'Armando...' : 'Previsualizar'"/>
+                </button>
+                <small>Consulta el catálogo de Coresa, pide categoría y validación a MercadoLibre y redacta el aviso. Suele tardar unos segundos.</small>
+            </form>
+
+            <section t-if="state.error" class="o_cpub_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_cpub_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Armando el borrador...</strong>
+                <span>Es una cadena de llamadas: Coresa, MercadoLibre y la redacción.</span>
+            </section>
+
+            <section t-elif="!hasResult" class="o_cpub_state">
+                <i class="fa fa-eye"/>
+                <strong>Todavía no previsualizaste nada.</strong>
+                <span>Poné un SKU y se arma el borrador sin publicar nada.</span>
+            </section>
+
+            <t t-else="">
+                <!-- Lo primero: si se puede publicar o no, y por qué. -->
+                <section t-attf-class="o_cpub_verdict #{anyValid ? 'is-ok' : 'is-bad'}">
+                    <div class="o_cpub_verdict__head">
+                        <i t-attf-class="fa #{anyValid ? 'fa-check-circle' : 'fa-times-circle'}"/>
+                        <div>
+                            <strong t-if="anyValid">MercadoLibre acepta el borrador.</strong>
+                            <strong t-else="">MercadoLibre rechaza el borrador.</strong>
+                            <span>
+                                SKU <b t-esc="state.data.sku"/> ·
+                                borrador #<b t-esc="state.data.publicationId"/> ·
+                                <b t-esc="statusLabel(state.data.status)"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div t-foreach="state.data.validation" t-as="row" t-key="row.listingType" class="o_cpub_valrow">
+                        <span t-attf-class="o_cpub_pill #{row.valid ? 'is-green' : 'is-red'}">
+                            <t t-esc="listingLabel(row.listingType)"/>:
+                            <t t-esc="row.valid ? 'válida' : 'rechazada'"/>
+                        </span>
+                        <ul t-if="row.causes.length" class="o_cpub_causes">
+                            <li t-foreach="row.causes" t-as="cause" t-key="cause_index" t-esc="cause"/>
+                        </ul>
+                        <!-- Las advertencias no frenan la publicacion: conviene
+                             que se note, porque aparecen incluso cuando valida. -->
+                        <small t-if="row.warnings.length" class="o_cpub_warnlabel">Advertencias, no bloquean:</small>
+                        <ul t-if="row.warnings.length" class="o_cpub_warnings">
+                            <li t-foreach="row.warnings" t-as="warning" t-key="warning_index" t-esc="warning"/>
+                        </ul>
+                    </div>
+
+                    <p t-if="state.data.missing.length" class="o_cpub_missing">
+                        <i class="fa fa-exclamation-triangle"/>
+                        MercadoLibre pide estos atributos para esta categoría y el borrador no los trae:
+                        <b t-foreach="state.data.missing" t-as="attribute" t-key="attribute">
+                            <t t-esc="attribute"/><t t-if="!attribute_last">, </t>
+                        </b>
+                    </p>
+                </section>
+
+                <!-- La categoria manda: cada una pide otros atributos. -->
+                <section class="o_cpub_block">
+                    <h3>Categoría</h3>
+                    <p class="o_cpub_hint">Cada categoría tiene sus propios atributos obligatorios. Si elegís otra, el borrador se arma de nuevo.</p>
+                    <div class="o_cpub_cats">
+                        <button t-foreach="state.data.suggestions" t-as="suggestion" t-key="suggestion.id" type="button"
+                                t-attf-class="o_cpub_cat #{suggestion.id === state.data.categoryId ? 'is-active' : ''}"
+                                t-att-disabled="state.loading"
+                                t-on-click="() => this.useCategory(suggestion.id)">
+                            <strong t-esc="suggestion.name"/>
+                            <small t-esc="suggestion.domain"/>
+                            <code t-esc="suggestion.id"/>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="o_cpub_block">
+                    <h3>El aviso</h3>
+                    <div class="o_cpub_draft">
+                        <div class="o_cpub_draft__media">
+                            <t t-if="state.data.draft.pictures.length">
+                                <!-- Parte del bucket de Coresa responde 403: la que no
+                                     carga se esconde en vez de dejar el icono roto. -->
+                                <img t-foreach="state.data.draft.pictures" t-as="picture" t-key="picture"
+                                     t-att-src="picture" t-att-alt="state.data.sku"
+                                     t-on-error="(ev) => ev.target.classList.add('is-failed')"
+                                     t-on-click="() => this.openPicture(picture)"/>
+                            </t>
+                            <div t-else="" class="o_cpub_noimg"><i class="fa fa-image"/><small>Sin fotos</small></div>
+                        </div>
+
+                        <div class="o_cpub_draft__body">
+                            <h4 t-esc="state.data.draft.title"/>
+                            <div class="o_cpub_price">
+                                <strong t-esc="formatMoney(state.data.draft.price)"/>
+                                <span><t t-esc="formatUnits(state.data.draft.quantity)"/> disponibles</span>
+                            </div>
+                            <dl class="o_cpub_pairs">
+                                <div><dt>Condición</dt><dd t-esc="conditionLabel(state.data.draft.condition)"/></div>
+                                <div><dt>Envío</dt><dd t-esc="shippingLabel(state.data.draft.shipping)"/></div>
+                                <div>
+                                    <dt>Tipo de publicación</dt>
+                                    <dd>
+                                        <t t-foreach="state.data.draft.listingTypes" t-as="listing" t-key="listing">
+                                            <t t-esc="listingLabel(listing)"/><t t-if="!listing_last">, </t>
+                                        </t>
+                                    </dd>
+                                </div>
+                                <div><dt>Categoría</dt><dd t-esc="state.data.categoryName || state.data.categoryId"/></div>
+                            </dl>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="o_cpub_block">
+                    <h3>Descripción</h3>
+                    <div t-attf-class="o_cpub_description #{state.descriptionOpen ? 'is-open' : ''}">
+                        <p t-esc="state.data.draft.description"/>
+                    </div>
+                    <button type="button" class="o_cpub_more" t-on-click="toggleDescription">
+                        <t t-esc="state.descriptionOpen ? 'Ver menos' : 'Ver todo'"/>
+                    </button>
+                </section>
+
+                <section class="o_cpub_block">
+                    <h3>Atributos</h3>
+                    <div class="o_cpub_attrs">
+                        <div t-foreach="state.data.draft.attributes" t-as="attribute" t-key="attribute.id" class="o_cpub_attr">
+                            <code t-esc="attribute.id"/>
+                            <span t-esc="attribute.value"/>
+                        </div>
+                        <div t-foreach="state.data.missing" t-as="missing" t-key="missing" class="o_cpub_attr is-missing">
+                            <code t-esc="missing"/>
+                            <span>falta</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section t-if="state.data.draft.saleTerms.length" class="o_cpub_block">
+                    <h3>Garantía y condiciones</h3>
+                    <div class="o_cpub_attrs">
+                        <div t-foreach="state.data.draft.saleTerms" t-as="term" t-key="term.id" class="o_cpub_attr">
+                            <code t-esc="term.id"/>
+                            <span t-esc="term.value"/>
+                        </div>
+                    </div>
+                </section>
+
+                <p class="o_cpub_foot">
+                    Previsualizar no publica nada. Coresa guarda el borrador con el número de arriba.
+                </p>
+            </t>
+        </div>
+    </t>
+</templates>

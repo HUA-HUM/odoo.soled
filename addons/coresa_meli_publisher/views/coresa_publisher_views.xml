@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- La vista con las dos pestañas: previsualizar un SKU y el registro
+         de envios. -->
+    <record id="action_coresa_publisher" model="ir.actions.client">
+        <field name="name">Publicador Coresa</field>
+        <field name="tag">coresa_meli_publisher.publisher_action</field>
+    </record>
+</odoo>

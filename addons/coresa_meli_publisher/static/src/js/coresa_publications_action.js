@@ -19,7 +19,7 @@ const STATUSES = [
 
 const STATUS_BY_KEY = Object.fromEntries(STATUSES.map((s) => [s.key, s]));
 
-class CoresaPublicationsAction extends Component {
+export class CoresaPublicationsAction extends Component {
     static template = "coresa_meli_publisher.PublicationsAction";
 
     setup() {
@@ -206,3 +206,9 @@ class CoresaPublicationsAction extends Component {
 registry
     .category("actions")
     .add("coresa_meli_publisher.publications_action", CoresaPublicationsAction);
+
+// La misma lista, sin el encabezado de pagina: es lo que se monta adentro
+// de la pestaña "Publicador".
+export class PublicationsEmbedded extends CoresaPublicationsAction {
+    static template = "coresa_meli_publisher.PublicationsEmbedded";
+}

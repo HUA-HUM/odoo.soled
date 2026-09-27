@@ -18,9 +18,9 @@ class CoresaDashboard(models.Model):
 
     name = fields.Char(default="Coresa")
 
-    # Las dos ultimas viven en coresa_meli_publisher, que no es dependencia:
-    # se resuelven en caliente y, si el modulo no esta, la tarjeta no se
-    # muestra en vez de romper la portada.
+    # El Publicador vive en coresa_meli_publisher, que no es dependencia: se
+    # resuelve en caliente y, si el modulo no esta, la tarjeta no se muestra
+    # en vez de romper la portada.
     SECTIONS = [
         {
             "key": "catalog",
@@ -37,18 +37,11 @@ class CoresaDashboard(models.Model):
             "action": "coresa_panel.action_coresa_updater",
         },
         {
-            "key": "publish",
-            "label": "Publicar SKU",
-            "icon": "fa-upload",
-            "hint": "Arma el borrador de una publicación nueva a partir de un SKU.",
-            "action": "coresa_meli_publisher.action_coresa_publication_wizard",
-        },
-        {
-            "key": "publications",
-            "label": "Publicaciones",
+            "key": "publisher",
+            "label": "Publicador",
             "icon": "fa-paper-plane-o",
-            "hint": "Borradores, envíos y el resultado de cada publicación.",
-            "action": "coresa_meli_publisher.action_coresa_publications_panel",
+            "hint": "Previsualizá un SKU antes de mandarlo y mirá el registro de envíos.",
+            "action": "coresa_meli_publisher.action_coresa_publisher",
         },
         {
             "key": "orders",
@@ -132,7 +125,7 @@ class CoresaDashboard(models.Model):
         data["metrics"] = {
             "catalog": self._metric(data["catalog"], "productos"),
             "updater": self._metric(data["publications"], "publicaciones"),
-            "publications": self._metric(data["publisher"]["total"], "en el registro"),
+            "publisher": self._metric(data["publisher"]["total"], "en el registro"),
         }
         return data
 

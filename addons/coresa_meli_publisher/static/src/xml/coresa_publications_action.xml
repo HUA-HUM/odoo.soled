@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="coresa_meli_publisher.PublicationsAction" owl="1">
-        <div class="o_coresa_page">
-            <section class="o_coresa_header">
-                <div>
-                    <span class="o_coresa_eyebrow">Coresa</span>
-                    <h1>Publicaciones</h1>
-                    <p>Borradores y publicaciones del catálogo Coresa en MercadoLibre.</p>
-                </div>
-                <button type="button" class="o_coresa_primary" t-on-click="newPublication">
-                    <i class="fa fa-plus"/> Publicar un SKU
-                </button>
-            </section>
-
+    <!-- Contadores y tabla: lo mismo sirve suelto y adentro de una pestaña. -->
+    <t t-name="coresa_meli_publisher.PublicationsBody" owl="1">
+        <div class="o_coresa_list">
             <nav class="o_coresa_counters" aria-label="Filtrar por estado">
                 <button type="button" t-attf-class="o_coresa_counter #{!state.filters.status ? 'is-active' : ''}"
                         t-on-click="() => this.selectStatus('')">
@@ -111,6 +101,30 @@
                     </footer>
                 </t>
             </section>
+        </div>
+    </t>
+
+    <t t-name="coresa_meli_publisher.PublicationsAction" owl="1">
+        <div class="o_coresa_page">
+            <section class="o_coresa_header">
+                <div>
+                    <span class="o_coresa_eyebrow">Coresa</span>
+                    <h1>Publicaciones</h1>
+                    <p>Borradores y publicaciones del catálogo Coresa en MercadoLibre.</p>
+                </div>
+                <button type="button" class="o_coresa_primary" t-on-click="newPublication">
+                    <i class="fa fa-plus"/> Publicar un SKU
+                </button>
+            </section>
+
+            <t t-call="coresa_meli_publisher.PublicationsBody"/>
+        </div>
+    </t>
+
+    <!-- La misma lista, sin encabezado de pagina, para la pestaña. -->
+    <t t-name="coresa_meli_publisher.PublicationsEmbedded" owl="1">
+        <div class="o_cpub_tabpane">
+            <t t-call="coresa_meli_publisher.PublicationsBody"/>
         </div>
     </t>
 </templates>
