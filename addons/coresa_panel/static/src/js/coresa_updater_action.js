@@ -584,11 +584,231 @@ class UpdaterActionsTab extends UpdaterBase {
 }
 
 /* ------------------------------------------------------------------ */
-/* El contenedor con las dos pestañas                                  */
+/* Pestaña 3: que hizo el proceso que corre cada hora                  */
+/* ------------------------------------------------------------------ */
+class UpdaterRecordsTab extends UpdaterBase {
+    static template = "coresa_panel.UpdaterRecordsTab";
+
+    setup() {
+        this.orm = useService("orm");
+        this.state = useState({
+            overview: { stats: {}, lastRun: null, errors: [] },
+            view: "changes",
+            items: [],
+            total: 0,
+            limit: 50,
+            offset: 0,
+            filters: { sku: "", result: "", runId: "", from: "", to: "" },
+            runs: [],
+            failures: { items: [], total: 0, scanned: 0 },
+            loading: false,
+            loadingOverview: true,
+            error: "",
+        });
+
+        onWillStart(() => this.loadChanges(0));
+        onMounted(() => this.loadOverview());
+    }
+
+    get currentPage() {
+        return Math.floor(this.state.offset / this.state.limit) + 1;
+    }
+
+    get totalPages() {
+        return Math.max(1, Math.ceil(this.state.total / this.state.limit));
+    }
+
+    get hasPrevious() {
+        return this.state.offset > 0;
+    }
+
+    get hasNext() {
+        return this.state.offset + this.state.limit < this.state.total;
+    }
+
+    get hasFilters() {
+        return Object.values(this.state.filters).some((value) => Boolean(value));
+    }
+
+    get rangeLabel() {
+        if (!this.state.total) {
+            return "0";
+        }
+        const from = this.state.offset + 1;
+        const to = Math.min(this.state.offset + this.state.limit, this.state.total);
+        return `${from}–${to} de ${this.formatUnits(this.state.total)}`;
+    }
+
+    async loadOverview() {
+        this.state.loadingOverview = true;
+        try {
+            this.state.overview = await this.orm.call(MODEL, "get_sync_overview", []);
+        } catch (error) {
+            this.state.overview = { stats: {}, lastRun: null, errors: ["No se pudo leer el resumen."] };
+        } finally {
+            this.state.loadingOverview = false;
+        }
+    }
+
+    async loadChanges(offset = this.state.offset) {
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            const result = await this.orm.call(MODEL, "get_sync_changes", [], {
+                limit: this.state.limit,
+                offset,
+                filters: { ...this.state.filters },
+            });
+            this.state.items = result.items || [];
+            this.state.offset = result.pagination.offset || 0;
+            this.state.total = result.pagination.total || 0;
+        } catch (error) {
+            this.state.items = [];
+            this.state.total = 0;
+            this.state.error = error?.data?.message || "No se pudo leer el historial.";
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    async loadRuns() {
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            const result = await this.orm.call(MODEL, "get_sync_runs", [], { limit: 20 });
+            this.state.runs = result.items || [];
+        } catch (error) {
+            this.state.runs = [];
+            this.state.error = error?.data?.message || "No se pudieron leer las corridas.";
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    async loadFailures() {
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            this.state.failures = await this.orm.call(MODEL, "get_sync_failures", []);
+        } catch (error) {
+            this.state.failures = { items: [], total: 0, scanned: 0 };
+            this.state.error = error?.data?.message || "No se pudieron leer las fallas.";
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    setView(view) {
+        this.state.view = view;
+        if (view === "runs" && !this.state.runs.length) {
+            this.loadRuns();
+        }
+        if (view === "failures" && !this.state.failures.items.length) {
+            this.loadFailures();
+        }
+    }
+
+    applyFilters(ev) {
+        if (ev) {
+            ev.preventDefault();
+        }
+        this.loadChanges(0);
+    }
+
+    resetFilters() {
+        Object.assign(this.state.filters, { sku: "", result: "", runId: "", from: "", to: "" });
+        this.loadChanges(0);
+    }
+
+    // Desde una corrida o desde una falla se salta al historial ya filtrado.
+    showRun(run) {
+        Object.assign(this.state.filters, { sku: "", result: "", runId: String(run.id) });
+        this.state.view = "changes";
+        this.loadChanges(0);
+    }
+
+    showSku(sku) {
+        Object.assign(this.state.filters, { sku, result: "", runId: "" });
+        this.state.view = "changes";
+        this.loadChanges(0);
+    }
+
+    refresh() {
+        this.loadOverview();
+        if (this.state.view === "changes") {
+            this.loadChanges(this.state.offset);
+        } else if (this.state.view === "runs") {
+            this.loadRuns();
+        } else {
+            this.loadFailures();
+        }
+    }
+
+    previousPage() {
+        if (this.hasPrevious) {
+            this.loadChanges(Math.max(0, this.state.offset - this.state.limit));
+        }
+    }
+
+    nextPage() {
+        if (this.hasNext) {
+            this.loadChanges(this.state.offset + this.state.limit);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    resultLabel(result) {
+        const labels = { updated: "Actualizado", not_applied: "Sin impacto", failed: "Falló" };
+        return labels[result] || result || "—";
+    }
+
+    resultTone(result) {
+        const tones = { updated: "is-green", not_applied: "is-amber", failed: "is-red" };
+        return tones[result] || "is-gray";
+    }
+
+    // Los tres campos en null significan que ese valor no entraba en la
+    // actualizacion: no se muestra un cambio que nunca paso.
+    changeText(row) {
+        const parts = [];
+        if (row.stockBefore !== null || row.stockApplied !== null || row.stockRequested !== null) {
+            const to = row.stockApplied === null ? row.stockRequested : row.stockApplied;
+            parts.push(`stock ${this.formatUnits(row.stockBefore)} → ${this.formatUnits(to)}`);
+        }
+        if (row.priceBefore !== null || row.priceApplied !== null || row.priceRequested !== null) {
+            const to = row.priceApplied === null ? row.priceRequested : row.priceApplied;
+            parts.push(`precio ${this.formatArs(row.priceBefore)} → ${this.formatArs(to)}`);
+        }
+        return parts.join(" · ") || "—";
+    }
+
+    runDuration(run) {
+        const seconds = (Number(run.durationMs) || 0) / 1000;
+        return seconds < 60 ? `${seconds.toFixed(1)} s` : `${Math.round(seconds / 60)} min`;
+    }
+
+    runStatusTone(status) {
+        const tones = { completed: "is-green", running: "is-amber", failed: "is-red" };
+        return tones[status] || "is-gray";
+    }
+
+    runStatusLabel(status) {
+        const labels = { completed: "Completada", running: "Corriendo", failed: "Falló" };
+        return labels[status] || status || "—";
+    }
+
+    meliStatusLabel(status) {
+        const labels = { active: "Activa", paused: "Pausada", closed: "Cerrada", under_review: "En revisión" };
+        return labels[status] || status || "";
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* El contenedor con las tres pestañas                                 */
 /* ------------------------------------------------------------------ */
 class CoresaUpdaterAction extends UpdaterBase {
     static template = "coresa_panel.UpdaterAction";
-    static components = { UpdaterCatalogTab, UpdaterActionsTab };
+    static components = { UpdaterCatalogTab, UpdaterActionsTab, UpdaterRecordsTab };
 
     setup() {
         this.orm = useService("orm");

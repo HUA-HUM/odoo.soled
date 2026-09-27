@@ -1,7 +1,10 @@
+import logging
 from urllib.parse import quote
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class CoresaUpdater(models.Model):
@@ -150,6 +153,156 @@ class CoresaUpdater(models.Model):
         return detail
 
     # ------------------------------------------------------------------
+    # Registros: que hizo el proceso que corre cada hora
+    # ------------------------------------------------------------------
+    CHANGES_PATH = "/internal/coresa/meli-sync-changes"
+    RUNS_PATH = "/internal/process-runs"
+    SYNC_PROCESS = "coresa_meli_sync"
+    CHANGE_FILTERS = ("sku", "mla", "result", "runId", "from", "to")
+    FAILURES_SCAN = 500
+
+    @api.model
+    def get_sync_overview(self):
+        """Los numeros de arriba: el resumen y como salio la ultima corrida."""
+        catalog = self._catalog()
+        overview = {"stats": {}, "lastRun": None, "errors": []}
+        try:
+            stats = catalog._api_get("%s/stats" % self.CHANGES_PATH) or {}
+            overview["stats"] = {
+                "from": stats.get("from") or "",
+                "to": stats.get("to") or "",
+                "total": catalog._as_int(stats.get("total")),
+                "updated": catalog._as_int(stats.get("updated")),
+                "notApplied": catalog._as_int(stats.get("notApplied")),
+                "failed": catalog._as_int(stats.get("failed")),
+                "byDay": [
+                    {
+                        "date": day.get("date") or "",
+                        "updated": catalog._as_int(day.get("updated")),
+                        "notApplied": catalog._as_int(day.get("notApplied")),
+                        "failed": catalog._as_int(day.get("failed")),
+                    }
+                    for day in (stats.get("byDay") or [])
+                    if isinstance(day, dict)
+                ],
+            }
+        except Exception as error:  # noqa: BLE001 - un contador no voltea la pantalla
+            _logger.info("Registros del actualizador: sin resumen (%s)", error)
+            overview["errors"].append("No se pudo leer el resumen.")
+
+        try:
+            runs = self.get_sync_runs(limit=1)
+            overview["lastRun"] = (runs.get("items") or [None])[0]
+        except Exception as error:  # noqa: BLE001
+            _logger.info("Registros del actualizador: sin corridas (%s)", error)
+            overview["errors"].append("No se pudieron leer las corridas.")
+        return overview
+
+    @api.model
+    def get_sync_changes(self, limit=50, offset=0, filters=None):
+        catalog = self._catalog()
+        params = {"limit": limit, "offset": offset}
+        for key, value in (filters or {}).items():
+            if key in self.CHANGE_FILTERS and str(value or "").strip():
+                params[key] = str(value).strip()
+        payload = catalog._api_get(self.CHANGES_PATH, params) or {}
+        pagination = payload.get("pagination") or {}
+        return {
+            "items": [
+                self._change_payload(item)
+                for item in (payload.get("items") or [])
+                if isinstance(item, dict)
+            ],
+            "pagination": {
+                "limit": catalog._as_int(pagination.get("limit")) or limit,
+                "offset": catalog._as_int(pagination.get("offset")),
+                "total": catalog._as_int(pagination.get("total")),
+            },
+        }
+
+    @api.model
+    def get_sync_runs(self, limit=20, offset=0):
+        catalog = self._catalog()
+        payload = catalog._api_get(
+            self.RUNS_PATH,
+            {"processName": self.SYNC_PROCESS, "limit": limit, "offset": offset},
+        ) or {}
+        pagination = payload.get("pagination") or {}
+        return {
+            "items": [
+                self._run_payload(item)
+                for item in (payload.get("items") or [])
+                if isinstance(item, dict)
+            ],
+            "pagination": {
+                "limit": catalog._as_int(pagination.get("limit")) or limit,
+                "offset": catalog._as_int(pagination.get("offset")),
+                "total": catalog._as_int(pagination.get("total")),
+            },
+        }
+
+    @api.model
+    def _run_payload(self, item):
+        catalog = self._catalog()
+        summary = item.get("summary") or {}
+        summary = summary if isinstance(summary, dict) else {}
+        return {
+            "id": catalog._as_int(item.get("id")),
+            "trigger": item.get("triggerType") or "",
+            "status": item.get("status") or "",
+            "startedAt": item.get("startedAt") or "",
+            "finishedAt": item.get("finishedAt") or "",
+            "durationMs": catalog._as_int(item.get("durationMs")),
+            "errorMessage": item.get("errorMessage") or "",
+            "listings": catalog._as_int(summary.get("listings")),
+            "updated": catalog._as_int(summary.get("updated")),
+            "notApplied": catalog._as_int(summary.get("notApplied")),
+            "unchanged": catalog._as_int(summary.get("unchanged")),
+            "skipped": catalog._as_int(summary.get("skipped")),
+            "failed": catalog._as_int(summary.get("failed")),
+            "registered": catalog._as_int(summary.get("registered")),
+        }
+
+    @api.model
+    def get_sync_failures(self):
+        """Las fallas agrupadas por SKU.
+
+        El listado cronologico dice "74 fallas"; lo que sirve es "13 SKU
+        fallan y dos concentran la mitad": el cron reintenta cada hora las
+        publicaciones que ML no deja tocar.
+        """
+        payload = self.get_sync_changes(
+            limit=self.FAILURES_SCAN, offset=0, filters={"result": "failed"}
+        )
+        grouped = {}
+        for row in payload["items"]:
+            sku = row["sku"] or "—"
+            entry = grouped.setdefault(
+                sku,
+                {
+                    "sku": sku,
+                    "total": 0,
+                    "mlas": [],
+                    "errorCode": row["errorCode"],
+                    "errorMessage": row["errorMessage"],
+                    "lastAt": row["createdAt"],
+                },
+            )
+            entry["total"] += 1
+            if row["mla"] and row["mla"] not in entry["mlas"]:
+                entry["mlas"].append(row["mla"])
+            if row["createdAt"] > (entry["lastAt"] or ""):
+                entry["lastAt"] = row["createdAt"]
+                entry["errorCode"] = row["errorCode"]
+                entry["errorMessage"] = row["errorMessage"]
+        items = sorted(grouped.values(), key=lambda one: -one["total"])
+        return {
+            "items": items,
+            "total": payload["pagination"]["total"],
+            "scanned": len(payload["items"]),
+        }
+
+    # ------------------------------------------------------------------
     # Acciones: que publicaciones mira el actualizador y que les toca
     # ------------------------------------------------------------------
     @api.model
@@ -294,17 +447,39 @@ class CoresaUpdater(models.Model):
         }
 
     @api.model
+    def _number_or_none(self, value):
+        """null se respeta: no es lo mismo "quedo en 0" que "no se toco".
+
+        Cuando los tres campos de precio (o de stock) vienen en null, ese
+        campo no entraba en la actualizacion. Mapearlo a 0 haria ver un
+        cambio a cero que nunca paso.
+        """
+        if value is None or value == "":
+            return None
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        return int(number) if number == int(number) else number
+
+    @api.model
     def _change_payload(self, entry):
-        catalog = self._catalog()
         return {
             "id": entry.get("id"),
+            "runId": entry.get("runId"),
             "result": entry.get("result") or "",
             "source": entry.get("source") or "",
+            "sku": entry.get("sku") or "",
             "mla": entry.get("mla") or "",
-            "priceBefore": catalog._as_float(entry.get("priceBefore")),
-            "priceApplied": catalog._as_float(entry.get("priceApplied")),
-            "stockBefore": catalog._as_int(entry.get("stockBefore")),
-            "stockApplied": catalog._as_int(entry.get("stockApplied")),
+            "priceBefore": self._number_or_none(entry.get("priceBefore")),
+            "priceRequested": self._number_or_none(entry.get("priceRequested")),
+            "priceApplied": self._number_or_none(entry.get("priceApplied")),
+            "stockBefore": self._number_or_none(entry.get("stockBefore")),
+            "stockRequested": self._number_or_none(entry.get("stockRequested")),
+            "stockApplied": self._number_or_none(entry.get("stockApplied")),
+            "meliStatus": entry.get("meliStatus") or "",
+            "meliSubStatus": [str(one) for one in (entry.get("meliSubStatus") or [])],
+            "errorCode": entry.get("errorCode") or "",
             "errorMessage": entry.get("errorMessage") or "",
             "createdAt": entry.get("createdAt") or "",
         }

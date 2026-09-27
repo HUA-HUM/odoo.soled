@@ -1409,3 +1409,105 @@
 .o_ccat_card.is-picked { border-color: #17303f; box-shadow: 0 0 0 1px #17303f; }
 .o_ccat_card.is-ready { border-color: #bfe5da; }
 .o_ccat_card.is-failed { border-color: #f6cfcb; }
+
+/* ------------------------------------------------------------------
+   Actualizador → Registros: que hizo el proceso de cada hora.
+   ------------------------------------------------------------------ */
+.o_crec_top {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.o_crec_cards {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.o_crec_card {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+}
+
+.o_crec_card span { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.o_crec_card small { color: #7a8798; font-size: 11px; margin-top: 2px; }
+.o_crec_card.is-green span { color: #0f766e; }
+.o_crec_card.is-amber span { color: #b45309; }
+.o_crec_card.is-red span { color: #b42318; }
+
+.o_crec_lastrun {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.o_crec_lastrun header { align-items: center; display: flex; gap: 10px; }
+.o_crec_lastrun strong { display: block; font-size: 15px; margin-top: 6px; }
+.o_crec_lastrun p { color: #7a8798; font-size: 12px; margin: 4px 0 0; }
+
+.o_crec_runfilter {
+    color: #52626d;
+    font-size: 12.5px;
+    margin: 10px 0 0;
+}
+
+.o_crec_runfilter button {
+    background: transparent;
+    border: 0;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 6px;
+    padding: 0;
+    text-decoration: underline;
+}
+
+/* Las tres tablas de esta pestaña. */
+.o_cupd_row.is-records {
+    cursor: default;
+    grid-template-columns: 140px minmax(110px, 1fr) 150px 112px minmax(150px, 1.3fr) minmax(150px, 1.4fr);
+}
+
+.o_cupd_row.is-runs { grid-template-columns: 200px 150px 80px 96px 110px 130px 96px; }
+.o_cupd_row.is-failures { grid-template-columns: minmax(110px, 1fr) 80px minmax(150px, 1.2fr) minmax(160px, 1.4fr) 150px; }
+.o_cupd_row.is-runs:hover,
+.o_cupd_row.is-failures:hover { background: #f8fbfc; }
+
+.o_cupd_row.is-records:hover { background: #ffffff; }
+.o_cupd_row.is-head.is-records:hover,
+.o_cupd_row.is-head.is-runs:hover,
+.o_cupd_row.is-head.is-failures:hover { background: #f8fafb; }
+
+.o_cupd_row.is-runs .o_cupd_col:first-child { align-items: center; display: flex; gap: 8px; }
+.o_cupd_row.is-runs small { color: #94a3b8; font-size: 11px; }
+
+.o_crec_date { color: #52626d; font-size: 12px; }
+.o_crec_change { font-size: 12.5px; font-weight: 600; }
+.o_crec_ok { color: #0f766e; font-weight: 750; }
+.o_crec_bad { color: #b42318; font-weight: 750; }
+
+.o_crec_detail { min-width: 0; }
+.o_crec_detail small { color: #94a3b8; display: block; font-size: 10.5px; }
+.o_crec_err { color: #b42318; font-size: 12px; }
+.o_crec_meli { color: #52626d; font-size: 12px; }
+
+.o_cupd_row.is-failures code { display: inline-block; margin: 1px 4px 1px 0; }
+
+@media (max-width: 1280px) {
+    .o_crec_top { grid-template-columns: minmax(0, 1fr); }
+    .o_cupd_row.is-records { grid-template-columns: 130px minmax(100px, 1fr) 140px 108px minmax(140px, 1fr); }
+    .o_cupd_row.is-records .o_crec_detail { display: none; }
+}
+
+/* Los tonos que usan las tablas de Registros: el resto de los modificadores
+   de .o_cupd_pill son los estados de ML, que no aplican acá. */
+.o_cupd_pill.is-green { background: #d7f0e8; color: #0f766e; }
+.o_cupd_pill.is-amber { background: #fdf3e6; color: #b45309; }
+.o_cupd_pill.is-red { background: #fadedb; color: #b42318; }
+.o_cupd_pill.is-gray { background: #eef2f5; color: #52626d; }

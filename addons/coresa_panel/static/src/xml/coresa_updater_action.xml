@@ -38,10 +38,15 @@
                         t-on-click="() => this.setTab('actions')">
                     <i class="fa fa-sliders"/> Acciones
                 </button>
+                <button type="button" t-attf-class="o_cupd_tab #{state.tab === 'records' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('records')">
+                    <i class="fa fa-history"/> Registros
+                </button>
             </nav>
 
             <UpdaterCatalogTab t-if="state.tab === 'catalog'"/>
-            <UpdaterActionsTab t-else="" onChanged.bind="loadSummary"/>
+            <UpdaterActionsTab t-elif="state.tab === 'actions'" onChanged.bind="loadSummary"/>
+            <UpdaterRecordsTab t-else=""/>
         </div>
     </t>
 
@@ -417,6 +422,252 @@
                         <button type="button" t-on-click="nextPage" t-att-disabled="!hasNext">Siguiente</button>
                     </div>
                 </footer>
+            </t>
+        </div>
+    </t>
+
+    <!-- Pestaña 3: que hizo el proceso que corre cada hora. -->
+    <t t-name="coresa_panel.UpdaterRecordsTab" owl="1">
+        <div class="o_cupd_tabpane">
+            <p class="o_cupd_lead">
+                El proceso corre cada hora, al minuto 15, y solo deja registro de lo que intentó cambiar:
+                las publicaciones que ya estaban bien no dejan fila. Es de solo lectura.
+            </p>
+
+            <section t-if="state.overview.errors.length" class="o_cupd_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.overview.errors.join(' ')"/>
+            </section>
+
+            <section class="o_crec_top">
+                <div class="o_crec_cards">
+                    <article class="o_crec_card is-green">
+                        <span t-esc="formatUnits(state.overview.stats.updated)"/>
+                        <small>actualizadas</small>
+                    </article>
+                    <article class="o_crec_card is-amber">
+                        <span t-esc="formatUnits(state.overview.stats.notApplied)"/>
+                        <small>sin impacto</small>
+                    </article>
+                    <article class="o_crec_card is-red">
+                        <span t-esc="formatUnits(state.overview.stats.failed)"/>
+                        <small>fallidas</small>
+                    </article>
+                    <article class="o_crec_card">
+                        <span t-esc="formatUnits(state.overview.stats.total)"/>
+                        <small>registradas<t t-if="state.overview.stats.from"> desde el <t t-esc="state.overview.stats.from"/></t></small>
+                    </article>
+                </div>
+
+                <article t-if="state.overview.lastRun" class="o_crec_lastrun">
+                    <header>
+                        <span class="o_cupd_eyebrow">Última corrida</span>
+                        <span t-attf-class="o_cupd_pill #{runStatusTone(state.overview.lastRun.status)}"
+                              t-esc="runStatusLabel(state.overview.lastRun.status)"/>
+                    </header>
+                    <strong t-esc="formatDateTime(state.overview.lastRun.startedAt)"/>
+                    <p>
+                        <t t-esc="formatUnits(state.overview.lastRun.listings)"/> publicaciones revisadas ·
+                        <t t-esc="formatUnits(state.overview.lastRun.updated)"/> actualizadas ·
+                        <t t-esc="formatUnits(state.overview.lastRun.unchanged)"/> ya estaban bien ·
+                        <t t-esc="formatUnits(state.overview.lastRun.failed)"/> fallaron
+                        <t t-if="state.overview.lastRun.durationMs"> · <t t-esc="runDuration(state.overview.lastRun)"/></t>
+                    </p>
+                </article>
+            </section>
+
+            <section class="o_cupd_switchbar">
+                <div class="o_cupd_chips">
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'changes' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('changes')">Cambios</button>
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'runs' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('runs')">Corridas</button>
+                    <button type="button" t-attf-class="o_cupd_chip #{state.view === 'failures' ? 'is-active' : ''}"
+                            t-on-click="() => this.setView('failures')">Fallas por SKU</button>
+                </div>
+                <button type="button" class="o_cupd_clear" t-att-disabled="state.loading" t-on-click="refresh">
+                    <i t-attf-class="fa #{state.loading ? 'fa-spinner fa-spin' : 'fa-refresh'}"/> Refrescar
+                </button>
+            </section>
+
+            <!-- CAMBIOS -->
+            <t t-if="state.view === 'changes'">
+                <section class="o_cupd_filters">
+                    <form t-on-submit="applyFilters">
+                        <label class="o_cupd_field is-grow">
+                            <span>SKU</span>
+                            <input type="text" placeholder="Ej: JDWD32001-4" t-model="state.filters.sku" t-att-disabled="state.loading"/>
+                        </label>
+                        <label class="o_cupd_field">
+                            <span>Resultado</span>
+                            <select t-model="state.filters.result" t-on-change="applyFilters" t-att-disabled="state.loading">
+                                <option value="">Todos</option>
+                                <option value="updated">Actualizado</option>
+                                <option value="not_applied">Sin impacto</option>
+                                <option value="failed">Falló</option>
+                            </select>
+                        </label>
+                        <label class="o_cupd_field">
+                            <span>Desde</span>
+                            <input type="date" t-model="state.filters.from" t-att-disabled="state.loading"/>
+                        </label>
+                        <label class="o_cupd_field">
+                            <span>Hasta</span>
+                            <input type="date" t-model="state.filters.to" t-att-disabled="state.loading"/>
+                        </label>
+                        <button type="submit" class="o_cupd_apply" t-att-disabled="state.loading">Buscar</button>
+                        <button type="button" class="o_cupd_clear" t-if="hasFilters" t-on-click="resetFilters" t-att-disabled="state.loading">Limpiar</button>
+                    </form>
+                    <p t-if="state.filters.runId" class="o_crec_runfilter">
+                        Mostrando solo la corrida <b>#<t t-esc="state.filters.runId"/></b>
+                        <button type="button" t-on-click="resetFilters">quitar</button>
+                    </p>
+                </section>
+
+                <section t-if="state.error" class="o_cupd_state is-error" role="alert">
+                    <i class="fa fa-exclamation-circle"/>
+                    <strong t-esc="state.error"/>
+                </section>
+
+                <section t-elif="state.loading" class="o_cupd_state">
+                    <i class="fa fa-spinner fa-spin"/>
+                    <strong>Cargando el historial...</strong>
+                </section>
+
+                <t t-else="">
+                    <section t-if="state.items.length" class="o_cupd_table">
+                        <header class="o_cupd_row is-head is-records">
+                            <span class="o_cupd_col">Fecha</span>
+                            <span class="o_cupd_col">SKU</span>
+                            <span class="o_cupd_col">Publicación</span>
+                            <span class="o_cupd_col">Resultado</span>
+                            <span class="o_cupd_col">Cambio</span>
+                            <span class="o_cupd_col">Detalle</span>
+                        </header>
+
+                        <article t-foreach="state.items" t-as="row" t-key="row.id" class="o_cupd_row is-records">
+                            <span class="o_cupd_col o_crec_date" t-esc="formatDateTime(row.createdAt)"/>
+                            <span class="o_cupd_col"><strong t-esc="row.sku"/></span>
+                            <span class="o_cupd_col"><code t-esc="row.mla"/></span>
+                            <span class="o_cupd_col">
+                                <span t-attf-class="o_cupd_pill #{resultTone(row.result)}" t-esc="resultLabel(row.result)"/>
+                            </span>
+                            <span class="o_cupd_col o_crec_change" t-esc="changeText(row)"/>
+                            <span class="o_cupd_col o_crec_detail">
+                                <span t-if="row.errorMessage" class="o_crec_err">
+                                    <t t-esc="row.errorMessage"/>
+                                    <small t-if="row.errorCode" t-esc="row.errorCode"/>
+                                </span>
+                                <span t-elif="row.meliStatus" class="o_crec_meli">
+                                    <t t-esc="meliStatusLabel(row.meliStatus)"/>
+                                    <small t-if="row.meliSubStatus.length" t-esc="row.meliSubStatus.join(', ')"/>
+                                </span>
+                                <span t-else="">—</span>
+                            </span>
+                        </article>
+                    </section>
+
+                    <section t-else="" class="o_cupd_state">
+                        <i class="fa fa-inbox"/>
+                        <strong>No hay cambios con esos filtros.</strong>
+                    </section>
+
+                    <footer t-if="state.items.length" class="o_cupd_pager">
+                        <span t-esc="rangeLabel"/>
+                        <div>
+                            <button type="button" t-on-click="previousPage" t-att-disabled="!hasPrevious">Anterior</button>
+                            <span>Página <t t-esc="currentPage"/> de <t t-esc="totalPages"/></span>
+                            <button type="button" t-on-click="nextPage" t-att-disabled="!hasNext">Siguiente</button>
+                        </div>
+                    </footer>
+                </t>
+            </t>
+
+            <!-- CORRIDAS -->
+            <t t-elif="state.view === 'runs'">
+                <section t-if="state.loading" class="o_cupd_state">
+                    <i class="fa fa-spinner fa-spin"/>
+                    <strong>Cargando corridas...</strong>
+                </section>
+
+                <section t-elif="state.runs.length" class="o_cupd_table">
+                    <header class="o_cupd_row is-head is-runs">
+                        <span class="o_cupd_col">Corrida</span>
+                        <span class="o_cupd_col">Arrancó</span>
+                        <span class="o_cupd_col">Duró</span>
+                        <span class="o_cupd_col is-num">Revisadas</span>
+                        <span class="o_cupd_col is-num">Actualizadas</span>
+                        <span class="o_cupd_col is-num">Ya estaban bien</span>
+                        <span class="o_cupd_col is-num">Fallaron</span>
+                    </header>
+
+                    <article t-foreach="state.runs" t-as="run" t-key="run.id" class="o_cupd_row is-runs"
+                             t-on-click="() => this.showRun(run)">
+                        <span class="o_cupd_col">
+                            <strong>#<t t-esc="run.id"/></strong>
+                            <span t-attf-class="o_cupd_pill #{runStatusTone(run.status)}" t-esc="runStatusLabel(run.status)"/>
+                            <small t-esc="run.trigger === 'manual' ? 'a mano' : 'automática'"/>
+                        </span>
+                        <span class="o_cupd_col o_crec_date" t-esc="formatDateTime(run.startedAt)"/>
+                        <span class="o_cupd_col" t-esc="runDuration(run)"/>
+                        <span class="o_cupd_col is-num" t-esc="formatUnits(run.listings)"/>
+                        <span class="o_cupd_col is-num o_crec_ok" t-esc="formatUnits(run.updated)"/>
+                        <span class="o_cupd_col is-num" t-esc="formatUnits(run.unchanged)"/>
+                        <span class="o_cupd_col is-num o_crec_bad" t-esc="formatUnits(run.failed)"/>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_cupd_state">
+                    <i class="fa fa-inbox"/>
+                    <strong>Todavía no hay corridas registradas.</strong>
+                </section>
+            </t>
+
+            <!-- FALLAS AGRUPADAS -->
+            <t t-else="">
+                <section t-if="state.loading" class="o_cupd_state">
+                    <i class="fa fa-spinner fa-spin"/>
+                    <strong>Agrupando las fallas...</strong>
+                </section>
+
+                <t t-else="">
+                    <p class="o_cupd_lead">
+                        Las mismas publicaciones fallan todas las horas: son las que MercadoLibre no deja tocar.
+                        <b t-esc="formatUnits(state.failures.total)"/> fallas sobre
+                        <b t-esc="formatUnits(state.failures.items.length)"/> SKU distintos.
+                    </p>
+
+                    <section t-if="state.failures.items.length" class="o_cupd_table">
+                        <header class="o_cupd_row is-head is-failures">
+                            <span class="o_cupd_col">SKU</span>
+                            <span class="o_cupd_col is-num">Fallas</span>
+                            <span class="o_cupd_col">Publicaciones</span>
+                            <span class="o_cupd_col">Último error</span>
+                            <span class="o_cupd_col">Última vez</span>
+                        </header>
+
+                        <article t-foreach="state.failures.items" t-as="row" t-key="row.sku" class="o_cupd_row is-failures"
+                                 t-on-click="() => this.showSku(row.sku)">
+                            <span class="o_cupd_col"><strong t-esc="row.sku"/></span>
+                            <span class="o_cupd_col is-num o_crec_bad" t-esc="formatUnits(row.total)"/>
+                            <span class="o_cupd_col">
+                                <code t-foreach="row.mlas" t-as="mla" t-key="mla" t-esc="mla"/>
+                            </span>
+                            <span class="o_cupd_col o_crec_detail">
+                                <span class="o_crec_err">
+                                    <t t-esc="row.errorMessage"/>
+                                    <small t-if="row.errorCode" t-esc="row.errorCode"/>
+                                </span>
+                            </span>
+                            <span class="o_cupd_col o_crec_date" t-esc="formatDateTime(row.lastAt)"/>
+                        </article>
+                    </section>
+
+                    <section t-else="" class="o_cupd_state">
+                        <i class="fa fa-check-circle"/>
+                        <strong>No hay fallas registradas.</strong>
+                    </section>
+                </t>
             </t>
         </div>
     </t>
