@@ -443,7 +443,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
     /* Deja pasar el boton flotante de "volver", que es fixed. */
     padding: 64px 24px 32px;
 }
@@ -705,8 +706,10 @@
     margin: 0;
 }
 
+/* El mail del que pide se pasaba de columna. */
+.o_cpub_pairs div { min-width: 0; }
 .o_cpub_pairs dt { color: #94a3b8; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.o_cpub_pairs dd { font-size: 13px; font-weight: 650; margin: 2px 0 0; }
+.o_cpub_pairs dd { font-size: 13px; font-weight: 650; margin: 2px 0 0; overflow-wrap: anywhere; }
 
 .o_cpub_description {
     color: #52626d;
@@ -771,3 +774,62 @@
 .o_coresa_list { display: flex; flex-direction: column; gap: 16px; }
 
 .o_cpub_warnlabel { color: #7a6b4b; font-size: 11px; font-weight: 700; }
+
+/* Pestaña "Publicador": la cola de borradores. */
+.o_cpub_lead { color: #7a8798; font-size: 12.5px; margin: 0; max-width: 760px; }
+
+.o_cpub_queuebar {
+    align-items: center;
+    color: #7a8798;
+    display: flex;
+    font-size: 12.5px;
+    gap: 16px;
+}
+
+.o_cpub_queuebar b { color: #17303f; font-weight: 750; }
+.o_cpub_queuebar button { margin-left: auto; }
+
+.o_cpub_queue {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+
+.o_cpub_qcard {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+}
+
+.o_cpub_qcard header { align-items: center; display: flex; gap: 10px; }
+
+.o_cpub_qcard code {
+    background: #f4f7f8;
+    border-radius: 6px;
+    color: #52626d;
+    font-size: 11.5px;
+    padding: 3px 8px;
+}
+
+.o_cpub_qcard h4 {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.o_cpub_qcard footer { display: flex; justify-content: flex-end; }
+.o_cpub_pill.is-gray { background: #eef2f5; color: #52626d; }
+
+.o_cpub_qerror {
+    background: #fdeceb;
+    border-radius: 9px;
+    color: #b42318;
+    font-size: 12px;
+    margin: 0;
+    padding: 8px 10px;
+}

@@ -570,7 +570,35 @@ class CoresaPublication(models.Model):
             "requestedBy": item.get("requestedBy") or "",
             "publishedAt": item.get("publishedAt") or "",
             "createdAt": item.get("createdAt") or "",
+            "updatedAt": item.get("updatedAt") or "",
         }
+
+    # Lo que todavia no se mando: el publicador trabaja sobre esto.
+    QUEUE_STATUSES = ("draft", "ready")
+
+    @api.model
+    def get_publisher_queue(self, limit=50):
+        """Borradores y listos, en una sola lista.
+
+        La API filtra por un estado por vez, asi que se piden los dos y se
+        ordenan juntos por fecha: para el que publica son la misma cola.
+        """
+        items = []
+        counters = {}
+        for status in self.QUEUE_STATUSES:
+            payload = self._api_get(
+                "/coresa/publications", {"status": status, "limit": limit, "offset": 0}
+            )
+            payload = payload if isinstance(payload, dict) else {}
+            rows = [
+                self._row_payload(item)
+                for item in (payload.get("items") or [])
+                if isinstance(item, dict)
+            ]
+            counters[status] = self._as_int((payload.get("pagination") or {}).get("total"))
+            items.extend(rows)
+        items.sort(key=lambda row: row.get("createdAt") or "", reverse=True)
+        return {"items": items, "counters": counters, "total": sum(counters.values())}
 
     @api.model
     def get_publication_counters(self):

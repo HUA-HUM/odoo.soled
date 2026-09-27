@@ -847,7 +847,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
     /* Deja pasar el boton flotante de "volver", que es fixed. */
     padding: 64px 24px 32px;
 }

@@ -15,13 +15,18 @@
                         t-on-click="() => this.setTab('preview')">
                     <i class="fa fa-eye"/> Previsualizar
                 </button>
+                <button type="button" t-attf-class="o_cpub_tab #{state.tab === 'queue' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('queue')">
+                    <i class="fa fa-paper-plane-o"/> Publicador
+                </button>
                 <button type="button" t-attf-class="o_cpub_tab #{state.tab === 'registry' ? 'is-active' : ''}"
                         t-on-click="() => this.setTab('registry')">
-                    <i class="fa fa-paper-plane-o"/> Publicador
+                    <i class="fa fa-history"/> Registros
                 </button>
             </nav>
 
-            <PublisherPreviewTab t-if="state.tab === 'preview'"/>
+            <PublisherPreviewTab t-if="state.tab === 'preview'" sku="state.previewSku"/>
+            <PublisherQueueTab t-elif="state.tab === 'queue'" onPreview.bind="openPreview"/>
             <PublicationsEmbedded t-else=""/>
         </div>
     </t>
@@ -189,6 +194,65 @@
                 <p class="o_cpub_foot">
                     Previsualizar no publica nada. Coresa guarda el borrador con el número de arriba.
                 </p>
+            </t>
+        </div>
+    </t>
+
+    <!-- Pestaña 2: la cola, lo que todavia no se mando. -->
+    <t t-name="coresa_meli_publisher.PublisherQueueTab" owl="1">
+        <div class="o_cpub_tabpane">
+            <p class="o_cpub_lead">
+                Los borradores que todavía no se publicaron. El envío a MercadoLibre no se dispara desde acá:
+                esta pantalla es para revisarlos antes.
+            </p>
+
+            <section t-if="state.error" class="o_cpub_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_cpub_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Buscando borradores...</strong>
+            </section>
+
+            <t t-else="">
+                <div class="o_cpub_queuebar">
+                    <span><b t-esc="counterFor('draft')"/> en borrador</span>
+                    <span><b t-esc="counterFor('ready')"/> listos para publicar</span>
+                    <button type="button" class="o_cpub_more" t-on-click="load">Actualizar</button>
+                </div>
+
+                <section t-if="state.items.length" class="o_cpub_queue">
+                    <article t-foreach="state.items" t-as="row" t-key="row.id" class="o_cpub_qcard">
+                        <header>
+                            <span t-attf-class="o_cpub_pill #{row.status === 'ready' ? 'is-green' : 'is-gray'}"
+                                  t-esc="statusLabel(row.status)"/>
+                            <code t-esc="row.sku"/>
+                        </header>
+                        <h4 t-esc="row.title || 'Sin título'"/>
+                        <dl class="o_cpub_pairs">
+                            <div><dt>Precio</dt><dd t-esc="formatMoney(row.price)"/></div>
+                            <div><dt>Stock</dt><dd t-esc="formatUnits(row.availableQuantity)"/></div>
+                            <div><dt>Categoría</dt><dd t-esc="row.categoryId || '—'"/></div>
+                            <div><dt>Pedido por</dt><dd t-esc="row.requestedBy || '—'"/></div>
+                            <div><dt>Creado</dt><dd t-esc="formatDate(row.createdAt)"/></div>
+                            <div><dt>Actualizado</dt><dd t-esc="formatDate(row.updatedAt)"/></div>
+                        </dl>
+                        <p t-if="row.errorMessage" class="o_cpub_qerror" t-esc="row.errorMessage"/>
+                        <footer>
+                            <button type="button" class="o_cpub_primary" t-on-click="() => this.preview(row.sku)">
+                                <i class="fa fa-eye"/> <span>Previsualizar</span>
+                            </button>
+                        </footer>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_cpub_state">
+                    <i class="fa fa-check-circle"/>
+                    <strong>No hay borradores esperando.</strong>
+                    <span>Lo que se previsualiza queda acá hasta que se publica.</span>
+                </section>
             </t>
         </div>
     </t>
