@@ -578,8 +578,9 @@ class CoresaPublication(models.Model):
             "updatedAt": item.get("updatedAt") or "",
         }
 
-    # Lo que todavia no se mando: el publicador trabaja sobre esto.
-    QUEUE_STATUSES = ("draft", "ready")
+    # El publicador solo trabaja sobre lo que ML ya acepto: lo que esta en
+    # borrador se corrige desde Registros, no se manda.
+    QUEUE_STATUSES = ("ready",)
 
     @api.model
     def get_publisher_queue(self, limit=50):
@@ -701,6 +702,24 @@ class CoresaPublication(models.Model):
                 ) from error
             raise
         return self._editor_payload(payload)
+
+    @api.model
+    def publish_one(self, publication_id):
+        """Publica una sola, con la respuesta justa para la cola.
+
+        El front las manda de a una y espera cada respuesta: publicar tarda
+        entre 10 y 40 segundos y el back las procesa mejor una por vez.
+        """
+        data = self.publish_draft(publication_id)
+        return {
+            "id": data["id"],
+            "sku": data["sku"],
+            "status": data["status"],
+            "itemId": data["links"]["classicItemId"],
+            "permalink": data["links"]["permalink"],
+            "linkedForSync": data.get("linkedForSync", False),
+            "error": data["meta"]["errorMessage"],
+        }
 
     @api.model
     def publish_draft(self, publication_id):

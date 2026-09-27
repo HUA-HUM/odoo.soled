@@ -206,8 +206,8 @@
     <t t-name="coresa_meli_publisher.PublisherQueueTab" owl="1">
         <div class="o_cpub_tabpane">
             <p class="o_cpub_lead">
-                Los borradores que todavía no se publicaron. El envío a MercadoLibre no se dispara desde acá:
-                esta pantalla es para revisarlos antes.
+                Solo lo que MercadoLibre ya aceptó. Elegí lo que quieras mandar: se publican de a una,
+                en orden, y se ve el avance. Lo que está en borrador se corrige desde Registros.
             </p>
 
             <section t-if="state.error" class="o_cpub_state is-error" role="alert">
@@ -222,17 +222,51 @@
 
             <t t-else="">
                 <div class="o_cpub_queuebar">
-                    <span><b t-esc="counterFor('draft')"/> en borrador</span>
+                    <label t-if="state.items.length" class="o_cpub_checkall">
+                        <input type="checkbox" t-att-checked="allSelected" t-att-disabled="state.run.active"
+                               t-on-change="toggleAll"/>
+                        <span>Seleccionar todo</span>
+                    </label>
                     <span><b t-esc="counterFor('ready')"/> listos para publicar</span>
-                    <button type="button" class="o_cpub_more" t-on-click="load">Actualizar</button>
+                    <span t-if="selectedIds.length"><b t-esc="selectedIds.length"/> seleccionados</span>
+                    <button type="button" class="o_cpub_more" t-att-disabled="state.run.active" t-on-click="load">Actualizar</button>
+                    <button type="button" class="o_cpub_primary" t-att-disabled="state.run.active || !selectedIds.length"
+                            t-on-click="publishSelected">
+                        <i class="fa fa-paper-plane"/>
+                        <span>Mandar a publicar</span>
+                    </button>
                 </div>
 
+                <!-- El avance del envio. Se corta despues de la que esta en curso. -->
+                <section t-if="state.run.total" class="o_cpub_run">
+                    <div class="o_cpub_run__head">
+                        <strong t-if="state.run.active">Publicando <t t-esc="state.run.done + 1"/> de <t t-esc="state.run.total"/>...</strong>
+                        <strong t-else="">Listo: <t t-esc="runSummary.done"/> publicadas<t t-if="runSummary.failed">, <t t-esc="runSummary.failed"/> con error</t></strong>
+                        <button t-if="state.run.active" type="button" class="o_cpub_more" t-att-disabled="state.run.cancel"
+                                t-on-click="cancelRun">
+                            <t t-esc="state.run.cancel ? 'Cortando...' : 'Cortar'"/>
+                        </button>
+                    </div>
+                    <div class="o_cpub_bar"><span t-attf-style="width: #{progressPercent}%"/></div>
+                    <small t-if="state.run.active">Cada publicación tarda entre 10 y 40 segundos. No cierres la pestaña.</small>
+                    <small t-else="">Las publicadas siguen acá con su link hasta que toques Actualizar.</small>
+                </section>
+
                 <section t-if="state.items.length" class="o_cpub_queue">
-                    <article t-foreach="state.items" t-as="row" t-key="row.id" class="o_cpub_qcard">
+                    <article t-foreach="state.items" t-as="row" t-key="row.id"
+                             t-attf-class="o_cpub_qcard #{state.selected[row.id] ? 'is-picked' : ''} #{resultFor(row) ? 'is-' + resultFor(row).state : ''}">
                         <header>
+                            <label class="o_cpub_pick">
+                                <input type="checkbox" t-att-checked="state.selected[row.id]"
+                                       t-att-disabled="state.run.active" t-on-change="() => this.toggle(row)"/>
+                            </label>
                             <span t-attf-class="o_cpub_pill #{row.status === 'ready' ? 'is-green' : 'is-gray'}"
                                   t-esc="statusLabel(row.status)"/>
                             <code t-esc="row.sku"/>
+                            <span t-if="resultFor(row)" t-attf-class="o_cpub_resu is-#{resultFor(row).state}">
+                                <i t-if="resultFor(row).state === 'publishing'" class="fa fa-spinner fa-spin"/>
+                                <t t-esc="resultLabel(resultFor(row).state)"/>
+                            </span>
                         </header>
                         <h4 t-esc="row.title || 'Sin título'"/>
                         <dl class="o_cpub_pairs">
@@ -244,7 +278,12 @@
                             <div><dt>Actualizado</dt><dd t-esc="formatDate(row.updatedAt)"/></div>
                         </dl>
                         <p t-if="row.errorMessage" class="o_cpub_qerror" t-esc="row.errorMessage"/>
+                        <p t-if="resultFor(row) &amp;&amp; resultFor(row).error" class="o_cpub_qerror" t-esc="resultFor(row).error"/>
                         <footer>
+                            <button t-if="resultFor(row) &amp;&amp; resultFor(row).permalink" type="button" class="o_cpub_more"
+                                    t-on-click="() => this.openLink(resultFor(row).permalink)">
+                                Ver en MercadoLibre <i class="fa fa-external-link"/>
+                            </button>
                             <button type="button" class="o_cedit_ghost" t-on-click="() => this.preview(row.sku)">
                                 <i class="fa fa-eye"/> <span>Previsualizar</span>
                             </button>
@@ -257,8 +296,8 @@
 
                 <section t-else="" class="o_cpub_state">
                     <i class="fa fa-check-circle"/>
-                    <strong>No hay borradores esperando.</strong>
-                    <span>Lo que se previsualiza queda acá hasta que se publica.</span>
+                    <strong>No hay nada listo para publicar.</strong>
+                    <span>Acá aparecen los borradores que MercadoLibre ya acepta. Los que todavía rechaza están en Registros.</span>
                 </section>
             </t>
         </div>

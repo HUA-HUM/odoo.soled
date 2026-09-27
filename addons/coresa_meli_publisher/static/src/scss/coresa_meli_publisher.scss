@@ -1039,3 +1039,66 @@
 
 /* En la columna angosta el hint va debajo de un dato, no de un titulo. */
 .o_cedit_side .o_cpub_hint { margin: 8px 0 0; }
+
+/* Seleccion y envio en lote. */
+.o_cpub_checkall,
+.o_cpub_pick {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: 7px;
+}
+
+.o_cpub_checkall input,
+.o_cpub_pick input { height: 15px; width: 15px; }
+.o_cpub_queuebar .o_cpub_primary { margin-left: auto; }
+.o_cpub_queuebar .o_cpub_more { margin-left: 0; }
+
+.o_cpub_qcard.is-picked { border-color: #17303f; box-shadow: 0 0 0 1px #17303f; }
+.o_cpub_qcard.is-publishing { border-color: #b45309; }
+.o_cpub_qcard.is-done { border-color: #bfe5da; }
+.o_cpub_qcard.is-failed { border-color: #f6cfcb; }
+
+.o_cpub_resu {
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 750;
+    margin-left: auto;
+    padding: 4px 10px;
+}
+
+.o_cpub_resu i { margin-right: 5px; }
+.o_cpub_resu.is-queued { background: #eef2f5; color: #7a8798; }
+.o_cpub_resu.is-publishing { background: #fdf3e6; color: #b45309; }
+.o_cpub_resu.is-done { background: #d7f0e8; color: #0f766e; }
+.o_cpub_resu.is-failed { background: #fadedb; color: #b42318; }
+.o_cpub_resu.is-cancelled { background: #eef2f5; color: #94a3b8; }
+
+.o_cpub_run {
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.o_cpub_run__head { align-items: center; display: flex; gap: 12px; }
+.o_cpub_run__head strong { font-size: 13.5px; }
+.o_cpub_run__head .o_cpub_more { margin-left: auto; }
+.o_cpub_run small { color: #94a3b8; display: block; font-size: 11.5px; margin-top: 8px; }
+
+.o_cpub_bar {
+    background: #eef2f5;
+    border-radius: 999px;
+    height: 7px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.o_cpub_bar span {
+    background: #0f766e;
+    display: block;
+    height: 100%;
+    transition: width 220ms ease;
+}
+
+.o_cpub_qcard footer { gap: 8px; }

@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { Component, onMounted, onWillStart, useState } from "@odoo/owl";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { PublicationsEmbedded } from "@coresa_meli_publisher/js/coresa_publications_action";
@@ -161,14 +162,153 @@ class PublisherQueueTab extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this.state = useState({
             items: [],
             counters: {},
             total: 0,
             loading: false,
             error: "",
+            // id -> true. Lo que se va a mandar a publicar.
+            selected: {},
+            // El envio: se hace de a uno y se ve avanzar.
+            run: { active: false, cancel: false, done: 0, total: 0, current: 0, results: {} },
         });
         onWillStart(() => this.load());
+    }
+
+    get selectedIds() {
+        return this.state.items
+            .map((row) => row.id)
+            .filter((id) => this.state.selected[id]);
+    }
+
+    get allSelected() {
+        return this.state.items.length > 0 && this.selectedIds.length === this.state.items.length;
+    }
+
+    get progressPercent() {
+        const run = this.state.run;
+        return run.total ? Math.round((run.done / run.total) * 100) : 0;
+    }
+
+    get runSummary() {
+        const results = Object.values(this.state.run.results);
+        return {
+            done: results.filter((one) => one.state === "done").length,
+            failed: results.filter((one) => one.state === "failed").length,
+        };
+    }
+
+    toggle(row) {
+        if (this.state.run.active) {
+            return;
+        }
+        this.state.selected[row.id] = !this.state.selected[row.id];
+    }
+
+    toggleAll() {
+        if (this.state.run.active) {
+            return;
+        }
+        const select = !this.allSelected;
+        for (const row of this.state.items) {
+            this.state.selected[row.id] = select;
+        }
+    }
+
+    resultFor(row) {
+        return this.state.run.results[row.id] || null;
+    }
+
+    // ------------------------------------------------------------------
+    publishSelected() {
+        const ids = this.selectedIds;
+        if (!ids.length) {
+            this.notification.add("Elegí al menos una publicación.", { type: "warning" });
+            return;
+        }
+        this.dialog.add(ConfirmationDialog, {
+            title: ids.length === 1 ? "Publicar en MercadoLibre" : `Publicar ${ids.length} en MercadoLibre`,
+            body:
+                `Se crean ${ids.length === 1 ? "la publicación real" : `${ids.length} publicaciones reales`} ` +
+                "en la cuenta de MercadoLibre, como clásicas. Van de a una y se ve el avance. " +
+                "Desde el panel no se pueden deshacer: hay que entrar a MercadoLibre para pausarlas o borrarlas.",
+            confirmLabel: "Publicar",
+            cancelLabel: "Cancelar",
+            confirm: () => this.runPublish(ids),
+        });
+    }
+
+    // Se mandan de a una y se espera la respuesta: el back las procesa mejor
+    // asi, y ademas cada una tarda entre 10 y 40 segundos.
+    async runPublish(ids) {
+        const run = this.state.run;
+        Object.assign(run, { active: true, cancel: false, done: 0, total: ids.length, current: 0, results: {} });
+        for (const row of this.state.items) {
+            if (ids.includes(row.id)) {
+                run.results[row.id] = { state: "queued", sku: row.sku, permalink: "", error: "" };
+            }
+        }
+
+        for (const id of ids) {
+            if (run.cancel) {
+                run.results[id].state = "cancelled";
+                continue;
+            }
+            run.current = id;
+            run.results[id].state = "publishing";
+            try {
+                const result = await this.orm.call(MODEL, "publish_one", [id]);
+                const ok = result.status === "published";
+                Object.assign(run.results[id], {
+                    state: ok ? "done" : "failed",
+                    permalink: result.permalink || "",
+                    itemId: result.itemId || "",
+                    linkedForSync: Boolean(result.linkedForSync),
+                    error: result.error || (ok ? "" : "MercadoLibre no la publicó."),
+                });
+                if (ok && !result.linkedForSync) {
+                    this.notification.add(
+                        `${result.sku} quedó publicada pero NO enganchada al actualizador: nadie le va a mantener precio ni stock.`,
+                        { type: "warning", sticky: true }
+                    );
+                }
+            } catch (error) {
+                Object.assign(run.results[id], {
+                    state: "failed",
+                    error: error?.data?.message || "No se pudo publicar.",
+                });
+            }
+            run.done += 1;
+        }
+
+        run.active = false;
+        run.current = 0;
+        const summary = this.runSummary;
+        this.notification.add(
+            summary.failed
+                ? `${summary.done} publicadas, ${summary.failed} con error.`
+                : `${summary.done} publicadas.`,
+            { type: summary.failed ? "warning" : "success" }
+        );
+        // No se recarga sola: si se recargara, las publicadas desaparecen de
+        // la lista (ya no estan "ready") y con ellas el link a MercadoLibre.
+        this.state.selected = {};
+    }
+
+    cancelRun() {
+        // Corta despues de la que esta en curso: no se puede abortar a mitad
+        // de camino sin dejar la publicacion en un limbo.
+        this.state.run.cancel = true;
+        this.notification.add("Se corta cuando termine la que está en curso.", { type: "info" });
+    }
+
+    openLink(url) {
+        if (url) {
+            window.open(url, "_blank", "noopener");
+        }
     }
 
     async load() {
@@ -177,6 +317,12 @@ class PublisherQueueTab extends Component {
         try {
             const result = await this.orm.call(MODEL, "get_publisher_queue", []);
             this.state.items = result.items || [];
+            const alive = new Set(this.state.items.map((row) => row.id));
+            for (const id of Object.keys(this.state.selected)) {
+                if (!alive.has(Number(id))) {
+                    delete this.state.selected[id];
+                }
+            }
             this.state.counters = result.counters || {};
             this.state.total = result.total || 0;
         } catch (error) {
@@ -205,6 +351,17 @@ class PublisherQueueTab extends Component {
 
     statusLabel(status) {
         return status === "ready" ? "Listo para publicar" : "Borrador";
+    }
+
+    resultLabel(state) {
+        const labels = {
+            queued: "En cola",
+            publishing: "Publicando...",
+            done: "Publicada",
+            failed: "Con error",
+            cancelled: "Cancelada",
+        };
+        return labels[state] || state;
     }
 
     formatMoney(value) {
