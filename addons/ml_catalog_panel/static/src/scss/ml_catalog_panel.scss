@@ -940,3 +940,28 @@ button.o_ml_dashboard_card:focus {
     overflow-y: auto;
     white-space: pre-line;
 }
+
+.o_mlcat_found {
+    align-items: center;
+    background: #eef5f8;
+    border-radius: 12px;
+    color: #3f5f7f;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    gap: 10px;
+    margin: 0;
+    padding: 10px 14px;
+}
+
+.o_mlcat_found button {
+    background: transparent;
+    border: 0;
+    color: #17303f;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 650;
+    margin-left: auto;
+    padding: 0;
+    text-decoration: underline;
+}

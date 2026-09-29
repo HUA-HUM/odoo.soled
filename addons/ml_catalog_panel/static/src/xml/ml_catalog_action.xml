@@ -14,14 +14,14 @@
                 <form class="o_mlcat_search" t-on-submit="runSearch">
                     <label>
                         <span>Buscar</span>
-                        <input type="text" placeholder="SKU o MLA exacto — ej: SBT-A60-12W-RGB o MLA1282371523"
+                        <input type="text" placeholder="SKU o MLA exacto — ej: JDTM1501 o MLA2095431783"
                                t-model="state.search" t-att-disabled="state.loading"/>
                     </label>
                     <button type="submit" class="o_mlcat_apply" t-att-disabled="state.loading">Buscar</button>
                     <button type="button" class="o_mlcat_clear" t-if="state.searching || state.search"
                             t-on-click="clearSearch" t-att-disabled="state.loading">Ver todo</button>
                 </form>
-                <small class="o_mlcat_hint">La API resuelve el identificador exacto: todavía no busca por texto.</small>
+                <small class="o_mlcat_hint">Por SKU trae todas sus publicaciones; por MLA, esa sola. La API resuelve el identificador exacto: todavía no busca por texto.</small>
             </section>
 
             <section t-if="state.error" class="o_mlcat_state is-error" role="alert">
@@ -41,7 +41,14 @@
                     <small>Tiene que ser el SKU o el MLA exacto.</small>
                 </section>
 
-                <section t-elif="state.items.length" class="o_mlcat_grid">
+                <t t-else="">
+                <p t-if="state.searching &amp;&amp; state.items.length" class="o_mlcat_found">
+                    <i class="fa fa-search"/>
+                    <span t-esc="searchLabel"/>
+                    <button type="button" t-on-click="clearSearch">Ver todo el catálogo</button>
+                </p>
+
+                <section t-if="state.items.length" class="o_mlcat_grid">
                     <article t-foreach="state.items" t-as="item" t-key="item.id" class="o_mlcat_card"
                              t-on-click="() => this.openDetail(item)">
                         <div class="o_mlcat_card__media">
@@ -78,6 +85,7 @@
                     <i class="fa fa-inbox"/>
                     <strong>No hay publicaciones para mostrar.</strong>
                 </section>
+                </t>
 
                 <footer t-if="!state.searching &amp;&amp; state.items.length" class="o_mlcat_pager">
                     <span t-esc="rangeLabel"/>

@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from urllib.parse import quote
 
 import requests
@@ -98,20 +99,62 @@ class MlCatalog(models.Model):
     def find_product(self, query):
         """Busqueda exacta por SKU o por MLA.
 
-        La API no tiene busqueda por texto: lo unico que resuelve es el
-        identificador. Si no aparece, se avisa en vez de devolver una lista
-        vacia que parece un filtro mal puesto.
+        Un SKU puede tener varias publicaciones: JDTM1501 tiene 12. Por eso
+        va por /by-sku, que las devuelve todas paginadas, y no por el
+        identificador generico, que resuelve una sola y esconde el resto.
+        La API no busca por texto: si no hay nada, se avisa en vez de
+        devolver una grilla vacia que parece un filtro mal puesto.
         """
         query = str(query or "").strip()
         if not query:
             raise UserError(_("Ingresá un SKU o un MLA."))
+
+        looks_like_mla = bool(re.match(r"^MLA\d+$", query, re.IGNORECASE))
+        rows = []
+        if looks_like_mla:
+            rows = self._find_by_mla(query)
+            if not rows:
+                rows = self._find_by_sku(query)
+        else:
+            rows = self._find_by_sku(query)
+            if not rows:
+                # Ultimo intento: el identificador generico resuelve las dos
+                # formas y cubre los SKU raros.
+                rows = self._find_by_identifier(query)
+
+        return {
+            "items": [self._row_payload(row) for row in rows],
+            "found": bool(rows),
+            "query": query,
+            "total": len(rows),
+        }
+
+    @api.model
+    def _find_by_sku(self, sku):
         payload = self._api_get(
-            "%s/%s" % (self.PRODUCTS_PATH, quote(query, safe="")), silent=True
+            "%s/by-sku/%s" % (self.PRODUCTS_PATH, quote(sku, safe="")),
+            {"page": 1, "limit": 100},
+            silent=True,
         )
-        item = self._unwrap(payload)
-        if not item:
-            return {"items": [], "found": False, "query": query}
-        return {"items": [self._row_payload(item)], "found": True, "query": query}
+        payload = payload if isinstance(payload, dict) else {}
+        rows = payload.get("data") or payload.get("items") or []
+        return [row for row in rows if isinstance(row, dict) and row.get("meli_item_id")]
+
+    @api.model
+    def _find_by_mla(self, mla):
+        item = self._unwrap(
+            self._api_get(
+                "%s/by-mla/%s" % (self.PRODUCTS_PATH, quote(mla, safe="")), silent=True
+            )
+        )
+        return [item] if item else []
+
+    @api.model
+    def _find_by_identifier(self, query):
+        item = self._unwrap(
+            self._api_get("%s/%s" % (self.PRODUCTS_PATH, quote(query, safe="")), silent=True)
+        )
+        return [item] if item else []
 
     @api.model
     def get_product_detail(self, meli_item_id):

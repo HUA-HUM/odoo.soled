@@ -66,10 +66,14 @@ class MlCatalogAction extends Component {
         return this.state.page < this.state.totalPages && !this.state.searching;
     }
 
+    // Un SKU puede tener varias publicaciones: la busqueda las trae todas.
+    get searchLabel() {
+        const count = this.state.items.length;
+        const noun = count === 1 ? "publicación" : "publicaciones";
+        return `${this.formatUnits(count)} ${noun} con ${this.state.search.trim()}`;
+    }
+
     get rangeLabel() {
-        if (this.state.searching) {
-            return `Búsqueda: ${this.state.search}`;
-        }
         if (!this.state.total) {
             return "0";
         }
