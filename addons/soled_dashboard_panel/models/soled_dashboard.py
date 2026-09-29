@@ -102,7 +102,7 @@ class SoledDashboard(models.Model):
                     "icon": "fa-handshake-o",
                     "action": "ml_catalog_panel.action_ml_dashboard",
                     "children": [
-                        {"key": "ml_catalog", "label": "Catálogo", "action": "ml_catalog_panel.action_ml_product"},
+                        {"key": "ml_catalog", "label": "Catálogo", "action": "ml_catalog_panel.action_ml_catalog_live"},
                         {"key": "ml_orders", "label": "Órdenes", "action": "ml_catalog_panel.action_ml_order"},
                         {"key": "ml_account", "label": "Cuenta", "action": "ml_catalog_panel.action_ml_account"},
                     ],

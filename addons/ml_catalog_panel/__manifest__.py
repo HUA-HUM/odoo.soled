@@ -11,12 +11,15 @@
         "views/ml_account_views.xml",
         "views/ml_order_views.xml",
         "views/ml_catalog_views.xml",
+        "views/ml_catalog_action_views.xml",
         "views/ml_catalog_menus.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "ml_catalog_panel/static/src/scss/ml_catalog_panel.scss",
             "ml_catalog_panel/static/src/js/ml_catalog_list_controller.js",
+            "ml_catalog_panel/static/src/js/ml_catalog_action.js",
+            "ml_catalog_panel/static/src/xml/ml_catalog_action.xml",
             "ml_catalog_panel/static/src/xml/ml_catalog_list_buttons.xml",
         ],
     },

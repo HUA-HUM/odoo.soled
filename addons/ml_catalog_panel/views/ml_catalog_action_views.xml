@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- El catálogo en vivo contra internal-api. El act_window sobre
+         ml.product (el espejo en Odoo) sigue existiendo, solo dejó de ser
+         lo que abre el menú. -->
+    <record id="action_ml_catalog_live" model="ir.actions.client">
+        <field name="name">Catálogo MercadoLibre</field>
+        <field name="tag">ml_catalog_panel.catalog_action</field>
+    </record>
+</odoo>

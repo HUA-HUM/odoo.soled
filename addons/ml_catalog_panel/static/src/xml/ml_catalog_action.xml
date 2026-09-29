@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ml_catalog_panel.CatalogAction" owl="1">
+        <div class="o_mlcat_page">
+            <section class="o_mlcat_header">
+                <div>
+                    <span class="o_mlcat_eyebrow">MercadoLibre</span>
+                    <h1>Catálogo</h1>
+                    <p><t t-esc="formatUnits(state.total)"/> publicaciones de la cuenta, como las ve MercadoLibre.</p>
+                </div>
+            </section>
+
+            <section class="o_mlcat_toolbar">
+                <form class="o_mlcat_search" t-on-submit="runSearch">
+                    <label>
+                        <span>Buscar</span>
+                        <input type="text" placeholder="SKU o MLA exacto — ej: SBT-A60-12W-RGB o MLA1282371523"
+                               t-model="state.search" t-att-disabled="state.loading"/>
+                    </label>
+                    <button type="submit" class="o_mlcat_apply" t-att-disabled="state.loading">Buscar</button>
+                    <button type="button" class="o_mlcat_clear" t-if="state.searching || state.search"
+                            t-on-click="clearSearch" t-att-disabled="state.loading">Ver todo</button>
+                </form>
+                <small class="o_mlcat_hint">La API resuelve el identificador exacto: todavía no busca por texto.</small>
+            </section>
+
+            <section t-if="state.error" class="o_mlcat_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_mlcat_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Cargando publicaciones...</strong>
+            </section>
+
+            <t t-else="">
+                <section t-if="state.notFound" class="o_mlcat_state is-empty">
+                    <i class="fa fa-search"/>
+                    <strong>No hay ninguna publicación con <t t-esc="state.notFound"/>.</strong>
+                    <small>Tiene que ser el SKU o el MLA exacto.</small>
+                </section>
+
+                <section t-elif="state.items.length" class="o_mlcat_grid">
+                    <article t-foreach="state.items" t-as="item" t-key="item.id" class="o_mlcat_card"
+                             t-on-click="() => this.openDetail(item)">
+                        <div class="o_mlcat_card__media">
+                            <img t-if="item.thumbnail &amp;&amp; !item.imageFailed" t-att-src="item.thumbnail"
+                                 t-att-alt="item.title" loading="lazy" t-on-error="() => this.onImageError(item)"/>
+                            <div t-else="" class="o_mlcat_noimg"><i class="fa fa-image"/></div>
+                            <span t-attf-class="o_mlcat_pill #{statusTone(item.status)}" t-esc="statusLabel(item.status)"/>
+                        </div>
+
+                        <div class="o_mlcat_card__body">
+                            <p class="o_mlcat_title" t-att-title="item.title" t-esc="item.title"/>
+                            <div class="o_mlcat_ids">
+                                <code t-esc="item.id"/>
+                                <small t-if="item.sku" t-esc="item.sku"/>
+                                <small t-else="" class="o_mlcat_nosku">sin SKU</small>
+                            </div>
+                            <div class="o_mlcat_price">
+                                <strong t-esc="formatMoney(item.price)"/>
+                                <span t-attf-class="o_mlcat_stock #{stockTone(item.available)}">
+                                    <t t-esc="formatUnits(item.available)"/> en stock
+                                </span>
+                            </div>
+                            <div class="o_mlcat_tags">
+                                <span t-if="item.brand" t-esc="item.brand"/>
+                                <span class="is-soft" t-esc="listingLabel(item.listingType)"/>
+                                <span t-if="item.sold" class="is-soft"><t t-esc="formatUnits(item.sold)"/> vendidos</span>
+                                <span t-if="item.hasVariations" class="is-soft">con variantes</span>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_mlcat_state is-empty">
+                    <i class="fa fa-inbox"/>
+                    <strong>No hay publicaciones para mostrar.</strong>
+                </section>
+
+                <footer t-if="!state.searching &amp;&amp; state.items.length" class="o_mlcat_pager">
+                    <span t-esc="rangeLabel"/>
+                    <form class="o_mlcat_jump" t-on-submit="goToPage">
+                        <button type="button" t-att-disabled="!hasPrevious" t-on-click="previousPage">
+                            <i class="fa fa-chevron-left"/>
+                        </button>
+                        <span>Página</span>
+                        <input type="number" min="1" t-att-max="state.totalPages" t-model="state.pageInput"/>
+                        <span>de <t t-esc="formatUnits(state.totalPages)"/></span>
+                        <button type="button" t-att-disabled="!hasNext" t-on-click="nextPage">
+                            <i class="fa fa-chevron-right"/>
+                        </button>
+                    </form>
+                </footer>
+            </t>
+
+            <!-- Ficha de la publicación -->
+            <div t-if="state.detail || state.loadingDetail" class="o_mlcat_backdrop" t-on-click="closeDetail">
+                <aside class="o_mlcat_drawer" t-on-click.stop="() => {}">
+                    <header class="o_mlcat_drawer__head">
+                        <div>
+                            <span class="o_mlcat_eyebrow">Publicación</span>
+                            <h2 t-esc="state.detailId"/>
+                        </div>
+                        <button type="button" t-on-click="closeDetail" title="Cerrar"><i class="fa fa-times"/></button>
+                    </header>
+
+                    <div t-if="state.loadingDetail" class="o_mlcat_state">
+                        <i class="fa fa-spinner fa-spin"/>
+                        <strong>Abriendo la publicación...</strong>
+                    </div>
+
+                    <div t-else="" class="o_mlcat_drawer__body">
+                        <div class="o_mlcat_hero">
+                            <img t-if="state.detail.pictures.length" t-att-src="state.detail.pictures[0]"
+                                 t-att-alt="state.detail.title"/>
+                            <div>
+                                <span t-attf-class="o_mlcat_pill #{statusTone(state.detail.status)}"
+                                      t-esc="statusLabel(state.detail.status)"/>
+                                <h3 t-esc="state.detail.title"/>
+                                <div class="o_mlcat_price is-big">
+                                    <strong t-esc="formatMoney(state.detail.price)"/>
+                                    <span><t t-esc="formatUnits(state.detail.available)"/> en stock ·
+                                        <t t-esc="formatUnits(state.detail.sold)"/> vendidos</span>
+                                </div>
+                                <button t-if="state.detail.permalink" type="button" class="o_mlcat_link"
+                                        t-on-click="(ev) => this.openLink(state.detail.permalink, ev)">
+                                    Ver en MercadoLibre <i class="fa fa-external-link"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div t-if="state.detail.pictures.length > 1" class="o_mlcat_thumbs">
+                            <img t-foreach="state.detail.pictures.slice(1, 9)" t-as="picture" t-key="picture"
+                                 t-att-src="picture" t-att-alt="state.detail.title"
+                                 t-on-click="() => this.openLink(picture)"/>
+                        </div>
+
+                        <section class="o_mlcat_block">
+                            <h4>Ficha</h4>
+                            <dl class="o_mlcat_pairs">
+                                <div><dt>SKU</dt><dd t-esc="state.detail.sku || '—'"/></div>
+                                <div><dt>Marca</dt><dd t-esc="state.detail.brand || '—'"/></div>
+                                <div><dt>Modelo</dt><dd t-esc="state.detail.model || '—'"/></div>
+                                <div><dt>GTIN</dt><dd t-esc="state.detail.gtin || '—'"/></div>
+                                <div><dt>Condición</dt><dd t-esc="conditionLabel(state.detail.condition)"/></div>
+                                <div><dt>Tipo</dt><dd t-esc="listingLabel(state.detail.listingType)"/></div>
+                                <div><dt>Envío</dt><dd t-esc="shippingLabel(state.detail)"/></div>
+                                <div><dt>Retiro en el local</dt><dd t-esc="state.detail.localPickUp ? 'Sí' : 'No'"/></div>
+                                <div t-if="state.detail.catalogListing"><dt>Catálogo</dt><dd>Publicación de catálogo</dd></div>
+                                <div t-if="state.detail.variations"><dt>Variantes</dt><dd t-esc="formatUnits(state.detail.variations)"/></div>
+                                <div><dt>Actualizada</dt><dd t-esc="formatDateTime(state.detail.updatedAt)"/></div>
+                                <div><dt>Creada</dt><dd t-esc="formatDateTime(state.detail.createdAt)"/></div>
+                            </dl>
+                        </section>
+
+                        <section t-if="state.detail.categoryPath.length" class="o_mlcat_block">
+                            <h4>Categoría</h4>
+                            <p class="o_mlcat_path">
+                                <t t-foreach="state.detail.categoryPath" t-as="step" t-key="step_index">
+                                    <span t-esc="step"/><t t-if="!step_last"> › </t>
+                                </t>
+                            </p>
+                            <code t-esc="state.detail.categoryId"/>
+                        </section>
+
+                        <section t-if="state.detail.attributes.length" class="o_mlcat_block">
+                            <h4>Atributos <small>(<t t-esc="state.detail.attributes.length"/> cargados)</small></h4>
+                            <div class="o_mlcat_attrs">
+                                <div t-foreach="state.detail.attributes" t-as="attribute" t-key="attribute.id" class="o_mlcat_attr">
+                                    <span t-esc="attribute.name"/>
+                                    <strong t-esc="attribute.value"/>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section t-if="state.detail.description" class="o_mlcat_block">
+                            <h4>Descripción</h4>
+                            <p class="o_mlcat_desc" t-esc="state.detail.description"/>
+                        </section>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </t>
+</templates>
