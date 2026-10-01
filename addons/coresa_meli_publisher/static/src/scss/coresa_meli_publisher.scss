@@ -1102,3 +1102,83 @@
 }
 
 .o_cpub_qcard footer { gap: 8px; }
+
+/* La variante y la cuenta del precio. */
+.o_cpub_field.is-narrow { flex: 0 0 150px; }
+
+.o_cpub_field select {
+    background: #ffffff;
+    border: 1px solid #dbe3e9;
+    border-radius: 9px;
+    font-size: 13px;
+    min-height: 38px;
+    padding: 0 10px;
+}
+
+.o_cpub_field select:focus { border-color: #17303f; outline: 0; }
+
+.o_cpub_math {
+    align-items: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.o_cpub_math__step {
+    background: #f8fafb;
+    border-radius: 10px;
+    display: flex;
+    flex: 1 1 140px;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+}
+
+.o_cpub_math__step small { color: #7a8798; font-size: 10.5px; }
+.o_cpub_math__step strong { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; }
+
+.o_cpub_math__step.is-total { background: #17303f; }
+.o_cpub_math__step.is-total small { color: rgba(255, 255, 255, 0.7); }
+.o_cpub_math__step.is-total strong { color: #ffffff; }
+
+.o_cpub_math__op {
+    align-self: center;
+    color: #94a3b8;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.o_cpub_attr.is-ai { background: #fdf6ec; }
+
+.o_cpub_ai {
+    background: #b45309;
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    margin-left: 6px;
+    padding: 2px 7px;
+}
+
+.o_cpub_pubrow {
+    align-items: center;
+    border-bottom: 1px solid #f1f4f6;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    gap: 10px;
+    padding: 9px 0;
+}
+
+.o_cpub_pubrow:last-child { border-bottom: 0; }
+
+.o_cpub_pubrow code {
+    background: #f4f7f8;
+    border-radius: 6px;
+    color: #52626d;
+    font-size: 11.5px;
+    padding: 3px 8px;
+}
+
+.o_cpub_pubrow .o_cpub_more { margin-left: auto; }

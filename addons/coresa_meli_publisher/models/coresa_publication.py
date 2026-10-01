@@ -203,7 +203,7 @@ class CoresaPublication(models.Model):
             502: _("MercadoLibre no responde, probá de nuevo en unos minutos."),
             503: _("MercadoLibre no responde, probá de nuevo en unos minutos."),
         }.get(status_code)
-        if status_code in (400, 404, 422) and detail:
+        if status_code in (400, 404, 409, 422) and detail:
             # El 404 puede ser del SKU o de la publicacion: el mensaje de la
             # API dice cual, el nuestro adivina mal la mitad de las veces.
             return detail
@@ -240,12 +240,15 @@ class CoresaPublication(models.Model):
     # Preview para el panel (sin tocar registros de Odoo)
     # ------------------------------------------------------------------
     @api.model
-    def preview_payload(self, sku, category_id=None):
+    def preview_payload(self, sku, category_id=None, listing_type=None,
+                        units_per_listing=None, modalidad=None):
         """El borrador tal cual lo devuelve coresa-api, listo para mostrar.
 
-        Es la misma llamada que usa el asistente, pero sin crear ni escribir
-        nada en Odoo: la pantalla de previsualizar solo mira. La API igual
-        deja su propio registro del lado de Coresa (devuelve publicationId).
+        La variante (tipo de publicacion, unidades por publicacion y
+        modalidad de cuotas) define el precio y el stock, y tambien
+        identifica la publicacion: un mismo SKU se publica varias veces con
+        variantes distintas. No se escribe nada en Odoo; la API si deja su
+        propio registro del lado de Coresa.
         """
         sku = str(sku or "").strip()
         if not sku:
@@ -253,8 +256,40 @@ class CoresaPublication(models.Model):
         body = {"sku": sku, "requestedBy": self._requested_by()}
         if category_id:
             body["categoryId"] = category_id
+        if listing_type:
+            body["listingType"] = str(listing_type).strip()
+        if units_per_listing is not None and str(units_per_listing).strip() != "":
+            units = self._as_int(units_per_listing)
+            if units < 1:
+                raise UserError(_("Las unidades por publicación tienen que ser 1 o más."))
+            body["unitsPerListing"] = units
+        if modalidad:
+            body["modalidad"] = str(modalidad).strip()
         payload = self._api_request("POST", "/coresa/publications/preview", body)
         return self._preview_payload(payload, sku)
+
+    @api.model
+    def get_modalidades(self, only_active=True):
+        """Las modalidades de cuotas con su coeficiente.
+
+        En el desplegable del publicador van solo las activas: una
+        modalidad no se borra, se desactiva, porque hay publicaciones que la
+        usan.
+        """
+        params = {"activa": "true"} if only_active else {}
+        payload = self._api_get("/coresa/modalidades", params) or {}
+        items = payload.get("items") if isinstance(payload, dict) else payload
+        return [
+            {
+                "modalidad": item.get("modalidad") or "",
+                "label": item.get("etiqueta") or item.get("modalidad") or "",
+                "costo": self._as_float(item.get("costo")),
+                "coeficiente": self._as_float(item.get("coeficiente")),
+                "activa": bool(item.get("activa")),
+            }
+            for item in (items or [])
+            if isinstance(item, dict) and item.get("modalidad")
+        ]
 
     @api.model
     def _preview_payload(self, payload, sku):
@@ -303,6 +338,52 @@ class CoresaPublication(models.Model):
                 "saleTerms": self._attribute_rows(draft.get("sale_terms")),
             },
             "validation": self._validation_rows(payload.get("validation")),
+            "variant": self._variant_payload(payload.get("variant")),
+            # Lo que ese SKU ya tiene publicado: es lo que evita que alguien
+            # arme un duplicado sin darse cuenta.
+            "publishedVariants": [
+                dict(
+                    self._variant_payload(entry),
+                    mla=entry.get("mla") or entry.get("meliItemId") or "",
+                    permalink=entry.get("permalink") or "",
+                    publicationId=self._as_int(entry.get("publicationId") or entry.get("id")),
+                )
+                for entry in (payload.get("publishedVariants") or [])
+                if isinstance(entry, dict)
+            ],
+            "price": self._price_breakdown(payload),
+        }
+
+    @api.model
+    def _variant_payload(self, variant):
+        variant = variant if isinstance(variant, dict) else {}
+        return {
+            "listingType": variant.get("listingType") or "",
+            "units": self._as_int(variant.get("unitsPerListing")) or 1,
+            "modalidad": variant.get("modalidad") or "",
+            "factor": self._as_float(variant.get("priceFactor")) or 1.0,
+        }
+
+    @api.model
+    def _price_breakdown(self, payload):
+        """De donde sale el precio, que es la cuenta que mas preguntas trae.
+
+        La API devuelve el precio ya calculado y el factor de la modalidad;
+        el unitario de Coresa se despeja, que es lo que falta para poder
+        leer la cuenta completa.
+        """
+        draft = payload.get("draft") or {}
+        variant = self._variant_payload(payload.get("variant"))
+        total = self._as_float(draft.get("price"))
+        units = variant["units"] or 1
+        factor = variant["factor"] or 1.0
+        divisor = units * factor
+        return {
+            "unit": round(total / divisor, 2) if divisor else 0.0,
+            "units": units,
+            "factor": factor,
+            "total": total,
+            "stock": self._as_int(draft.get("available_quantity")),
         }
 
     @api.model
@@ -738,9 +819,10 @@ class CoresaPublication(models.Model):
         return result
 
     @api.model
-    def rebuild_draft(self, sku, category_id=None):
+    def rebuild_draft(self, sku, category_id=None, listing_type=None,
+                      units_per_listing=None, modalidad=None):
         """Rehace el borrador con la IA. Pisa las correcciones a mano."""
-        return self.preview_payload(sku, category_id)
+        return self.preview_payload(sku, category_id, listing_type, units_per_listing, modalidad)
 
     @api.model
     def _draft_body(self, draft):

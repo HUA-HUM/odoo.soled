@@ -29,6 +29,10 @@ class PublisherPreviewTab extends Component {
         this.orm = useService("orm");
         this.state = useState({
             sku: this.props.sku || "",
+            // La variante define el precio, el stock y la identidad de la
+            // publicacion: el mismo SKU se publica varias veces distinto.
+            variant: { listingType: "gold_special", units: 1, modalidad: "contado" },
+            modalidades: [],
             data: null,
             loading: false,
             error: "",
@@ -36,9 +40,38 @@ class PublisherPreviewTab extends Component {
             descriptionOpen: false,
         });
 
+        onWillStart(async () => {
+            try {
+                this.state.modalidades = await this.orm.call(MODEL, "get_modalidades", []);
+            } catch (error) {
+                // Sin el desplegable igual se puede previsualizar en contado.
+                this.state.modalidades = [];
+            }
+        });
+
         if (this.props.sku) {
             onMounted(() => this.runPreview(null));
         }
+    }
+
+    get modalidadLabel() {
+        return this.modalidadName(this.state.variant.modalidad);
+    }
+
+    get publishedVariants() {
+        return (this.state.data && this.state.data.publishedVariants) || [];
+    }
+
+    // La modalidad se guarda por clave ("12_cuotas") pero se lee por su
+    // etiqueta.
+    modalidadName(modalidad) {
+        const found = this.state.modalidades.find((one) => one.modalidad === modalidad);
+        return (found || {}).label || modalidad || "—";
+    }
+
+    variantLabel(variant) {
+        const units = variant.units > 1 ? `${variant.units} unidades` : "1 unidad";
+        return `${this.listingLabel(variant.listingType)} · ${units} · ${this.modalidadName(variant.modalidad)}`;
     }
 
     get hasResult() {
@@ -67,6 +100,9 @@ class PublisherPreviewTab extends Component {
         try {
             this.state.data = await this.orm.call(MODEL, "preview_payload", [sku], {
                 category_id: categoryId,
+                listing_type: this.state.variant.listingType,
+                units_per_listing: this.state.variant.units,
+                modalidad: this.state.variant.modalidad,
             });
             this.state.descriptionOpen = false;
         } catch (error) {
@@ -147,6 +183,27 @@ class PublisherPreviewTab extends Component {
 
     formatUnits(value) {
         return new Intl.NumberFormat("es-AR").format(Number(value) || 0);
+    }
+
+    formatFactor(value) {
+        return new Intl.NumberFormat("es-AR", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+        }).format(Number(value) || 1);
+    }
+
+    // El costo viene como fraccion: 0.216 es 21,6%.
+    formatCost(value) {
+        return new Intl.NumberFormat("es-AR", {
+            style: "percent",
+            maximumFractionDigits: 1,
+        }).format(Number(value) || 0);
+    }
+
+    openLink(url) {
+        if (url) {
+            window.open(url, "_blank", "noopener");
+        }
     }
 }
 

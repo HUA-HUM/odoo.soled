@@ -40,13 +40,33 @@
             <form class="o_cpub_search" t-on-submit="submit">
                 <label class="o_cpub_field">
                     <span>SKU de Coresa</span>
-                    <input type="text" placeholder="Ej: AEB 35 SC/1" t-model="state.sku" t-att-disabled="state.loading"/>
+                    <input type="text" placeholder="Ej: JDPL3606" t-model="state.sku" t-att-disabled="state.loading"/>
+                </label>
+                <label class="o_cpub_field is-narrow">
+                    <span>Tipo</span>
+                    <select t-model="state.variant.listingType" t-att-disabled="state.loading">
+                        <option value="gold_special">Clásica</option>
+                        <option value="gold_pro">Premium</option>
+                    </select>
+                </label>
+                <label class="o_cpub_field is-narrow">
+                    <span>Unidades</span>
+                    <input type="number" min="1" step="1" t-model.number="state.variant.units" t-att-disabled="state.loading"/>
+                </label>
+                <label class="o_cpub_field is-narrow">
+                    <span>Modalidad</span>
+                    <select t-model="state.variant.modalidad" t-att-disabled="state.loading">
+                        <option t-foreach="state.modalidades" t-as="modalidad" t-key="modalidad.modalidad"
+                                t-att-value="modalidad.modalidad">
+                            <t t-esc="modalidad.label"/>
+                        </option>
+                    </select>
                 </label>
                 <button type="submit" class="o_cpub_primary" t-att-disabled="state.loading">
                     <i t-attf-class="fa #{state.loading ? 'fa-spinner fa-spin' : 'fa-magic'}"/>
                     <span t-esc="state.loading ? 'Armando...' : 'Previsualizar'"/>
                 </button>
-                <small>Consulta el catálogo de Coresa, pide categoría y validación a MercadoLibre y redacta el aviso. Suele tardar unos segundos.</small>
+                <small>Tipo, unidades y modalidad definen el precio, el stock y la publicación: el mismo SKU se puede publicar varias veces distinto. Tarda unos segundos: consulta Coresa, pide categoría y validación a ML y redacta el aviso.</small>
             </form>
 
             <section t-if="state.error" class="o_cpub_state is-error" role="alert">
@@ -77,7 +97,8 @@
                             <span>
                                 SKU <b t-esc="state.data.sku"/> ·
                                 borrador #<b t-esc="state.data.publicationId"/> ·
-                                <b t-esc="statusLabel(state.data.status)"/>
+                                <b t-esc="statusLabel(state.data.status)"/> ·
+                                <b t-esc="variantLabel(state.data.variant)"/>
                             </span>
                         </div>
                     </div>
@@ -105,6 +126,51 @@
                             <t t-esc="attribute"/><t t-if="!attribute_last">, </t>
                         </b>
                     </p>
+                </section>
+
+                <!-- La cuenta del precio: es la que mas preguntas genera. -->
+                <section class="o_cpub_block">
+                    <h3>Cómo sale el precio</h3>
+                    <div class="o_cpub_math">
+                        <div class="o_cpub_math__step">
+                            <small>Unitario de Coresa</small>
+                            <strong t-esc="formatMoney(state.data.price.unit)"/>
+                        </div>
+                        <span class="o_cpub_math__op">×</span>
+                        <div class="o_cpub_math__step">
+                            <small>Unidades por publicación</small>
+                            <strong t-esc="formatUnits(state.data.price.units)"/>
+                        </div>
+                        <span class="o_cpub_math__op">×</span>
+                        <div class="o_cpub_math__step">
+                            <small t-esc="modalidadLabel"/>
+                            <strong t-esc="formatFactor(state.data.price.factor)"/>
+                        </div>
+                        <span class="o_cpub_math__op">=</span>
+                        <div class="o_cpub_math__step is-total">
+                            <small>Precio publicado</small>
+                            <strong t-esc="formatMoney(state.data.price.total)"/>
+                        </div>
+                    </div>
+                    <p class="o_cpub_hint">
+                        El stock publicado es el disponible de Coresa dividido por las unidades:
+                        <b t-esc="formatUnits(state.data.price.stock)"/> publicaciones de
+                        <b t-esc="formatUnits(state.data.price.units)"/>.
+                        Se puede corregir el precio a mano al editar el borrador.
+                    </p>
+                </section>
+
+                <!-- Lo que ese SKU ya tiene publicado: evita el duplicado. -->
+                <section t-if="publishedVariants.length" class="o_cpub_block">
+                    <h3>Este SKU ya está publicado</h3>
+                    <p class="o_cpub_hint">Si volvés a publicar la misma combinación de tipo, unidades y modalidad, MercadoLibre va a tener dos avisos iguales.</p>
+                    <div t-foreach="publishedVariants" t-as="published" t-key="published.mla || published_index"
+                         class="o_cpub_pubrow">
+                        <code t-esc="published.mla || '—'"/>
+                        <span t-esc="variantLabel(published)"/>
+                        <button t-if="published.permalink" type="button" class="o_cpub_more"
+                                t-on-click="() => this.openLink(published.permalink)">Ver en ML</button>
+                    </div>
                 </section>
 
                 <!-- La categoria manda: cada una pide otros atributos. -->
@@ -174,9 +240,13 @@
                 <section class="o_cpub_block">
                     <h3>Atributos</h3>
                     <div class="o_cpub_attrs">
-                        <div t-foreach="state.data.draft.attributes" t-as="attribute" t-key="attribute.id" class="o_cpub_attr">
+                        <div t-foreach="state.data.draft.attributes" t-as="attribute" t-key="attribute.id"
+                             t-attf-class="o_cpub_attr #{state.data.inferred.includes(attribute.id) ? 'is-ai' : ''}">
                             <code t-esc="attribute.id"/>
-                            <span t-esc="attribute.value"/>
+                            <span>
+                                <t t-esc="attribute.value"/>
+                                <b t-if="state.data.inferred.includes(attribute.id)" class="o_cpub_ai">IA</b>
+                            </span>
                         </div>
                         <div t-foreach="state.data.missing" t-as="missing" t-key="missing" class="o_cpub_attr is-missing">
                             <code t-esc="missing"/>
