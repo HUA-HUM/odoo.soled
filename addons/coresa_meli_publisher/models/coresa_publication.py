@@ -1,5 +1,7 @@
 import json
 import logging
+import re
+from urllib.parse import quote
 
 import requests
 
@@ -269,6 +271,57 @@ class CoresaPublication(models.Model):
         return self._preview_payload(payload, sku)
 
     @api.model
+    def get_sku_info(self, sku):
+        """Lo que hay que saber del SKU antes de armar el borrador.
+
+        Responde en el acto (no pasa por OpenAI ni por ML), asi que la
+        pantalla lo puede pedir mientras el usuario escribe. Devuelve el
+        empaque de Coresa, el precio unitario y lo que ese SKU ya tiene
+        publicado, para elegir las unidades sabiendo con que se cuenta.
+        """
+        sku = str(sku or "").strip()
+        if not sku:
+            return {"found": False, "sku": "", "available": True}
+        try:
+            payload = self._api_get("/coresa/skus/%s" % quote(sku, safe=""))
+        except UserError as error:
+            message = str(error)
+            if "Cannot GET" in message:
+                # La ruta todavia no esta desplegada: la pantalla sigue
+                # andando sin el paso 0 en vez de romperse.
+                return {"found": False, "sku": sku, "available": False}
+            if "no existe" in message.lower() or "not found" in message.lower():
+                return {"found": False, "sku": sku, "available": True}
+            raise
+        payload = payload if isinstance(payload, dict) else {}
+        package = self._as_int(payload.get("empaque"))
+        return {
+            "found": True,
+            "available": True,
+            "sku": payload.get("sku") or sku,
+            "description": payload.get("descripcion") or "",
+            "brand": payload.get("marca") or "",
+            "package": package,
+            "packagePrice": self._as_float(payload.get("precioEmpaque")),
+            "unitPrice": self._as_float(payload.get("precioUnitario")),
+            "available_qty": self._as_int(payload.get("disponible")),
+            "packages": self._as_int(payload.get("empaquesDisponibles")),
+            "suggestedUnits": self._as_int(payload.get("unidadesSugeridas")) or package or 1,
+            # Coresa marca si el producto se puede vender suelto. Es un aviso,
+            # no un bloqueo: la decision es comercial.
+            "unitSale": bool(payload.get("ventaUnitaria")),
+            "publishedVariants": [
+                dict(
+                    self._variant_payload(entry),
+                    mla=entry.get("mla") or entry.get("meliItemId") or "",
+                    permalink=entry.get("permalink") or "",
+                )
+                for entry in (payload.get("variantesPublicadas") or [])
+                if isinstance(entry, dict)
+            ],
+        }
+
+    @api.model
     def get_modalidades(self, only_active=True):
         """Las modalidades de cuotas con su coeficiente.
 
@@ -352,6 +405,7 @@ class CoresaPublication(models.Model):
                 if isinstance(entry, dict)
             ],
             "price": self._price_breakdown(payload),
+            "checks": self._draft_checks(draft, self._attribute_rows(draft.get("attributes"))),
         }
 
     @api.model
@@ -384,6 +438,93 @@ class CoresaPublication(models.Model):
             "factor": factor,
             "total": total,
             "stock": self._as_int(draft.get("available_quantity")),
+        }
+
+    # ------------------------------------------------------------------
+    # Dos cosas que ML rechaza y vienen armadas de antes
+    # ------------------------------------------------------------------
+    # Un link afuera de MercadoLibre es motivo de baja de la publicacion.
+    LINK_RE = re.compile(
+        r"(https?://\S+|www\.\S+|\b[\w-]+\.(?:com|com\.ar|net|net\.ar|ar|org)\b[^\s]*)",
+        re.IGNORECASE,
+    )
+    # ML solo acepta enteros, en cm para medidas y en g para peso.
+    MEASURE_RE = re.compile(r"^\s*([\d]+(?:[.,][\d]+)?)\s*([a-zA-Z\"']*)\s*$")
+    WEIGHT_HINTS = ("WEIGHT", "PESO")
+    SIZE_HINTS = ("HEIGHT", "WIDTH", "LENGTH", "DEPTH", "DIAMETER", "THICKNESS")
+    TO_GRAMS = {"kg": 1000.0, "kgs": 1000.0, "kilo": 1000.0, "kilos": 1000.0,
+                "g": 1.0, "gr": 1.0, "grs": 1.0, "gramo": 1.0, "gramos": 1.0,
+                "mg": 0.001}
+    TO_CM = {"mm": 0.1, "cm": 1.0, "m": 100.0, "mt": 100.0, "mts": 100.0,
+             "metro": 100.0, "metros": 100.0, "in": 2.54, "inch": 2.54, '"': 2.54}
+
+    @api.model
+    def _description_links(self, description):
+        return [match.group(0).rstrip(".,;") for match in self.LINK_RE.finditer(description or "")]
+
+    @api.model
+    def _description_without_links(self, description):
+        """Saca la oracion entera, no solo la URL.
+
+        Borrar el link y dejar "se puede consultar la pagina oficial en ."
+        queda peor que no decir nada.
+        """
+        cleaned = []
+        for block in (description or "").split("\n"):
+            sentences = [part for part in re.split(r"(?<=[.!?])\s+", block) if part.strip()]
+            kept = [part for part in sentences if not self.LINK_RE.search(part)]
+            if sentences and not kept:
+                continue
+            cleaned.append(" ".join(kept) if sentences else block)
+        text = "\n".join(cleaned)
+        # No dejar tres saltos seguidos donde se borro un parrafo.
+        return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+    @api.model
+    def _measure_suggestion(self, attribute_id, value):
+        """Lo que ML espera para esa medida, o None si ya esta bien."""
+        attribute_id = (attribute_id or "").upper()
+        is_weight = any(hint in attribute_id for hint in self.WEIGHT_HINTS)
+        is_size = any(hint in attribute_id for hint in self.SIZE_HINTS)
+        if not (is_weight or is_size):
+            return None
+        match = self.MEASURE_RE.match(str(value or ""))
+        if not match:
+            return None
+        number, unit = match.group(1), match.group(2).lower()
+        try:
+            amount = float(number.replace(",", "."))
+        except ValueError:
+            return None
+        table = self.TO_GRAMS if is_weight else self.TO_CM
+        target = "g" if is_weight else "cm"
+        if unit not in table:
+            # Sin unidad conocida no se adivina: cambiarla seria inventar.
+            return None
+        converted = amount * table[unit]
+        suggested = "%d %s" % (max(1, int(converted + 0.5)), target)
+        return None if suggested == str(value).strip() else suggested
+
+    @api.model
+    def _draft_checks(self, draft, attributes):
+        """Avisos sobre el borrador, con el arreglo ya calculado."""
+        description = draft.get("description") or ""
+        links = self._description_links(description)
+        measures = []
+        for attribute in attributes or []:
+            suggested = self._measure_suggestion(attribute.get("id"), attribute.get("value"))
+            if suggested:
+                measures.append(
+                    {
+                        "id": attribute.get("id") or "",
+                        "value": attribute.get("value") or "",
+                        "suggested": suggested,
+                    }
+                )
+        return {
+            "links": links,
+            "cleanDescription": self._description_without_links(description) if links else "",
+            "measures": measures,
         }
 
     @api.model
@@ -785,6 +926,38 @@ class CoresaPublication(models.Model):
         return self._editor_payload(payload)
 
     @api.model
+    def fix_draft_issues(self, publication_id):
+        """Aplica los dos arreglos conocidos y revalida.
+
+        Los dos problemas vienen armados de antes: la IA mete el link del
+        proveedor y las medidas llegan como las tiene Coresa. ML da de baja
+        las publicaciones con links afuera, y solo acepta enteros en cm y
+        en g. Se corrige sobre lo que hay guardado, no sobre lo que mando
+        el navegador.
+        """
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        current = self.get_publication(publication_id)
+        checks = current.get("checks") or {}
+        draft = {}
+
+        if checks.get("links"):
+            draft["description"] = checks.get("cleanDescription") or ""
+
+        measures = {row["id"]: row["suggested"] for row in (checks.get("measures") or [])}
+        if measures:
+            # attributes se reemplaza entero: van todos, con los arreglados.
+            draft["attributes"] = [
+                dict(attribute, value=measures.get(attribute["id"], attribute["value"]))
+                for attribute in current["draft"]["attributes"]
+            ]
+
+        if not draft:
+            raise UserError(_("No hay nada para corregir en este borrador."))
+        return self.save_draft(publication_id, draft)
+
+    @api.model
     def publish_one(self, publication_id):
         """Publica una sola, con la respuesta justa para la cola.
 
@@ -916,6 +1089,7 @@ class CoresaPublication(models.Model):
                 "saleTerms": self._attribute_rows(draft.get("sale_terms")),
             },
             "validation": self._validation_rows(payload.get("validation")),
+            "checks": self._draft_checks(draft, self._attribute_rows(draft.get("attributes"))),
             "links": {
                 "classicItemId": payload.get("classicItemId") or "",
                 "premiumItemId": payload.get("premiumItemId") or "",

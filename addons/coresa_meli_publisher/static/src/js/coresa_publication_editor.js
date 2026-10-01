@@ -154,6 +154,40 @@ export class PublicationEditor extends Component {
         );
     }
 
+    get checks() {
+        return (this.state.data && this.state.data.checks) || { links: [], measures: [] };
+    }
+
+    get hasIssues() {
+        return Boolean(this.checks.links.length || this.checks.measures.length);
+    }
+
+    // Saca el link del proveedor y pasa las medidas a enteros en cm y g.
+    // Son los dos motivos por los que ML venia rechazando borradores.
+    async fixIssues() {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.busy = "fix";
+        try {
+            const fixed = await this.orm.call(MODEL, "fix_draft_issues", [this.props.publicationId]);
+            this.applyData(fixed);
+            this.notification.add(
+                fixed.canPublish
+                    ? "Corregido. MercadoLibre ahora lo acepta."
+                    : "Corregido, pero MercadoLibre sigue rechazando algo. Mirá el detalle.",
+                { type: fixed.canPublish ? "success" : "warning" }
+            );
+        } catch (error) {
+            this.notification.add(error?.data?.message || "No se pudo corregir.", {
+                type: "danger",
+                sticky: true,
+            });
+        } finally {
+            this.state.busy = "";
+        }
+    }
+
     // ------------------------------------------------------------------
     async revalidate() {
         if (this.state.busy) {

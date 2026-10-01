@@ -1182,3 +1182,73 @@
 }
 
 .o_cpub_pubrow .o_cpub_more { margin-left: auto; }
+
+/* Avisos de lo que ML rechaza: link externo y medidas mal formateadas. */
+.o_cpub_issues {
+    background: #fdf3e6;
+    border: 1px solid #f3dfc0;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.o_cpub_issues__head { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; }
+.o_cpub_issues__head > i { color: #b45309; font-size: 18px; }
+.o_cpub_issues__head > div { flex: 1 1 260px; }
+.o_cpub_issues__head strong { display: block; font-size: 14px; }
+.o_cpub_issues__head small { color: #8a6a3a; font-size: 11.5px; }
+
+.o_cpub_issues__list { color: #7a5a2a; font-size: 12.5px; margin: 10px 0 0; padding-left: 18px; }
+.o_cpub_issues__list li { margin-bottom: 4px; }
+.o_cpub_issues__list code { background: rgba(255, 255, 255, 0.7); border-radius: 5px; padding: 2px 6px; }
+.o_cpub_issues__list b { color: #5a4420; }
+
+/* Paso 0: lo que Coresa tiene de ese SKU. */
+.o_cpub_skucard {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 14px 18px;
+}
+
+.o_cpub_skucard.is-loading,
+.o_cpub_skucard.is-muted,
+.o_cpub_skucard.is-bad { color: #7a8798; font-size: 12.5px; gap: 9px; }
+.o_cpub_skucard.is-bad { background: #fdf3f2; border-color: #f6cfcb; color: #b42318; }
+.o_cpub_skucard.is-muted { background: #f8fafb; }
+
+.o_cpub_skucard__main { flex: 1 1 280px; min-width: 0; }
+.o_cpub_skucard__main strong { display: block; font-size: 14px; font-weight: 700; }
+.o_cpub_skucard__main small { color: #7a8798; font-size: 12px; }
+.o_cpub_skucard__main b { color: #17303f; }
+
+.o_cpub_skucard__nums { display: flex; gap: 10px; }
+
+.o_cpub_skucard__nums > div {
+    background: #f8fafb;
+    border-radius: 10px;
+    min-width: 130px;
+    padding: 9px 13px;
+}
+
+.o_cpub_skucard__nums small { color: #7a8798; display: block; font-size: 10.5px; }
+.o_cpub_skucard__nums strong { font-size: 17px; font-weight: 750; }
+.o_cpub_skucard__nums em { color: #7a8798; display: block; font-size: 10.5px; font-style: normal; }
+.o_cpub_skucard__nums .is-estimate { background: #eef5f8; }
+.o_cpub_skucard__nums .is-estimate strong { color: #17303f; }
+
+.o_cpub_skuwarn {
+    background: #fdf3e6;
+    border-radius: 10px;
+    color: #b45309;
+    font-size: 12.5px;
+    margin: 0;
+    padding: 10px 13px;
+}
+
+.o_cpub_skuwarn.is-bad { background: #fdeceb; color: #b42318; }
+.o_cpub_skuwarn .o_cpub_more { margin-left: 8px; }
+.o_cpub_empty { color: #94a3b8; font-size: 12.5px; margin: 0; }

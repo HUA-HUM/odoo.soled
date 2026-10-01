@@ -91,6 +91,33 @@
                     </div>
                 </section>
 
+                <!-- Lo que ML rechaza y viene armado de antes. -->
+                <section t-if="hasIssues" class="o_cpub_issues">
+                    <div class="o_cpub_issues__head">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <div>
+                            <strong>Conviene corregir esto antes de publicar</strong>
+                            <small>Se arregla sobre el borrador guardado y se vuelve a validar en MercadoLibre.</small>
+                        </div>
+                        <button type="button" class="o_cpub_primary" t-att-disabled="state.busy"
+                                t-on-click="fixIssues">
+                            <i t-attf-class="fa #{state.busy === 'fix' ? 'fa-spinner fa-spin' : 'fa-wrench'}"/>
+                            <span>Corregir y revalidar</span>
+                        </button>
+                    </div>
+                    <ul class="o_cpub_issues__list">
+                        <li t-if="checks.links.length">
+                            La descripción tiene un link afuera de MercadoLibre
+                            (<b t-esc="checks.links.join(', ')"/>). ML penaliza y puede dar de baja la
+                            publicación: se saca la oración entera, no solo la dirección.
+                        </li>
+                        <li t-foreach="checks.measures" t-as="measure" t-key="measure.id">
+                            <code t-esc="measure.id"/> dice <b t-esc="measure.value"/> y ML solo acepta
+                            enteros, en cm para medidas y en g para peso: queda <b t-esc="measure.suggested"/>.
+                        </li>
+                    </ul>
+                </section>
+
                 <div class="o_cedit_cols">
                     <!-- Columna del aviso -->
                     <div class="o_cedit_main">

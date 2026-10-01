@@ -40,7 +40,8 @@
             <form class="o_cpub_search" t-on-submit="submit">
                 <label class="o_cpub_field">
                     <span>SKU de Coresa</span>
-                    <input type="text" placeholder="Ej: JDPL3606" t-model="state.sku" t-att-disabled="state.loading"/>
+                    <input type="text" placeholder="Ej: JDPL3606" t-model="state.sku"
+                           t-on-input="onSkuInput" t-att-disabled="state.loading"/>
                 </label>
                 <label class="o_cpub_field is-narrow">
                     <span>Tipo</span>
@@ -62,12 +63,67 @@
                         </option>
                     </select>
                 </label>
-                <button type="submit" class="o_cpub_primary" t-att-disabled="state.loading">
+                <button type="submit" class="o_cpub_primary" t-att-disabled="state.loading || duplicateVariant">
                     <i t-attf-class="fa #{state.loading ? 'fa-spinner fa-spin' : 'fa-magic'}"/>
                     <span t-esc="state.loading ? 'Armando...' : 'Previsualizar'"/>
                 </button>
                 <small>Tipo, unidades y modalidad definen el precio, el stock y la publicación: el mismo SKU se puede publicar varias veces distinto. Tarda unos segundos: consulta Coresa, pide categoría y validación a ML y redacta el aviso.</small>
             </form>
+
+            <!-- Paso 0: el empaque y el precio de Coresa, antes de armar nada. -->
+            <section t-if="state.lookingUp" class="o_cpub_skucard is-loading">
+                <i class="fa fa-spinner fa-spin"/> <span>Buscando el SKU en Coresa...</span>
+            </section>
+
+            <section t-elif="state.skuInfo &amp;&amp; !state.skuInfo.available" class="o_cpub_skucard is-muted">
+                <i class="fa fa-info-circle"/>
+                <span>Los datos de empaque y precio unitario todavía no están disponibles en coresa-api; el borrador se arma igual.</span>
+            </section>
+
+            <section t-elif="state.skuInfo &amp;&amp; !state.skuInfo.found" class="o_cpub_skucard is-bad">
+                <i class="fa fa-times-circle"/>
+                <span>Ese SKU no está en el catálogo de Coresa.</span>
+            </section>
+
+            <section t-elif="skuInfo" class="o_cpub_skucard">
+                <div class="o_cpub_skucard__main">
+                    <strong t-esc="skuInfo.description || skuInfo.sku"/>
+                    <small>
+                        <t t-if="skuInfo.package">
+                            Coresa lo trae en <b>cajas de <t t-esc="formatUnits(skuInfo.package)"/></b>
+                            · <t t-esc="formatUnits(skuInfo.packages)"/> cajas disponibles
+                            (<t t-esc="formatUnits(skuInfo.available_qty)"/> unidades)
+                        </t>
+                        <t t-else="">
+                            <t t-esc="formatUnits(skuInfo.available_qty)"/> unidades disponibles
+                        </t>
+                    </small>
+                </div>
+                <div class="o_cpub_skucard__nums">
+                    <div>
+                        <small>Unitario de Coresa</small>
+                        <strong t-esc="formatMoney(skuInfo.unitPrice)"/>
+                    </div>
+                    <div class="is-estimate">
+                        <small>Precio estimado</small>
+                        <strong t-esc="formatMoney(estimatedPrice)"/>
+                        <em><t t-esc="formatUnits(estimatedStock)"/> publicaciones</em>
+                    </div>
+                </div>
+            </section>
+
+            <p t-if="unitSaleWarning" class="o_cpub_skuwarn">
+                <i class="fa fa-exclamation-triangle"/> <t t-esc="unitSaleWarning"/>
+            </p>
+
+            <p t-if="duplicateVariant" class="o_cpub_skuwarn is-bad">
+                <i class="fa fa-ban"/>
+                Este SKU ya está publicado con esa combinación
+                (<b t-esc="duplicateVariant.mla || 'sin MLA'"/>): MercadoLibre tendría dos avisos iguales.
+                Cambiá el tipo, las unidades o la modalidad.
+                <button t-if="duplicateVariant.permalink" type="button" class="o_cpub_more"
+                        t-on-click="() => this.openLink(duplicateVariant.permalink)">Ver la que existe</button>
+            </p>
 
             <section t-if="state.error" class="o_cpub_state is-error" role="alert">
                 <i class="fa fa-exclamation-circle"/>
@@ -126,6 +182,33 @@
                             <t t-esc="attribute"/><t t-if="!attribute_last">, </t>
                         </b>
                     </p>
+                </section>
+
+                <!-- Lo que ML rechaza y viene armado de antes. -->
+                <section t-if="hasIssues" class="o_cpub_issues">
+                    <div class="o_cpub_issues__head">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <div>
+                            <strong>Conviene corregir esto antes de publicar</strong>
+                            <small>Se arregla sobre el borrador guardado y se vuelve a validar en MercadoLibre.</small>
+                        </div>
+                        <button type="button" class="o_cpub_primary" t-att-disabled="state.fixing"
+                                t-on-click="fixIssues">
+                            <i t-attf-class="fa #{state.fixing ? 'fa-spinner fa-spin' : 'fa-wrench'}"/>
+                            <span>Corregir y revalidar</span>
+                        </button>
+                    </div>
+                    <ul class="o_cpub_issues__list">
+                        <li t-if="checks.links.length">
+                            La descripción tiene un link afuera de MercadoLibre
+                            (<b t-esc="checks.links.join(', ')"/>). ML penaliza y puede dar de baja la
+                            publicación: se saca la oración entera, no solo la dirección.
+                        </li>
+                        <li t-foreach="checks.measures" t-as="measure" t-key="measure.id">
+                            <code t-esc="measure.id"/> dice <b t-esc="measure.value"/> y ML solo acepta
+                            enteros, en cm para medidas y en g para peso: queda <b t-esc="measure.suggested"/>.
+                        </li>
+                    </ul>
                 </section>
 
                 <!-- La cuenta del precio: es la que mas preguntas genera. -->

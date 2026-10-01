@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onMounted, onWillStart, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, onWillUnmount, useState } from "@odoo/owl";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -33,8 +33,13 @@ class PublisherPreviewTab extends Component {
             // publicacion: el mismo SKU se publica varias veces distinto.
             variant: { listingType: "gold_special", units: 1, modalidad: "contado" },
             modalidades: [],
+            // Paso 0: lo que Coresa tiene de ese SKU, para elegir las
+            // unidades sabiendo con que se cuenta.
+            skuInfo: null,
+            lookingUp: false,
             data: null,
             loading: false,
+            fixing: false,
             error: "",
             // La descripcion la escribe un modelo y es larga: arranca plegada.
             descriptionOpen: false,
@@ -50,12 +55,140 @@ class PublisherPreviewTab extends Component {
         });
 
         if (this.props.sku) {
-            onMounted(() => this.runPreview(null));
+            onMounted(() => {
+                this.lookupSku();
+                this.runPreview(null);
+            });
         }
+
+        // El SKU se consulta mientras se escribe, pero no en cada tecla.
+        this._lookupTimer = null;
+        onWillUnmount(() => clearTimeout(this._lookupTimer));
+    }
+
+    onSkuInput() {
+        this.state.skuInfo = null;
+        clearTimeout(this._lookupTimer);
+        this._lookupTimer = setTimeout(() => this.lookupSku(), 500);
+    }
+
+    async lookupSku() {
+        const sku = this.state.sku.trim();
+        if (!sku) {
+            this.state.skuInfo = null;
+            return;
+        }
+        this.state.lookingUp = true;
+        try {
+            const info = await this.orm.call(MODEL, "get_sku_info", [sku]);
+            this.state.skuInfo = info;
+            // Coresa cotiza por su empaque: publicar por empaque deja el
+            // precio exacto que compone el proveedor.
+            if (info.found && info.suggestedUnits) {
+                this.state.variant.units = info.suggestedUnits;
+            }
+        } catch (error) {
+            this.state.skuInfo = null;
+        } finally {
+            this.state.lookingUp = false;
+        }
+    }
+
+    get skuInfo() {
+        return this.state.skuInfo && this.state.skuInfo.found ? this.state.skuInfo : null;
+    }
+
+    get modalidadFactor() {
+        const found = this.state.modalidades.find(
+            (one) => one.modalidad === this.state.variant.modalidad
+        );
+        return (found || {}).coeficiente || 1;
+    }
+
+    // Con el precio unitario y el coeficiente alcanza: el precio se mueve
+    // con las unidades sin pedirle nada a la API.
+    get estimatedPrice() {
+        const info = this.skuInfo;
+        if (!info || !info.unitPrice) {
+            return 0;
+        }
+        return info.unitPrice * (Number(this.state.variant.units) || 1) * this.modalidadFactor;
+    }
+
+    get estimatedStock() {
+        const info = this.skuInfo;
+        const units = Number(this.state.variant.units) || 1;
+        return info ? Math.floor((info.available_qty || 0) / units) : 0;
+    }
+
+    // Coresa marca que no se vende suelto: es un aviso, no un bloqueo.
+    get unitSaleWarning() {
+        const info = this.skuInfo;
+        if (!info || info.unitSale || !info.package) {
+            return "";
+        }
+        const units = Number(this.state.variant.units) || 1;
+        if (units >= info.package) {
+            return "";
+        }
+        return `Coresa marca este producto como no vendible por unidad y lo trae en ${this.formatUnits(
+            info.package
+        )}. Estás por publicarlo de a ${this.formatUnits(units)}.`;
+    }
+
+    // La combinación ya publicada da 409: mejor avisar antes de gastar el
+    // preview, que llama a OpenAI.
+    get duplicateVariant() {
+        const info = this.skuInfo;
+        const variant = this.state.variant;
+        const candidates = (info && info.publishedVariants) || this.publishedVariants;
+        return (
+            candidates.find(
+                (one) =>
+                    one.listingType === variant.listingType &&
+                    Number(one.units) === Number(variant.units) &&
+                    one.modalidad === variant.modalidad
+            ) || null
+        );
     }
 
     get modalidadLabel() {
         return this.modalidadName(this.state.variant.modalidad);
+    }
+
+    get checks() {
+        return (this.state.data && this.state.data.checks) || { links: [], measures: [] };
+    }
+
+    get hasIssues() {
+        return Boolean(this.checks.links.length || this.checks.measures.length);
+    }
+
+    // Los dos problemas vienen armados de antes; el panel es el ultimo lugar
+    // donde se pueden sacar antes de que ML los rechace (o de baja).
+    async fixIssues() {
+        if (this.state.fixing) {
+            return;
+        }
+        this.state.fixing = true;
+        try {
+            const fixed = await this.orm.call(MODEL, "fix_draft_issues", [
+                this.state.data.publicationId,
+            ]);
+            // La respuesta es la del editor: se mezcla para no perder la
+            // variante ni la cuenta del precio, que solo trae el preview.
+            Object.assign(this.state.data, {
+                status: fixed.status,
+                draft: Object.assign({}, this.state.data.draft, fixed.draft),
+                validation: fixed.validation,
+                missing: fixed.missing,
+                checks: fixed.checks,
+            });
+        } catch (error) {
+            this.state.error = error?.data?.message || "No se pudo corregir el borrador.";
+        } finally {
+            this.state.fixing = false;
+        }
     }
 
     get publishedVariants() {
