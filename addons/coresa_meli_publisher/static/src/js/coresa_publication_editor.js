@@ -25,6 +25,7 @@ export class PublicationEditor extends Component {
     static props = {
         publicationId: { type: Number },
         onClose: { type: Function, optional: true },
+        onPublishAgain: { type: Function, optional: true },
     };
 
     setup() {
@@ -39,6 +40,9 @@ export class PublicationEditor extends Component {
             busy: "",
             error: "",
             dirty: false,
+            // El borrado es irreversible: se pide escribir el SKU, no un
+            // "¿estás seguro?".
+            deleting: { open: false, typed: "", result: null },
         });
 
         onWillStart(() => this.load());
@@ -279,6 +283,74 @@ export class PublicationEditor extends Component {
             });
         } finally {
             this.state.busy = "";
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Eliminar: ML cierra el item y un item cerrado no se reactiva.
+    // ------------------------------------------------------------------
+    get canDelete() {
+        const data = this.state.data;
+        if (!data) {
+            return false;
+        }
+        return Boolean(data.links.classicItemId || data.links.permalink || data.status === "published");
+    }
+
+    get deleteConfirmed() {
+        const data = this.state.data;
+        return Boolean(
+            data && this.state.deleting.typed.trim().toUpperCase() === (data.sku || "").toUpperCase()
+        );
+    }
+
+    toggleDelete() {
+        this.state.deleting.open = !this.state.deleting.open;
+        this.state.deleting.typed = "";
+    }
+
+    async confirmDelete() {
+        if (!this.deleteConfirmed || this.state.busy) {
+            return;
+        }
+        this.state.busy = "delete";
+        try {
+            const result = await this.orm.call(MODEL, "delete_publication", [
+                this.props.publicationId,
+                this.state.deleting.typed.trim(),
+            ]);
+            this.state.deleting.result = result;
+            this.state.deleting.open = false;
+            this.applyData(result.publication);
+            this.notification.add("La publicación se eliminó de MercadoLibre.", { type: "success" });
+            // Lo que quedo a medias hay que accionarlo a mano, y lo mas
+            // urgente es lo que sigue en el actualizador.
+            if (result.pendingSync.length) {
+                this.notification.add(
+                    "Quedó en el actualizador: le van a seguir escribiendo precio y stock. Sacalo a mano.",
+                    { type: "danger", sticky: true }
+                );
+            }
+            if (result.pendingMeli.length) {
+                this.notification.add(
+                    "MercadoLibre no la cerró: hay que darla de baja desde ML.",
+                    { type: "warning", sticky: true }
+                );
+            }
+        } catch (error) {
+            this.notification.add(error?.data?.message || "No se pudo eliminar.", {
+                type: "danger",
+                sticky: true,
+            });
+        } finally {
+            this.state.busy = "";
+        }
+    }
+
+    // Eliminar libera el SKU: el control de duplicados ya no lo bloquea.
+    publishAgain() {
+        if (this.props.onPublishAgain) {
+            this.props.onPublishAgain(this.state.data.sku);
         }
     }
 

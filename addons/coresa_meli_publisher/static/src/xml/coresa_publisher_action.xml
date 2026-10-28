@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="coresa_meli_publisher.PublisherAction" owl="1">
         <div class="o_cpub_page">
-            <PublicationEditor t-if="state.editingId" publicationId="state.editingId" onClose.bind="closeEditor"/>
+            <PublicationEditor t-if="state.editingId" publicationId="state.editingId" onClose.bind="closeEditor" onPublishAgain.bind="publishAgain"/>
 
             <t t-else="">
             <section class="o_cpub_header">
@@ -45,7 +45,8 @@
                 </label>
                 <label class="o_cpub_field is-narrow">
                     <span>Tipo</span>
-                    <select t-model="state.variant.listingType" t-att-disabled="state.loading">
+                    <select t-model="state.variant.listingType" t-on-change="onListingTypeChange"
+                            t-att-disabled="state.loading">
                         <option value="gold_special">Clásica</option>
                         <option value="gold_pro">Premium</option>
                     </select>
@@ -57,7 +58,7 @@
                 <label class="o_cpub_field is-narrow">
                     <span>Modalidad</span>
                     <select t-model="state.variant.modalidad" t-att-disabled="state.loading">
-                        <option t-foreach="state.modalidades" t-as="modalidad" t-key="modalidad.modalidad"
+                        <option t-foreach="availableModalidades" t-as="modalidad" t-key="modalidad.modalidad"
                                 t-att-value="modalidad.modalidad">
                             <t t-esc="modalidad.label"/>
                         </option>
@@ -67,7 +68,7 @@
                     <i t-attf-class="fa #{state.loading ? 'fa-spinner fa-spin' : 'fa-magic'}"/>
                     <span t-esc="state.loading ? 'Armando...' : 'Previsualizar'"/>
                 </button>
-                <small>Tipo, unidades y modalidad definen el precio, el stock y la publicación: el mismo SKU se puede publicar varias veces distinto. Tarda unos segundos: consulta Coresa, pide categoría y validación a ML y redacta el aviso.</small>
+                <small>Tipo, unidades y modalidad definen el precio, el stock y la publicación: el mismo SKU se puede publicar varias veces distinto. <t t-esc="modalidadHint"/> Tarda unos segundos: consulta Coresa, pide categoría y validación a ML y redacta el aviso.</small>
             </form>
 
             <!-- Paso 0: el empaque y el precio de Coresa, antes de armar nada. -->
@@ -91,6 +92,7 @@
                     <small>
                         <t t-if="skuInfo.package">
                             Coresa lo trae en <b>cajas de <t t-esc="formatUnits(skuInfo.package)"/></b>
+                            <t t-if="skuInfo.packageSource"> (<t t-esc="packageSourceLabel(skuInfo.packageSource)"/>)</t>
                             · <t t-esc="formatUnits(skuInfo.packages)"/> cajas disponibles
                             (<t t-esc="formatUnits(skuInfo.available_qty)"/> unidades)
                         </t>
@@ -259,7 +261,12 @@
                 <!-- La categoria manda: cada una pide otros atributos. -->
                 <section class="o_cpub_block">
                     <h3>Categoría</h3>
-                    <p class="o_cpub_hint">Cada categoría tiene sus propios atributos obligatorios. Si elegís otra, el borrador se arma de nuevo.</p>
+                    <p class="o_cpub_hint">
+                        Cada categoría tiene sus propios atributos obligatorios. Si elegís otra, el borrador se arma de nuevo.
+                        <t t-if="state.data.categoryQuery">
+                            Se la pidió a MercadoLibre con: «<b t-esc="state.data.categoryQuery"/>».
+                        </t>
+                    </p>
                     <div class="o_cpub_cats">
                         <button t-foreach="state.data.suggestions" t-as="suggestion" t-key="suggestion.id" type="button"
                                 t-attf-class="o_cpub_cat #{suggestion.id === state.data.categoryId ? 'is-active' : ''}"

@@ -152,6 +152,33 @@ class PublisherPreviewTab extends Component {
         );
     }
 
+    // ML no ofrece las mismas cuotas en los dos tipos: el desplegable se
+    // recorta en vez de dejar que la API devuelva 400.
+    get availableModalidades() {
+        const type = this.state.variant.listingType;
+        return this.state.modalidades.filter(
+            (one) => !one.listingTypes || one.listingTypes.includes(type)
+        );
+    }
+
+    get modalidadHint() {
+        return this.state.variant.listingType === "gold_pro"
+            ? "En premium se pueden ofrecer 3, 6, 9 y 12 cuotas."
+            : "En clásica solo hay contado y cuota promocionada: las cuotas son de premium.";
+    }
+
+    onListingTypeChange() {
+        const allowed = this.availableModalidades.map((one) => one.modalidad);
+        if (!allowed.includes(this.state.variant.modalidad)) {
+            this.state.variant.modalidad = allowed.includes("contado") ? "contado" : allowed[0] || "";
+        }
+    }
+
+    packageSourceLabel(source) {
+        const labels = { master: "caja master", intermedia: "caja intermedia", intermediate: "caja intermedia" };
+        return labels[source] || source || "";
+    }
+
     get modalidadLabel() {
         return this.modalidadName(this.state.variant.modalidad);
     }
@@ -614,6 +641,13 @@ class CoresaPublisherAction extends Component {
 
     closeEditor() {
         this.state.editingId = 0;
+    }
+
+    // Despues de eliminar, el SKU queda libre para volver a publicarlo.
+    publishAgain(sku) {
+        this.state.editingId = 0;
+        this.state.previewSku = sku || "";
+        this.state.tab = "preview";
     }
 }
 

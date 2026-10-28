@@ -34,6 +34,10 @@
                             <i t-attf-class="fa #{state.busy === 'save' ? 'fa-spinner fa-spin' : 'fa-check'}"/>
                             Guardar y revalidar
                         </button>
+                        <button t-if="canDelete" type="button" class="o_cedit_delete" t-att-disabled="state.busy"
+                                t-on-click="toggleDelete">
+                            <i class="fa fa-trash-o"/> Eliminar
+                        </button>
                         <button type="button" class="o_cpub_primary" t-att-disabled="state.busy || !canPublish"
                                 t-attf-title="#{canPublish ? 'Crea la publicación real en MercadoLibre' : 'Solo se publica cuando MercadoLibre acepta el borrador'}"
                                 t-on-click="publish">
@@ -42,6 +46,49 @@
                         </button>
                     </div>
                 </header>
+
+                <!-- Escribir el SKU: el borrado no se deshace. -->
+                <section t-if="state.deleting.open" class="o_cedit_danger">
+                    <strong><i class="fa fa-exclamation-triangle"/> Esto no se puede deshacer</strong>
+                    <p>
+                        MercadoLibre cierra la publicación y un ítem cerrado no se puede reactivar.
+                        También se saca del actualizador, así que deja de recibir precio y stock.
+                        El registro queda como descartado: se borra la publicación, no la historia.
+                    </p>
+                    <div class="o_cedit_danger__form">
+                        <label>
+                            <span>Escribí <b t-esc="state.data.sku"/> para confirmar</span>
+                            <input type="text" class="o_cedit_input" t-model="state.deleting.typed"
+                                   t-att-disabled="state.busy" placeholder="SKU"/>
+                        </label>
+                        <button type="button" class="o_cedit_delete is-solid"
+                                t-att-disabled="!deleteConfirmed || state.busy" t-on-click="confirmDelete">
+                            <i t-attf-class="fa #{state.busy === 'delete' ? 'fa-spinner fa-spin' : 'fa-trash-o'}"/>
+                            Eliminar definitivamente
+                        </button>
+                        <button type="button" class="o_cedit_ghost" t-att-disabled="state.busy" t-on-click="toggleDelete">
+                            Cancelar
+                        </button>
+                    </div>
+                </section>
+
+                <section t-if="state.deleting.result" class="o_cedit_deleted">
+                    <strong>Publicación eliminada</strong>
+                    <div t-foreach="state.deleting.result.listings" t-as="listing" t-key="listing.mla || listing_index"
+                         class="o_cedit_deleted__row">
+                        <code t-esc="listing.mla || '—'"/>
+                        <span t-attf-class="o_cpub_pill #{listing.deleted ? 'is-green' : 'is-red'}">
+                            <t t-esc="listing.deleted ? 'cerrada en ML' : 'sigue en ML'"/>
+                        </span>
+                        <span t-attf-class="o_cpub_pill #{listing.unlinked ? 'is-green' : 'is-red'}">
+                            <t t-esc="listing.unlinked ? 'fuera del actualizador' : 'sigue en el actualizador'"/>
+                        </span>
+                        <small t-if="listing.error" t-esc="listing.error"/>
+                    </div>
+                    <button type="button" class="o_cedit_ghost" t-on-click="publishAgain">
+                        <i class="fa fa-magic"/> Volver a publicar <t t-esc="state.data.sku"/>
+                    </button>
+                </section>
 
                 <p t-if="state.dirty" class="o_cedit_dirty">
                     <i class="fa fa-pencil"/> Hay cambios sin guardar. Publicar se habilita recién después de revalidar.

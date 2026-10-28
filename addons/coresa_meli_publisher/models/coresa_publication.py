@@ -159,11 +159,13 @@ class CoresaPublication(models.Model):
                 )
             )
         url = "%s%s" % (self._api_base_url(), path)
+        # payload=None va sin cuerpo: el DELETE no manda nada.
+        body = {} if payload is None and method.upper() != "DELETE" else payload
         try:
             response = requests.request(
                 method,
                 url,
-                json=payload or {},
+                json=body,
                 headers={
                     "Content-Type": "application/json",
                     "x-internal-api-key": api_key,
@@ -302,6 +304,12 @@ class CoresaPublication(models.Model):
             "description": payload.get("descripcion") or "",
             "brand": payload.get("marca") or "",
             "package": package,
+            # Coresa manda dos cantidades y en media catalogo la intermedia
+            # viene en 0: ahi la caja real es la master. Decir cual se uso
+            # evita que el numero parezca inventado.
+            "packageSource": payload.get("empaqueOrigen") or "",
+            "packageIntermediate": self._as_int(payload.get("cantidadIntermedia")),
+            "packageMaster": self._as_int(payload.get("cantidadMaster")),
             "packagePrice": self._as_float(payload.get("precioEmpaque")),
             "unitPrice": self._as_float(payload.get("precioUnitario")),
             "available_qty": self._as_int(payload.get("disponible")),
@@ -321,6 +329,25 @@ class CoresaPublication(models.Model):
             ],
         }
 
+    # ML no ofrece las mismas cuotas en los dos tipos: las de 3, 6, 9 y 12
+    # solo existen en premium, y la promocionada solo en clasica. Pedir la
+    # combinacion que no va devuelve 400, asi que el desplegable se filtra.
+    CLASSIC = "gold_special"
+    PREMIUM = "gold_pro"
+
+    @api.model
+    def _modalidad_listing_types(self, modalidad):
+        modalidad = (modalidad or "").strip().lower()
+        if modalidad == "contado":
+            return [self.CLASSIC, self.PREMIUM]
+        if modalidad == "cuota_promocionada":
+            return [self.CLASSIC]
+        if re.match(r"^\d+_cuotas$", modalidad):
+            return [self.PREMIUM]
+        # Una modalidad nueva que no sabemos clasificar se ofrece en las dos
+        # y que decida la API, en vez de esconderla.
+        return [self.CLASSIC, self.PREMIUM]
+
     @api.model
     def get_modalidades(self, only_active=True):
         """Las modalidades de cuotas con su coeficiente.
@@ -339,6 +366,7 @@ class CoresaPublication(models.Model):
                 "costo": self._as_float(item.get("costo")),
                 "coeficiente": self._as_float(item.get("coeficiente")),
                 "activa": bool(item.get("activa")),
+                "listingTypes": self._modalidad_listing_types(item.get("modalidad")),
             }
             for item in (items or [])
             if isinstance(item, dict) and item.get("modalidad")
@@ -368,6 +396,9 @@ class CoresaPublication(models.Model):
             "categoryId": category_id,
             "categoryName": (current or {}).get("name", ""),
             "categoryDomain": (current or {}).get("domain", ""),
+            # Con que texto se le pregunto la categoria a ML: cuando elige
+            # una rara, aca se ve por que.
+            "categoryQuery": payload.get("categoryQuery") or "",
             "suggestions": suggestions,
             # Los que ML pide para esta categoria y el borrador no trae: son
             # los que hacen fallar la validacion.
@@ -383,6 +414,8 @@ class CoresaPublication(models.Model):
                 "pictures": [str(one) for one in (draft.get("pictures") or [])],
                 "description": draft.get("description") or "",
                 "listingTypes": [str(one) for one in (draft.get("listing_types") or [])],
+                # Las cuotas viajan como tag de campaña en el borrador.
+                "tags": [str(one) for one in (draft.get("tags") or [])],
                 "shipping": {
                     "mode": shipping.get("mode") or "",
                     "freeShipping": bool(shipping.get("free_shipping")),
@@ -956,6 +989,52 @@ class CoresaPublication(models.Model):
         if not draft:
             raise UserError(_("No hay nada para corregir en este borrador."))
         return self.save_draft(publication_id, draft)
+
+    @api.model
+    def delete_publication(self, publication_id, confirm_sku):
+        """Da de baja la publicacion en MercadoLibre.
+
+        No tiene vuelta atras: ML cierra el item y un item cerrado no se
+        puede reactivar. Por eso pide que se escriba el SKU y no alcanza
+        con apretar un boton.
+
+        La API hace tres cosas: elimina en ML, saca la fila del
+        actualizador aunque ML haya fallado, y deja el registro en
+        discarded. Lo que se quiso dar de baja no puede seguir recibiendo
+        precio y stock.
+        """
+        publication_id = self._as_int(publication_id)
+        if not publication_id:
+            raise UserError(_("Publicación inválida."))
+        current = self.get_publication(publication_id)
+        typed = str(confirm_sku or "").strip()
+        if typed.upper() != (current.get("sku") or "").strip().upper():
+            raise UserError(
+                _("Para eliminarla hay que escribir el SKU tal cual: %s.") % current.get("sku")
+            )
+
+        payload = self._api_request(
+            "DELETE", "/coresa/publications/%s" % publication_id, None
+        )
+        listings = [
+            {
+                "mla": entry.get("mla") or "",
+                "deleted": bool(entry.get("deleted")),
+                "unlinked": bool(entry.get("unlinked")),
+                "error": entry.get("error") or "",
+            }
+            for entry in ((payload or {}).get("listings") or [])
+            if isinstance(entry, dict)
+        ]
+        return {
+            "sku": (payload or {}).get("sku") or current.get("sku") or "",
+            "listings": listings,
+            # Lo que queda sin cerrar en ML o sin sacar del actualizador es
+            # lo unico que hay que accionar a mano.
+            "pendingMeli": [one for one in listings if not one["deleted"]],
+            "pendingSync": [one for one in listings if not one["unlinked"]],
+            "publication": self.get_publication(publication_id),
+        }
 
     @api.model
     def publish_one(self, publication_id):
