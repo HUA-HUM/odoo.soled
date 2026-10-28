@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
     <t t-name="coresa_meli_publisher.PublisherAction" owl="1">
         <div class="o_cpub_page">
-            <PublicationEditor t-if="state.editingId" publicationId="state.editingId" onClose.bind="closeEditor" onPublishAgain.bind="publishAgain"/>
+            <PublicationEditor t-if="state.editingId" publicationId="state.editingId" onClose.bind="closeEditor"/>
 
             <t t-else="">
             <section class="o_cpub_header">
@@ -26,10 +26,15 @@
                         t-on-click="() => this.setTab('registry')">
                     <i class="fa fa-history"/> Registros
                 </button>
+                <button type="button" t-attf-class="o_cpub_tab is-danger #{state.tab === 'delete' ? 'is-active' : ''}"
+                        t-on-click="() => this.setTab('delete')">
+                    <i class="fa fa-trash-o"/> Eliminar
+                </button>
             </nav>
 
             <PublisherPreviewTab t-if="state.tab === 'preview'" sku="state.previewSku"/>
             <PublisherQueueTab t-elif="state.tab === 'queue'" onPreview.bind="openPreview" onEdit.bind="openEditor"/>
+            <PublisherDeleteTab t-elif="state.tab === 'delete'" onPublishAgain.bind="publishAgain"/>
             <PublicationsEmbedded t-else="" onOpen.bind="openEditor"/>
             </t>
         </div>
@@ -459,6 +464,132 @@
                     <strong>No hay nada listo para publicar.</strong>
                     <span>Acá aparecen los borradores que MercadoLibre ya acepta. Los que todavía rechaza están en Registros.</span>
                 </section>
+            </t>
+        </div>
+    </t>
+
+    <!-- Pestaña 4: dar de baja una publicación. No se deshace. -->
+    <t t-name="coresa_meli_publisher.PublisherDeleteTab" owl="1">
+        <div class="o_cpub_tabpane">
+            <p class="o_cpub_lead">
+                Para una publicación que salió mal y hay que rehacerla. <b>No se deshace:</b> MercadoLibre
+                cierra el ítem y un ítem cerrado no se puede reactivar. También se saca del actualizador,
+                así que deja de recibir precio y stock, y el registro queda como descartado.
+            </p>
+
+            <section class="o_cpub_switchbar">
+                <div class="o_cpub_chips">
+                    <button type="button" t-attf-class="o_cpub_chip #{state.status === 'published' ? 'is-active' : ''}"
+                            t-on-click="() => this.setStatus('published')">
+                        Publicadas <b t-esc="formatUnits(counterFor('published'))"/>
+                    </button>
+                    <button type="button" t-attf-class="o_cpub_chip #{state.status === 'partial' ? 'is-active' : ''}"
+                            t-on-click="() => this.setStatus('partial')">
+                        Parciales <b t-esc="formatUnits(counterFor('partial'))"/>
+                    </button>
+                </div>
+
+                <form class="o_cpub_searchform" t-on-submit="applySearch">
+                    <input type="text" placeholder="Buscar por SKU" t-model="state.search" t-att-disabled="state.loading"/>
+                    <button type="submit" class="o_cpub_apply" t-att-disabled="state.loading">Buscar</button>
+                    <button type="button" class="o_cpub_more" t-if="state.search" t-on-click="resetSearch"
+                            t-att-disabled="state.loading">Limpiar</button>
+                </form>
+            </section>
+
+            <section t-if="state.error" class="o_cpub_state is-error" role="alert">
+                <i class="fa fa-exclamation-circle"/>
+                <strong t-esc="state.error"/>
+            </section>
+
+            <section t-elif="state.loading" class="o_cpub_state">
+                <i class="fa fa-spinner fa-spin"/>
+                <strong>Cargando publicaciones...</strong>
+            </section>
+
+            <t t-else="">
+                <section t-if="state.items.length" class="o_cpub_dellist">
+                    <article t-foreach="state.items" t-as="row" t-key="row.id"
+                             t-attf-class="o_cpub_delrow #{state.target &amp;&amp; state.target.id === row.id ? 'is-target' : ''} #{resultFor(row) ? 'is-done' : ''}">
+                        <div class="o_cpub_delrow__head">
+                            <code t-esc="row.sku"/>
+                            <strong t-esc="row.title || 'Sin título'"/>
+                        </div>
+
+                        <div class="o_cpub_delrow__meta">
+                            <span t-if="row.classicItemId" class="o_cpub_pill is-gray" t-esc="row.classicItemId"/>
+                            <span t-esc="formatMoney(row.price)"/>
+                            <span><t t-esc="formatUnits(row.availableQuantity)"/> en stock</span>
+                            <span t-esc="formatDate(row.publishedAt || row.createdAt)"/>
+                            <button t-if="row.permalink" type="button" class="o_cpub_more"
+                                    t-on-click="() => this.openLink(row.permalink)">Ver en ML</button>
+                            <button t-elif="row.classicItemId" type="button" class="o_cpub_more"
+                                    t-on-click="() => this.openMeli(row.classicItemId)">Ver en ML</button>
+                        </div>
+
+                        <!-- Resultado del borrado, fila por fila. -->
+                        <div t-if="resultFor(row)" class="o_cpub_delresult">
+                            <div t-foreach="resultFor(row).listings" t-as="listing"
+                                 t-key="listing.mla || listing_index" class="o_cpub_delresult__row">
+                                <code t-esc="listing.mla || '—'"/>
+                                <span t-attf-class="o_cpub_pill #{listing.deleted ? 'is-green' : 'is-red'}">
+                                    <t t-esc="listing.deleted ? 'cerrada en ML' : 'sigue en ML'"/>
+                                </span>
+                                <span t-attf-class="o_cpub_pill #{listing.unlinked ? 'is-green' : 'is-red'}">
+                                    <t t-esc="listing.unlinked ? 'fuera del actualizador' : 'sigue en el actualizador'"/>
+                                </span>
+                                <small t-if="listing.error" t-esc="listing.error"/>
+                            </div>
+                            <button type="button" class="o_cedit_ghost" t-on-click="() => this.publishAgain(row.sku)">
+                                <i class="fa fa-magic"/> Volver a publicar <t t-esc="row.sku"/>
+                            </button>
+                        </div>
+
+                        <!-- Confirmación: hay que escribir el SKU. -->
+                        <div t-elif="state.target &amp;&amp; state.target.id === row.id" class="o_cedit_danger">
+                            <strong><i class="fa fa-exclamation-triangle"/> Esto no se puede deshacer</strong>
+                            <p>
+                                Se cierra <b t-esc="row.classicItemId || 'la publicación'"/> en MercadoLibre y se saca
+                                del actualizador. El registro queda como descartado: se borra la publicación, no la historia.
+                            </p>
+                            <div class="o_cedit_danger__form">
+                                <label>
+                                    <span>Escribí <b t-esc="row.sku"/> para confirmar</span>
+                                    <input type="text" class="o_cedit_input" t-model="state.typed"
+                                           t-att-disabled="state.busy" placeholder="SKU"/>
+                                </label>
+                                <button type="button" class="o_cedit_delete is-solid"
+                                        t-att-disabled="!confirmed || state.busy" t-on-click="confirmDelete">
+                                    <i t-attf-class="fa #{state.busy ? 'fa-spinner fa-spin' : 'fa-trash-o'}"/>
+                                    Eliminar definitivamente
+                                </button>
+                                <button type="button" class="o_cedit_ghost" t-att-disabled="state.busy" t-on-click="cancel">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div t-else="" class="o_cpub_delrow__actions">
+                            <button type="button" class="o_cedit_delete" t-on-click="() => this.pick(row)">
+                                <i class="fa fa-trash-o"/> Eliminar
+                            </button>
+                        </div>
+                    </article>
+                </section>
+
+                <section t-else="" class="o_cpub_state">
+                    <i class="fa fa-inbox"/>
+                    <strong>No hay publicaciones en este corte.</strong>
+                </section>
+
+                <footer t-if="state.items.length" class="o_cpub_pager">
+                    <span t-esc="rangeLabel"/>
+                    <div>
+                        <button type="button" t-on-click="previousPage" t-att-disabled="!hasPrevious">Anterior</button>
+                        <span>Página <t t-esc="currentPage"/> de <t t-esc="totalPages"/></span>
+                        <button type="button" t-on-click="nextPage" t-att-disabled="!hasNext">Siguiente</button>
+                    </div>
+                </footer>
             </t>
         </div>
     </t>

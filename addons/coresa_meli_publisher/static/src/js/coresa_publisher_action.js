@@ -610,11 +610,249 @@ class PublisherQueueTab extends Component {
 }
 
 /* ------------------------------------------------------------------ */
-/* El contenedor con las tres pestañas                                 */
+/* Pestaña 4: dar de baja una publicación                              */
+/* ------------------------------------------------------------------ */
+class PublisherDeleteTab extends Component {
+    static template = "coresa_meli_publisher.PublisherDeleteTab";
+    static props = { onPublishAgain: { type: Function, optional: true } };
+
+    setup() {
+        this.orm = useService("orm");
+        this.notification = useService("notification");
+        this.state = useState({
+            items: [],
+            counters: {},
+            total: 0,
+            limit: 24,
+            offset: 0,
+            status: "published",
+            search: "",
+            // La fila que se esta por eliminar y el SKU que se escribio.
+            target: null,
+            typed: "",
+            busy: false,
+            // Lo que devolvio el borrado, fila por fila.
+            results: {},
+            loading: false,
+            error: "",
+        });
+
+        onWillStart(() => this.loadPage(0));
+        onMounted(() => this.loadCounters());
+    }
+
+    get currentPage() {
+        return Math.floor(this.state.offset / this.state.limit) + 1;
+    }
+
+    get totalPages() {
+        return Math.max(1, Math.ceil(this.state.total / this.state.limit));
+    }
+
+    get hasPrevious() {
+        return this.state.offset > 0;
+    }
+
+    get hasNext() {
+        return this.state.offset + this.state.limit < this.state.total;
+    }
+
+    get rangeLabel() {
+        if (!this.state.total) {
+            return "0";
+        }
+        const from = this.state.offset + 1;
+        const to = Math.min(this.state.offset + this.state.limit, this.state.total);
+        return `${from}–${to} de ${this.formatUnits(this.state.total)}`;
+    }
+
+    get confirmed() {
+        const target = this.state.target;
+        return Boolean(
+            target && this.state.typed.trim().toUpperCase() === (target.sku || "").toUpperCase()
+        );
+    }
+
+    async loadCounters() {
+        try {
+            this.state.counters = await this.orm.call(MODEL, "get_publication_counters", []);
+        } catch (error) {
+            this.state.counters = {};
+        }
+    }
+
+    counterFor(status) {
+        return Number(this.state.counters[status]) || 0;
+    }
+
+    async loadPage(offset = this.state.offset) {
+        this.state.loading = true;
+        this.state.error = "";
+        try {
+            const filters = { status: this.state.status };
+            if (this.state.search.trim()) {
+                filters.sku = this.state.search.trim();
+            }
+            const result = await this.orm.call(MODEL, "get_publications_page", [], {
+                limit: this.state.limit,
+                offset,
+                filters,
+            });
+            this.state.items = result.items || [];
+            this.state.offset = result.pagination.offset || 0;
+            this.state.total = result.pagination.total || 0;
+        } catch (error) {
+            this.state.items = [];
+            this.state.total = 0;
+            this.state.error = error?.data?.message || "No se pudo leer el listado.";
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    setStatus(status) {
+        this.state.status = status;
+        this.cancel();
+        this.loadPage(0);
+    }
+
+    applySearch(ev) {
+        if (ev) {
+            ev.preventDefault();
+        }
+        this.loadPage(0);
+    }
+
+    resetSearch() {
+        this.state.search = "";
+        this.loadPage(0);
+    }
+
+    previousPage() {
+        if (this.hasPrevious) {
+            this.loadPage(Math.max(0, this.state.offset - this.state.limit));
+        }
+    }
+
+    nextPage() {
+        if (this.hasNext) {
+            this.loadPage(this.state.offset + this.state.limit);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    pick(row) {
+        this.state.target = row;
+        this.state.typed = "";
+    }
+
+    cancel() {
+        this.state.target = null;
+        this.state.typed = "";
+    }
+
+    resultFor(row) {
+        return this.state.results[row.id] || null;
+    }
+
+    async confirmDelete() {
+        if (!this.confirmed || this.state.busy) {
+            return;
+        }
+        const target = this.state.target;
+        this.state.busy = true;
+        try {
+            const result = await this.orm.call(MODEL, "delete_publication", [
+                target.id,
+                this.state.typed.trim(),
+            ]);
+            this.state.results[target.id] = result;
+            this.cancel();
+            this.notification.add(`${result.sku} se eliminó de MercadoLibre.`, { type: "success" });
+            // Lo que quedo a medias hay que accionarlo a mano; lo que sigue
+            // en el actualizador es lo urgente.
+            if (result.pendingSync.length) {
+                this.notification.add(
+                    `${result.sku} quedó en el actualizador: le van a seguir escribiendo precio y stock. Sacalo a mano.`,
+                    { type: "danger", sticky: true }
+                );
+            }
+            if (result.pendingMeli.length) {
+                this.notification.add(
+                    `MercadoLibre no cerró ${result.sku}: hay que darla de baja desde ML.`,
+                    { type: "warning", sticky: true }
+                );
+            }
+            await this.loadCounters();
+        } catch (error) {
+            this.notification.add(error?.data?.message || "No se pudo eliminar.", {
+                type: "danger",
+                sticky: true,
+            });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    publishAgain(sku) {
+        if (this.props.onPublishAgain) {
+            this.props.onPublishAgain(sku);
+        }
+    }
+
+    openMeli(itemId) {
+        if (itemId) {
+            window.open(`https://articulo.mercadolibre.com.ar/${itemId}`, "_blank", "noopener");
+        }
+    }
+
+    openLink(url) {
+        if (url) {
+            window.open(url, "_blank", "noopener");
+        }
+    }
+
+    // ------------------------------------------------------------------
+    formatMoney(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric) || !numeric) {
+            return "—";
+        }
+        return new Intl.NumberFormat("es-AR", {
+            style: "currency",
+            currency: "ARS",
+            maximumFractionDigits: 0,
+        }).format(numeric);
+    }
+
+    formatUnits(value) {
+        return new Intl.NumberFormat("es-AR").format(Number(value) || 0);
+    }
+
+    formatDate(value) {
+        if (!value) {
+            return "—";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+        return new Intl.DateTimeFormat("es-AR", { dateStyle: "short", timeStyle: "short" }).format(date);
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* El contenedor con las cuatro pestañas                                */
 /* ------------------------------------------------------------------ */
 class CoresaPublisherAction extends Component {
     static template = "coresa_meli_publisher.PublisherAction";
-    static components = { PublisherPreviewTab, PublisherQueueTab, PublicationsEmbedded, PublicationEditor };
+    static components = {
+        PublisherPreviewTab,
+        PublisherQueueTab,
+        PublicationsEmbedded,
+        PublisherDeleteTab,
+        PublicationEditor,
+    };
 
     setup() {
         this.state = useState({ tab: "preview", previewSku: "", editingId: 0 });
