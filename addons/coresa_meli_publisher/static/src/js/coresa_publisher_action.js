@@ -769,7 +769,8 @@ class PublisherDeleteTab extends Component {
     get runSummary() {
         const results = Object.values(this.state.results);
         return {
-            done: results.filter((one) => one.listings.every((listing) => listing.deleted)).length,
+            done: results.filter((one) => one.listings.length && one.listings.every((l) => l.deleted)).length,
+            discarded: results.filter((one) => one.discarded).length,
             partial: results.filter((one) => one.listings.some((listing) => !listing.deleted)).length,
         };
     }
@@ -837,6 +838,7 @@ class PublisherDeleteTab extends Component {
                     listings: [],
                     pendingMeli: [],
                     pendingSync: [],
+                    discarded: false,
                     error: error?.data?.message || "No se pudo eliminar.",
                 };
             }
@@ -846,12 +848,15 @@ class PublisherDeleteTab extends Component {
         run.active = false;
         run.current = 0;
         this.state.selected = {};
-        this.notification.add(
-            failed
-                ? `${run.done - failed} eliminadas, ${failed} con error.`
-                : `${run.done} eliminadas.`,
-            { type: failed ? "warning" : "success" }
-        );
+        const summary = this.runSummary;
+        const parts = [`${summary.done} eliminadas`];
+        if (summary.discarded) {
+            parts.push(`${summary.discarded} descartadas (no estaban en MercadoLibre)`);
+        }
+        if (failed) {
+            parts.push(`${failed} con error`);
+        }
+        this.notification.add(`${parts.join(", ")}.`, { type: failed ? "warning" : "success" });
         if (pendingSync) {
             this.notification.add(
                 `${pendingSync} quedaron en el actualizador: les van a seguir escribiendo precio y stock. Sacalas a mano.`,
@@ -894,7 +899,12 @@ class PublisherDeleteTab extends Component {
             ]);
             this.state.results[target.id] = result;
             this.cancel();
-            this.notification.add(`${result.sku} se eliminó de MercadoLibre.`, { type: "success" });
+            this.notification.add(
+                result.discarded
+                    ? `${result.sku} no estaba en MercadoLibre: queda descartada.`
+                    : `${result.sku} se eliminó de MercadoLibre.`,
+                { type: "success" }
+            );
             // Lo que quedo a medias hay que accionarlo a mano; lo que sigue
             // en el actualizador es lo urgente.
             if (result.pendingSync.length) {

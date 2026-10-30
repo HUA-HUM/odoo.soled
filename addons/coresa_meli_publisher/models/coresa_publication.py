@@ -1013,9 +1013,32 @@ class CoresaPublication(models.Model):
                 _("Para eliminarla hay que escribir el SKU tal cual: %s.") % current.get("sku")
             )
 
-        payload = self._api_request(
-            "DELETE", "/coresa/publications/%s" % publication_id, None
-        )
+        links = current.get("links") or {}
+        in_meli = bool(links.get("classicItemId") or links.get("premiumItemId") or links.get("permalink"))
+
+        try:
+            payload = self._api_request(
+                "DELETE", "/coresa/publications/%s" % publication_id, None
+            )
+        except UserError as error:
+            # Una publicacion que nunca llego a ML no tiene nada que cerrar:
+            # la API la rechaza con 400 y eso no es una falla del usuario.
+            # Se informa como descartada, con el estado que quedo del lado
+            # de Coresa, en vez de pintarlo de rojo.
+            if in_meli and not self._nothing_to_delete(error):
+                raise
+            after = self.get_publication(publication_id)
+            return {
+                "sku": current.get("sku") or "",
+                "listings": [],
+                "pendingMeli": [],
+                "pendingSync": [],
+                "discarded": True,
+                "message": str(error),
+                "status": after.get("status") or "",
+                "publication": after,
+            }
+
         listings = [
             {
                 "mla": entry.get("mla") or "",
@@ -1029,12 +1052,24 @@ class CoresaPublication(models.Model):
         return {
             "sku": (payload or {}).get("sku") or current.get("sku") or "",
             "listings": listings,
+            "discarded": False,
+            "message": "",
             # Lo que queda sin cerrar en ML o sin sacar del actualizador es
             # lo unico que hay que accionar a mano.
             "pendingMeli": [one for one in listings if not one["deleted"]],
             "pendingSync": [one for one in listings if not one["unlinked"]],
             "publication": self.get_publication(publication_id),
         }
+
+    @api.model
+    def _nothing_to_delete(self, error):
+        """Si el mensaje de la API dice que no hay nada que cerrar."""
+        message = str(error or "").lower()
+        return any(
+            hint in message
+            for hint in ("nada que eliminar", "no se publicó", "no se publico", "sin publicar",
+                         "nunca se creó", "nunca se creo", "no existe en mercadolibre")
+        )
 
     @api.model
     def publish_one(self, publication_id):

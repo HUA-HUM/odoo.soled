@@ -593,6 +593,13 @@
                         <!-- Resultado del borrado, fila por fila. -->
                         <div t-if="resultFor(row)" class="o_cpub_delresult">
                             <p t-if="resultFor(row).error" class="o_cpub_qerror" t-esc="resultFor(row).error"/>
+                            <!-- Nunca llego a ML: no hay item que cerrar. -->
+                            <div t-if="resultFor(row).discarded" class="o_cpub_delresult__row">
+                                <span class="o_cpub_pill is-gray">no estaba en MercadoLibre</span>
+                                <span t-if="resultFor(row).status === 'discarded'" class="o_cpub_pill is-green">descartada</span>
+                                <span t-else="" class="o_cpub_pill is-gray">quedó en <t t-esc="resultFor(row).status || '—'"/></span>
+                                <small t-if="resultFor(row).message" t-esc="resultFor(row).message"/>
+                            </div>
                             <div t-foreach="resultFor(row).listings" t-as="listing"
                                  t-key="listing.mla || listing_index" class="o_cpub_delresult__row">
                                 <code t-esc="listing.mla || '—'"/>
