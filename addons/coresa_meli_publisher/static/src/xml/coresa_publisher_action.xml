@@ -508,12 +508,75 @@
             </section>
 
             <t t-else="">
+                <section t-if="state.items.length" class="o_cpub_bulkbar">
+                    <label class="o_cpub_checkall">
+                        <input type="checkbox" t-att-checked="allSelected" t-att-disabled="state.run.active"
+                               t-on-change="toggleAll"/>
+                        <span>Seleccionar la página</span>
+                    </label>
+                    <span t-if="selectedRows.length"><b t-esc="selectedRows.length"/> seleccionadas</span>
+                    <button type="button" class="o_cedit_delete" t-att-disabled="state.run.active || !selectedRows.length"
+                            t-on-click="openBulk">
+                        <i class="fa fa-trash-o"/> Eliminar seleccionadas
+                    </button>
+                </section>
+
+                <!-- El lote: una sola confirmación, con todo lo que se va a cerrar a la vista. -->
+                <section t-if="state.bulkOpen" class="o_cedit_danger">
+                    <strong><i class="fa fa-exclamation-triangle"/> Vas a eliminar <t t-esc="selectedRows.length"/> publicaciones</strong>
+                    <p>
+                        MercadoLibre cierra cada ítem y un ítem cerrado no se puede reactivar. Se mandan de a una
+                        y se ve el avance; se puede cortar, pero lo ya eliminado no vuelve.
+                    </p>
+                    <ul class="o_cpub_bulklist">
+                        <li t-foreach="selectedRows" t-as="row" t-key="row.id">
+                            <code t-esc="row.sku"/>
+                            <span t-esc="row.classicItemId || 'sin MLA'"/>
+                            <small t-esc="row.title"/>
+                        </li>
+                    </ul>
+                    <div class="o_cedit_danger__form">
+                        <label>
+                            <span>Escribí <b>ELIMINAR</b> para confirmar</span>
+                            <input type="text" class="o_cedit_input" t-model="state.bulkTyped" placeholder="ELIMINAR"/>
+                        </label>
+                        <button type="button" class="o_cedit_delete is-solid" t-att-disabled="!bulkConfirmed"
+                                t-on-click="runBulk">
+                            <i class="fa fa-trash-o"/> Eliminar las <t t-esc="selectedRows.length"/>
+                        </button>
+                        <button type="button" class="o_cedit_ghost" t-on-click="closeBulk">Cancelar</button>
+                    </div>
+                </section>
+
+                <section t-if="state.run.total" class="o_cpub_run">
+                    <div class="o_cpub_run__head">
+                        <strong t-if="state.run.active">Eliminando <t t-esc="state.run.done + 1"/> de <t t-esc="state.run.total"/>...</strong>
+                        <strong t-else="">Listo: <t t-esc="state.run.done"/> procesadas</strong>
+                        <button t-if="state.run.active" type="button" class="o_cpub_more" t-att-disabled="state.run.cancel"
+                                t-on-click="cancelRun">
+                            <t t-esc="state.run.cancel ? 'Cortando...' : 'Cortar'"/>
+                        </button>
+                    </div>
+                    <div class="o_cpub_bar"><span t-attf-style="width: #{progressPercent}%"/></div>
+                    <small t-if="state.run.active">Cada una cierra el ítem en MercadoLibre y lo saca del actualizador. No cierres la pestaña.</small>
+                    <small t-else="">El listado se actualiza cuando toques Buscar: las eliminadas ya no van a estar.</small>
+                </section>
+
                 <section t-if="state.items.length" class="o_cpub_dellist">
                     <article t-foreach="state.items" t-as="row" t-key="row.id"
                              t-attf-class="o_cpub_delrow #{state.target &amp;&amp; state.target.id === row.id ? 'is-target' : ''} #{resultFor(row) ? 'is-done' : ''}">
                         <div class="o_cpub_delrow__head">
+                            <label class="o_cpub_pick" t-on-click.stop="() => {}">
+                                <input type="checkbox" t-att-checked="state.selected[row.id]"
+                                       t-att-disabled="state.run.active || resultFor(row)"
+                                       t-on-change="() => this.toggle(row)"/>
+                            </label>
                             <code t-esc="row.sku"/>
                             <strong t-esc="row.title || 'Sin título'"/>
+                            <span t-if="state.run.current === row.id" class="o_cpub_resu is-publishing">
+                                <i class="fa fa-spinner fa-spin"/> Eliminando
+                            </span>
+                            <span t-elif="state.run.active &amp;&amp; state.selected[row.id]" class="o_cpub_resu is-queued">En cola</span>
                         </div>
 
                         <div class="o_cpub_delrow__meta">
@@ -529,6 +592,7 @@
 
                         <!-- Resultado del borrado, fila por fila. -->
                         <div t-if="resultFor(row)" class="o_cpub_delresult">
+                            <p t-if="resultFor(row).error" class="o_cpub_qerror" t-esc="resultFor(row).error"/>
                             <div t-foreach="resultFor(row).listings" t-as="listing"
                                  t-key="listing.mla || listing_index" class="o_cpub_delresult__row">
                                 <code t-esc="listing.mla || '—'"/>

@@ -1423,3 +1423,43 @@
 
 .o_cpub_apply:hover { background: #22455b; }
 .o_cpub_apply:disabled { background: #b9c6cf; border-color: #b9c6cf; cursor: default; }
+
+/* Eliminar en lote. */
+.o_cpub_bulkbar {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e3e9ee;
+    border-radius: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    gap: 14px;
+    padding: 11px 16px;
+}
+
+.o_cpub_bulkbar b { color: #17303f; }
+.o_cpub_bulkbar .o_cedit_delete { margin-left: auto; }
+
+.o_cpub_bulklist {
+    list-style: none;
+    margin: 0 0 14px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.o_cpub_bulklist li {
+    align-items: baseline;
+    border-bottom: 1px solid rgba(180, 35, 24, 0.12);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 5px 0;
+}
+
+.o_cpub_bulklist li:last-child { border-bottom: 0; }
+.o_cpub_bulklist code { background: rgba(255, 255, 255, 0.7); border-radius: 5px; font-size: 11.5px; padding: 2px 7px; }
+.o_cpub_bulklist span { color: #7a3a33; font-size: 11.5px; }
+.o_cpub_bulklist small { color: #9a6258; flex: 1 1 100%; font-size: 11px; }
+
+.o_cpub_delrow__head .o_cpub_pick { margin-right: 2px; }

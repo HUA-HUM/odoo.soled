@@ -631,6 +631,12 @@ class PublisherDeleteTab extends Component {
             target: null,
             typed: "",
             busy: false,
+            // Para el lote: que filas se eligieron y la palabra de confirmacion.
+            selected: {},
+            bulkOpen: false,
+            bulkTyped: "",
+            // El envio: de a una, igual que al publicar.
+            run: { active: false, cancel: false, done: 0, total: 0, current: 0 },
             // Lo que devolvio el borrado, fila por fila.
             results: {},
             loading: false,
@@ -738,6 +744,126 @@ class PublisherDeleteTab extends Component {
         if (this.hasNext) {
             this.loadPage(this.state.offset + this.state.limit);
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Lote: se eligen varias y se mandan de a una.
+    // ------------------------------------------------------------------
+    get selectedRows() {
+        return this.state.items.filter((row) => this.state.selected[row.id]);
+    }
+
+    get allSelected() {
+        return this.state.items.length > 0 && this.selectedRows.length === this.state.items.length;
+    }
+
+    get bulkConfirmed() {
+        return this.state.bulkTyped.trim().toUpperCase() === "ELIMINAR";
+    }
+
+    get progressPercent() {
+        const run = this.state.run;
+        return run.total ? Math.round((run.done / run.total) * 100) : 0;
+    }
+
+    get runSummary() {
+        const results = Object.values(this.state.results);
+        return {
+            done: results.filter((one) => one.listings.every((listing) => listing.deleted)).length,
+            partial: results.filter((one) => one.listings.some((listing) => !listing.deleted)).length,
+        };
+    }
+
+    toggle(row) {
+        if (this.state.run.active) {
+            return;
+        }
+        this.state.selected[row.id] = !this.state.selected[row.id];
+    }
+
+    toggleAll() {
+        if (this.state.run.active) {
+            return;
+        }
+        const select = !this.allSelected;
+        for (const row of this.state.items) {
+            this.state.selected[row.id] = select;
+        }
+    }
+
+    openBulk() {
+        if (!this.selectedRows.length) {
+            this.notification.add("Elegí al menos una publicación.", { type: "warning" });
+            return;
+        }
+        this.cancel();
+        this.state.bulkOpen = true;
+        this.state.bulkTyped = "";
+    }
+
+    closeBulk() {
+        this.state.bulkOpen = false;
+        this.state.bulkTyped = "";
+    }
+
+    // De a una, esperando cada respuesta: cada borrado toca MercadoLibre y
+    // el actualizador, y conviene ver cual fallo.
+    async runBulk() {
+        if (!this.bulkConfirmed || this.state.run.active) {
+            return;
+        }
+        const rows = this.selectedRows.slice();
+        const run = this.state.run;
+        Object.assign(run, { active: true, cancel: false, done: 0, total: rows.length, current: 0 });
+        this.state.bulkOpen = false;
+        let pendingSync = 0;
+        let failed = 0;
+
+        for (const row of rows) {
+            if (run.cancel) {
+                break;
+            }
+            run.current = row.id;
+            try {
+                // El SKU sale del listado, no de lo que se escribio: si la
+                // lista quedo vieja y ese id ya es otro SKU, la API lo frena.
+                const result = await this.orm.call(MODEL, "delete_publication", [row.id, row.sku]);
+                this.state.results[row.id] = result;
+                pendingSync += result.pendingSync.length ? 1 : 0;
+            } catch (error) {
+                failed += 1;
+                this.state.results[row.id] = {
+                    sku: row.sku,
+                    listings: [],
+                    pendingMeli: [],
+                    pendingSync: [],
+                    error: error?.data?.message || "No se pudo eliminar.",
+                };
+            }
+            run.done += 1;
+        }
+
+        run.active = false;
+        run.current = 0;
+        this.state.selected = {};
+        this.notification.add(
+            failed
+                ? `${run.done - failed} eliminadas, ${failed} con error.`
+                : `${run.done} eliminadas.`,
+            { type: failed ? "warning" : "success" }
+        );
+        if (pendingSync) {
+            this.notification.add(
+                `${pendingSync} quedaron en el actualizador: les van a seguir escribiendo precio y stock. Sacalas a mano.`,
+                { type: "danger", sticky: true }
+            );
+        }
+        await this.loadCounters();
+    }
+
+    cancelRun() {
+        this.state.run.cancel = true;
+        this.notification.add("Se corta cuando termine la que está en curso.", { type: "info" });
     }
 
     // ------------------------------------------------------------------
