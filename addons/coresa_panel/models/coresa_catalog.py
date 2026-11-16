@@ -259,13 +259,13 @@ class CoresaCatalog(models.Model):
 
     # ------------------------------------------------------------------
     @api.model
-    @api.model
     def _catalog_total(self):
         """Cuantos productos hay ahora. Una fila alcanza: el total viene en
         la paginacion."""
         payload = self._api_get("/internal/coresa/products", {"limit": 1, "offset": 0}) or {}
         return self._as_int(((payload or {}).get("pagination") or {}).get("total"))
 
+    @api.model
     def get_catalog_facets(self, force=False):
         """Marcas con su conteo.
 
