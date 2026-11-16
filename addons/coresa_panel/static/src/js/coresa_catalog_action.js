@@ -18,6 +18,7 @@ class CoresaCatalogAction extends Component {
         this.state = useState({
             items: [],
             brands: [],
+            brandsAt: "",
             total: 0,
             limit: 48,
             offset: 0,
@@ -90,11 +91,24 @@ class CoresaCatalogAction extends Component {
         return Object.values(this.state.filters).some((value) => Boolean(value));
     }
 
-    async loadBrands() {
+    // Recorrer el catalogo entero tarda ~20s: el boton esta para cuando
+    // Coresa suma marcas y no se quiere esperar al proximo recalculo.
+    async refreshBrands() {
+        await this.loadBrands(true);
+        this.notification.add(
+            this.state.brands.length
+                ? `${this.state.brands.length} marcas.`
+                : "No se pudieron leer las marcas.",
+            { type: this.state.brands.length ? "success" : "warning" }
+        );
+    }
+
+    async loadBrands(force = false) {
         this.state.loadingBrands = true;
         try {
-            const facets = await this.orm.call(MODEL, "get_catalog_facets", []);
+            const facets = await this.orm.call(MODEL, "get_catalog_facets", [], { force });
             this.state.brands = facets.brands || [];
+            this.state.brandsAt = facets.computedAt || "";
         } catch (error) {
             this.state.brands = [];
         } finally {

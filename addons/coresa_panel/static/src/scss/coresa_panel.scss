@@ -1511,3 +1511,17 @@
 .o_cupd_pill.is-amber { background: #fdf3e6; color: #b45309; }
 .o_cupd_pill.is-red { background: #fadedb; color: #b42318; }
 .o_cupd_pill.is-gray { background: #eef2f5; color: #52626d; }
+
+/* Recalcular las marcas: el catálogo crece y aparecen marcas nuevas. */
+.o_ccat_refresh {
+    background: transparent;
+    border: 0;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 10px;
+    margin-left: 4px;
+    padding: 0 2px;
+}
+
+.o_ccat_refresh:hover { color: #17303f; }
+.o_ccat_refresh:disabled { color: #cbd5e1; cursor: default; }

@@ -259,16 +259,36 @@ class CoresaCatalog(models.Model):
 
     # ------------------------------------------------------------------
     @api.model
+    @api.model
+    def _catalog_total(self):
+        """Cuantos productos hay ahora. Una fila alcanza: el total viene en
+        la paginacion."""
+        payload = self._api_get("/internal/coresa/products", {"limit": 1, "offset": 0}) or {}
+        return self._as_int(((payload or {}).get("pagination") or {}).get("total"))
+
     def get_catalog_facets(self, force=False):
-        """Marcas con su conteo. Recorrer 5.400 filas tarda, asi que el
-        resultado se cachea: el panel lo pide aparte del listado."""
+        """Marcas con su conteo.
+
+        Recorrer las 6.300 filas tarda unos 20 segundos, asi que el
+        resultado se cachea. Ademas del vencimiento por tiempo se compara
+        la cantidad de productos: cuando Coresa suma articulos aparecen
+        marcas nuevas, y esperar 12 horas para poder filtrarlas no sirve.
+        """
         param = self.env["ir.config_parameter"].sudo()
         cached = param.get_param(self.FACETS_PARAM, "")
+        current_total = 0
         if cached and not force:
+            try:
+                current_total = self._catalog_total()
+            except UserError:
+                # Si la API no responde, mejor el cache viejo que nada.
+                current_total = 0
             try:
                 data = json.loads(cached)
                 computed = datetime.fromisoformat(data.get("computedAt"))
-                if datetime.utcnow() - computed < timedelta(hours=self.FACETS_TTL_HOURS):
+                fresh = datetime.utcnow() - computed < timedelta(hours=self.FACETS_TTL_HOURS)
+                same_catalog = not current_total or self._as_int(data.get("total")) == current_total
+                if fresh and same_catalog:
                     return data
             except (ValueError, TypeError):
                 pass

@@ -17,7 +17,14 @@
                         <input type="text" placeholder="SKU, descripción o marca" t-model="state.filters.search" t-att-disabled="state.loading"/>
                     </label>
                     <label class="o_ccat_field">
-                        <span>Marca</span>
+                        <span>
+                            Marca
+                            <button type="button" class="o_ccat_refresh" t-att-disabled="state.loadingBrands"
+                                    title="Volver a leer las marcas del catálogo"
+                                    t-on-click.stop.prevent="refreshBrands">
+                                <i t-attf-class="fa #{state.loadingBrands ? 'fa-spinner fa-spin' : 'fa-refresh'}"/>
+                            </button>
+                        </span>
                         <select t-model="state.filters.marca" t-on-change="selectBrand" t-att-disabled="state.loading">
                             <option value="">Todas</option>
                             <option t-foreach="state.brands" t-as="brand" t-key="brand.value" t-att-value="brand.value">
